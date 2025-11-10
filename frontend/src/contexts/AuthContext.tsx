@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -12,8 +13,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const DUMMY_USERNAME = 'admin';
 const DUMMY_PASSWORD = 'admin123';
 
+// LocalStorage key for auth state
+const AUTH_STORAGE_KEY = 'gym-app-auth';
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  // Initialize auth state from localStorage
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+    return stored === 'true';
+  });
+
+  // Persist auth state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(AUTH_STORAGE_KEY, String(isAuthenticated));
+  }, [isAuthenticated]);
 
   const login = (username: string, password: string): boolean => {
     if (username === DUMMY_USERNAME && password === DUMMY_PASSWORD) {
@@ -25,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setIsAuthenticated(false);
+    localStorage.removeItem(AUTH_STORAGE_KEY);
   };
 
   return (

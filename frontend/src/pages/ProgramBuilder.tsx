@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './ProgramBuilder.css';
 
 interface Movement {
@@ -17,10 +18,13 @@ interface Movement {
 type Step = 'movements' | 'oneRM' | 'eightyPercentTest' | 'fiveRMTest' | 'program';
 
 export default function ProgramBuilder() {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState<Step>('movements');
   const [movements, setMovements] = useState<Movement[]>([]);
   const [selectedMovement, setSelectedMovement] = useState<Movement | null>(null);
   const [newMovementName, setNewMovementName] = useState('');
+  const [selectedWeek, setSelectedWeek] = useState<number | 'all'>(1);
+  const [lastSingleWeek, setLastSingleWeek] = useState<number>(1);
 
   // Reference tables for calculations
   const weeklyJumpTable: { [key: number]: number } = {
@@ -39,7 +43,7 @@ export default function ProgramBuilder() {
 
   const addMovement = (name: string) => {
     if (movements.length >= 4) {
-      alert('Maximum 4 movements allowed');
+      alert(t('programBuilder.step1.maxMovements'));
       return;
     }
     const newMovement: Movement = {
@@ -65,33 +69,13 @@ export default function ProgramBuilder() {
     setMovements(movements.map(m => m.id === id ? { ...m, ...updates } : m));
   };
 
-  const calculateEightyPercent = (movement: Movement) => {
-    const eightyPercent = Math.round(movement.oneRM * 0.8);
-    updateMovement(movement.id, { eightyPercentRM: eightyPercent });
-  };
-
-  const calculateJumpAndRampUp = (movement: Movement) => {
-    const reps = movement.maxRepsAt80;
-    const weeklyJumpPercent = weeklyJumpTable[reps] || 5;
-    const weeklyJumpLbs = Math.round((movement.oneRM * weeklyJumpPercent) / 100);
-    const rampUpPercent = rampUpTable[reps] || 55;
-    const rampUpBaseLbs = Math.round((movement.oneRM * rampUpPercent) / 100);
-
-    updateMovement(movement.id, {
-      weeklyJumpPercent,
-      weeklyJumpLbs,
-      rampUpPercent,
-      rampUpBaseLbs
-    });
-  };
-
   const renderStepIndicator = () => {
     const steps = [
-      { key: 'movements', label: 'Movements' },
-      { key: 'oneRM', label: 'Test 1RM' },
-      { key: 'eightyPercentTest', label: 'Test 80%' },
-      { key: 'fiveRMTest', label: 'Test 5RM' },
-      { key: 'program', label: 'Program' }
+      { key: 'movements', label: t('programBuilder.steps.movements') },
+      { key: 'oneRM', label: t('programBuilder.steps.oneRM') },
+      { key: 'eightyPercentTest', label: t('programBuilder.steps.eightyPercent') },
+      { key: 'fiveRMTest', label: t('programBuilder.steps.fiveRM') },
+      { key: 'program', label: t('programBuilder.steps.program') }
     ];
 
     return (
@@ -112,18 +96,18 @@ export default function ProgramBuilder() {
   const renderMovementsStep = () => {
     return (
       <div className="step-content">
-        <h2>Step #1: Select Movements</h2>
+        <h2>{t('programBuilder.step1.title')}</h2>
         <p className="step-description">
-          Select up to 4 movements for your training program
+          {t('programBuilder.step1.description')}
         </p>
 
         <div className="movement-input">
           <input
             type="text"
-            placeholder="Movement name (e.g., Squat, Bench Press)"
+            placeholder={t('programBuilder.step1.placeholder')}
             value={newMovementName}
             onChange={(e) => setNewMovementName(e.target.value)}
-            onKeyPress={(e) => {
+            onKeyDown={(e) => {
               if (e.key === 'Enter' && newMovementName.trim()) {
                 addMovement(newMovementName.trim());
                 setNewMovementName('');
@@ -139,7 +123,7 @@ export default function ProgramBuilder() {
             }}
             disabled={movements.length >= 4}
           >
-            Add
+            {t('programBuilder.step1.addButton')}
           </button>
         </div>
 
@@ -163,7 +147,7 @@ export default function ProgramBuilder() {
             onClick={() => setCurrentStep('oneRM')}
             disabled={movements.length === 0}
           >
-            Next: Test 1RM
+            {t('programBuilder.step1.nextButton')}
           </button>
         </div>
       </div>
@@ -178,14 +162,14 @@ export default function ProgramBuilder() {
       <div className="step-content">
         <div className="step-header-with-progress">
           <div>
-            <h2>Step #1: 1RM Test</h2>
+            <h2>{t('programBuilder.step2.title')}</h2>
             <p className="step-description">
-              Test the 1RM for all movements you want to include in the plan (Maximum 4 movements)
+              {t('programBuilder.step2.description')}
             </p>
           </div>
           <div className="progress-badge">
             <span className="progress-count">{completedTests}/{totalTests}</span>
-            <span className="progress-label">Completed</span>
+            <span className="progress-label">{t('programBuilder.step2.completed')}</span>
           </div>
         </div>
 
@@ -193,29 +177,28 @@ export default function ProgramBuilder() {
         <div className="instructions-box">
           <div className="instruction-header">
             <span className="instruction-icon">📋</span>
-            <h3>What is 1RM?</h3>
+            <h3>{t('programBuilder.step2.whatIs1RM')}</h3>
           </div>
           <p>
-            The <strong>1RM (One Rep Max)</strong> is the maximum weight you can lift
-            in a specific movement for a single repetition with perfect technique.
+            {t('programBuilder.step2.oneRMDefinition')}
           </p>
 
           <div className="instruction-tips">
-            <h4>Safety Tips:</h4>
+            <h4>{t('programBuilder.step2.safetyTips')}</h4>
             <ul>
-              <li>Perform an adequate warm-up before each test</li>
-              <li>Increase weight progressively to find your 1RM</li>
-              <li>Maintain perfect technique at all times</li>
-              <li>Use a spotter or assistant when necessary</li>
-              <li>Rest 3-5 minutes between attempts</li>
-              <li>When in doubt, be conservative</li>
+              <li>{t('programBuilder.step2.tip1')}</li>
+              <li>{t('programBuilder.step2.tip2')}</li>
+              <li>{t('programBuilder.step2.tip3')}</li>
+              <li>{t('programBuilder.step2.tip4')}</li>
+              <li>{t('programBuilder.step2.tip5')}</li>
+              <li>{t('programBuilder.step2.tip6')}</li>
             </ul>
           </div>
 
           <div className="instruction-example">
-            <strong>Example progression to find 1RM:</strong>
+            <strong>{t('programBuilder.step2.exampleProgression')}</strong>
             <div className="example-progression">
-              <span>Warm-up → 135 lbs x 10</span>
+              <span>{t('programBuilder.step2.warmup')} → 135 lbs x 10</span>
               <span>→ 225 lbs x 5</span>
               <span>→ 315 lbs x 3</span>
               <span>→ 405 lbs x 1</span>
@@ -226,7 +209,7 @@ export default function ProgramBuilder() {
 
         {/* Test Inputs */}
         <div className="test-section">
-          <h3 className="section-title">Enter your 1RM results</h3>
+          <h3 className="section-title">{t('programBuilder.step2.enterResults')}</h3>
           <div className="movements-grid">
             {movements.map((movement, index) => (
               <div
@@ -240,7 +223,7 @@ export default function ProgramBuilder() {
                 </div>
 
                 <div className="input-group">
-                  <label>{t('programBuilder.step2.maxWeightLifted')} Maximum weight lifted (1RM)</label>
+                  <label>{t('programBuilder.step2.maxWeightLifted')}</label>
                   <div className="input-with-unit">
                     <input
                       type="number"
@@ -253,7 +236,7 @@ export default function ProgramBuilder() {
                           eightyPercentRM: eightyPercent
                         });
                       }}
-                      placeholder="450"
+                      placeholder={t('programBuilder.step2.placeholder')}
                       min="0"
                       step="5"
                     />
@@ -264,11 +247,11 @@ export default function ProgramBuilder() {
                 {movement.oneRM > 0 && (
                   <div className="calculation-result">
                     <div className="result-row">
-                      <span className="result-label">80% of 1RM:</span>
+                      <span className="result-label">{t('programBuilder.step2.eightyPercentOf1RM')}</span>
                       <strong className="result-value">{movement.eightyPercentRM} lbs</strong>
                     </div>
                     <p className="result-note">
-                      This weight will be used in the next test
+                      {t('programBuilder.step2.nextTestNote')}
                     </p>
                   </div>
                 )}
@@ -276,7 +259,7 @@ export default function ProgramBuilder() {
                 {movement.oneRM === 0 && (
                   <div className="pending-message">
                     <span className="pending-icon">⏳</span>
-                    <span>Pending input</span>
+                    <span>{t('programBuilder.step2.pendingInput')}</span>
                   </div>
                 )}
               </div>
@@ -290,14 +273,13 @@ export default function ProgramBuilder() {
             {completedTests === totalTests ? (
               <div className="success-message">
                 <span className="success-icon">✓</span>
-                <span>All tests completed! You can continue to the next step.</span>
+                <span>{t('programBuilder.step2.allCompleted')}</span>
               </div>
             ) : (
               <div className="info-message">
                 <span className="info-icon">ℹ️</span>
                 <span>
-                  You have completed {completedTests} of {totalTests} tests.
-                  Enter the remaining values to continue.
+                  {t('programBuilder.step2.progress', { completed: completedTests, total: totalTests })}
                 </span>
               </div>
             )}
@@ -306,14 +288,14 @@ export default function ProgramBuilder() {
 
         <div className="step-actions">
           <button className="secondary-btn" onClick={() => setCurrentStep('movements')}>
-            ← Back
+            {t('programBuilder.step2.backButton')}
           </button>
           <button
             className="primary-btn"
             onClick={() => setCurrentStep('eightyPercentTest')}
             disabled={movements.some(m => m.oneRM === 0)}
           >
-            Next: Test 80% →
+            {t('programBuilder.step2.nextButton')}
           </button>
         </div>
       </div>
@@ -323,9 +305,9 @@ export default function ProgramBuilder() {
   const renderEightyPercentStep = () => {
     return (
       <div className="step-content">
-        <h2>Step #2: Test with 80% of 1RM</h2>
+        <h2>{t('programBuilder.step3.title')}</h2>
         <p className="step-description">
-          After one week, perform maximum reps with 80% of your 1RM
+          {t('programBuilder.step3.description')}
         </p>
 
         <div className="movements-grid">
@@ -337,7 +319,7 @@ export default function ProgramBuilder() {
                 <strong>{movement.eightyPercentRM} lbs</strong>
               </div>
               <div className="input-group">
-                <label>Maximum reps performed</label>
+                <label>{t('programBuilder.step3.maxRepsPerformed')}</label>
                 <input
                   type="number"
                   value={movement.maxRepsAt80 || ''}
@@ -362,7 +344,7 @@ export default function ProgramBuilder() {
                       updateMovement(movement.id, { maxRepsAt80: value });
                     }
                   }}
-                  placeholder="4"
+                  placeholder={t('programBuilder.step3.placeholder')}
                   min="1"
                   max="20"
                 />
@@ -370,11 +352,11 @@ export default function ProgramBuilder() {
               {movement.maxRepsAt80 > 0 && (
                 <div className="calculations">
                   <div className="calc-item">
-                    <span>Weekly Jump:</span>
+                    <span>{t('programBuilder.step3.weeklyJump')}</span>
                     <strong>{movement.weeklyJumpPercent}% ({movement.weeklyJumpLbs} lbs)</strong>
                   </div>
                   <div className="calc-item">
-                    <span>Ramp Up Base:</span>
+                    <span>{t('programBuilder.step3.rampUpBase')}</span>
                     <strong>{movement.rampUpPercent}% ({movement.rampUpBaseLbs} lbs)</strong>
                   </div>
                 </div>
@@ -385,14 +367,14 @@ export default function ProgramBuilder() {
 
         <div className="step-actions">
           <button className="secondary-btn" onClick={() => setCurrentStep('oneRM')}>
-            ← Back
+            {t('programBuilder.step3.backButton')}
           </button>
           <button
             className="primary-btn"
             onClick={() => setCurrentStep('fiveRMTest')}
             disabled={movements.some(m => m.maxRepsAt80 === 0)}
           >
-            Next: Test 5RM →
+            {t('programBuilder.step3.nextButton')}
           </button>
         </div>
       </div>
@@ -402,9 +384,9 @@ export default function ProgramBuilder() {
   const renderFiveRMTest = () => {
     return (
       <div className="step-content">
-        <h2>Step #3: 5RM Test</h2>
+        <h2>{t('programBuilder.step4.title')}</h2>
         <p className="step-description">
-          Select a movement to perform the progressive 5-rep test
+          {t('programBuilder.step4.description')}
         </p>
 
         <div className="movements-selection">
@@ -421,43 +403,43 @@ export default function ProgramBuilder() {
 
         {selectedMovement && (
           <div className="test-protocol">
-            <h3>Test Protocol - {selectedMovement.name}</h3>
+            <h3>{t('programBuilder.step4.testProtocol')} - {selectedMovement.name}</h3>
 
             <div className="test-info">
               <div className="info-card">
-                <label>Base Weight (Ramp Up)</label>
+                <label>{t('programBuilder.step4.baseWeight')}</label>
                 <strong>{selectedMovement.rampUpBaseLbs} lbs</strong>
               </div>
               <div className="info-card">
-                <label>Increment per Set</label>
+                <label>{t('programBuilder.step4.incrementPerSet')}</label>
                 <strong>{selectedMovement.weeklyJumpLbs} lbs</strong>
               </div>
             </div>
 
             <div className="test-instructions">
-              <h4>Instructions:</h4>
+              <h4>{t('programBuilder.step4.instructions')}</h4>
               <ol>
-                <li>Do 5 reps with the Base Ramp Up ({selectedMovement.rampUpBaseLbs} lbs)</li>
-                <li>Rest at least 3 minutes</li>
-                <li>Add {selectedMovement.weeklyJumpLbs} lbs</li>
-                <li>Do 5 reps</li>
-                <li>Repeat steps 2, 3 and 4 until unable to complete 5 reps with perfect technique</li>
+                <li>{t('programBuilder.step4.instruction1', { weight: selectedMovement.rampUpBaseLbs })}</li>
+                <li>{t('programBuilder.step4.instruction2')}</li>
+                <li>{t('programBuilder.step4.instruction3', { weight: selectedMovement.weeklyJumpLbs })}</li>
+                <li>{t('programBuilder.step4.instruction4')}</li>
+                <li>{t('programBuilder.step4.instruction5')}</li>
               </ol>
               <p className="note">
-                <strong>Note:</strong> The heaviest set of 5 reps is your 5x5 target in the program
+                <strong>{t('programBuilder.step4.note')}</strong> {t('programBuilder.step4.noteText')}
               </p>
             </div>
 
             <div className="test-progression">
-              <h4>Suggested Progression:</h4>
+              <h4>{t('programBuilder.step4.suggestedProgression')}</h4>
               <div className="progression-list">
                 {Array.from({ length: 8 }, (_, i) => {
                   const weight = selectedMovement.rampUpBaseLbs + (i * selectedMovement.weeklyJumpLbs);
                   return (
                     <div key={i} className="progression-item">
-                      <span className="set-number">Set {i + 1}</span>
+                      <span className="set-number">{t('programBuilder.step4.set')} {i + 1}</span>
                       <span className="weight">{weight} lbs x 5</span>
-                      {i < 7 && <span className="rest">rest 3 min</span>}
+                      {i < 7 && <span className="rest">{t('programBuilder.step4.rest')}</span>}
                     </div>
                   );
                 })}
@@ -465,7 +447,7 @@ export default function ProgramBuilder() {
             </div>
 
             <div className="target-input">
-              <label>5x5 target achieved (weight of last set completed with 5 reps):</label>
+              <label>{t('programBuilder.step4.targetAchieved')}</label>
               <div className="target-input-group">
                 <input
                   type="number"
@@ -476,7 +458,7 @@ export default function ProgramBuilder() {
                     // Update selectedMovement to keep it in sync
                     setSelectedMovement({ ...selectedMovement, targetWeight: value });
                   }}
-                  placeholder="395"
+                  placeholder={t('programBuilder.step4.placeholder')}
                   min="0"
                   step="5"
                 />
@@ -488,14 +470,56 @@ export default function ProgramBuilder() {
 
         <div className="step-actions">
           <button className="secondary-btn" onClick={() => setCurrentStep('eightyPercentTest')}>
-            ← Back
+            {t('programBuilder.step4.backButton')}
           </button>
           <button
             className="primary-btn"
             onClick={() => setCurrentStep('program')}
             disabled={movements.some(m => m.targetWeight === 0)}
           >
-            Generate Program →
+            {t('programBuilder.step4.nextButton')}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderWeekTabs = () => {
+    const handleWeekClick = (week: number) => {
+      setLastSingleWeek(week);
+      setSelectedWeek(week);
+    };
+
+    const handleViewAllToggle = () => {
+      if (selectedWeek === 'all') {
+        // Go back to the last single week viewed
+        setSelectedWeek(lastSingleWeek);
+      } else {
+        // Save current week and switch to all
+        setLastSingleWeek(selectedWeek as number);
+        setSelectedWeek('all');
+      }
+    };
+
+    return (
+      <div className="week-tabs-container">
+        <div className="week-tabs">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((week) => (
+            <button
+              key={week}
+              className={`week-tab ${selectedWeek === week ? 'active' : ''}`}
+              onClick={() => handleWeekClick(week)}
+            >
+              {t('programBuilder.step5.week')} {week}
+            </button>
+          ))}
+          <button
+            className={`week-tab view-all ${selectedWeek === 'all' ? 'active' : ''}`}
+            onClick={handleViewAllToggle}
+          >
+            {selectedWeek === 'all'
+              ? `← ${t('programBuilder.step5.week')} ${lastSingleWeek}`
+              : 'View All'}
           </button>
         </div>
       </div>
@@ -503,87 +527,436 @@ export default function ProgramBuilder() {
   };
 
   const renderProgramStep = () => {
+    // Helper to calculate light day weight (80% of heavy day)
+    const getLightWeight = (heavyWeight: number) => Math.round(heavyWeight * 0.8);
+
     return (
       <div className="step-content">
-        <h2>Generated Program</h2>
+        <h2>{t('programBuilder.step5.title')}</h2>
         <p className="step-description">
-          8-week linear strength program
+          {t('programBuilder.step5.description')}
         </p>
 
-        {movements.map((movement) => (
-          <div key={movement.id} className="program-card">
-            <h3>{movement.name}</h3>
+        {renderWeekTabs()}
 
-            <div className="program-summary-detailed">
-              <h4>Program Summary</h4>
+        <div className="program-info-box">
+          <h3>Session Structure</h3>
+          <p>Each exercise is performed 4 times per week, alternating between <strong>HEAVY</strong> (uppercase) and <strong>LIGHT</strong> (lowercase) days</p>
+          <ul>
+            <li><strong>Session 1:</strong> All exercises HEAVY</li>
+            <li><strong>Session 2:</strong> All exercises light (80% of heavy weight)</li>
+            <li><strong>Session 3:</strong> All exercises HEAVY</li>
+            <li><strong>Session 4:</strong> All exercises light (80% of heavy weight)</li>
+          </ul>
+          <p className="note">Pattern for each exercise: HEAVY - light - HEAVY - light</p>
+        </div>
+
+        {/* Movement Summaries */}
+        <div className="movements-summary">
+          <h3>{t('programBuilder.step5.programSummary')}</h3>
+          {movements.map((movement) => (
+            <div key={movement.id} className="program-card">
+              <h4>{movement.name}</h4>
               <div className="summary-grid">
                 <div className="summary-detail-item">
-                  <span className="summary-label">Available Weight Jump</span>
-                  <span className="summary-value">5 lbs</span>
-                </div>
-                <div className="summary-detail-item">
-                  <span className="summary-label">1RM</span>
+                  <span className="summary-label">{t('programBuilder.step5.oneRM')}</span>
                   <span className="summary-value">{movement.oneRM} lbs</span>
                 </div>
                 <div className="summary-detail-item">
-                  <span className="summary-label">80% 1RM</span>
-                  <span className="summary-value">{movement.eightyPercentRM} lbs</span>
-                </div>
-                <div className="summary-detail-item">
-                  <span className="summary-label">RM @80% 1RM</span>
-                  <span className="summary-value">{movement.maxRepsAt80} reps</span>
-                </div>
-                <div className="summary-detail-item">
-                  <span className="summary-label">Weekly Jump</span>
-                  <span className="summary-value">{movement.weeklyJumpPercent}% / {movement.weeklyJumpLbs} lbs</span>
-                </div>
-                <div className="summary-detail-item">
-                  <span className="summary-label">Initial Ramp Up</span>
-                  <span className="summary-value">{movement.rampUpPercent}% / {movement.rampUpBaseLbs} lbs</span>
+                  <span className="summary-label">{t('programBuilder.step5.weeklyJump')}</span>
+                  <span className="summary-value">{movement.weeklyJumpLbs} lbs</span>
                 </div>
                 <div className="summary-detail-item highlight">
-                  <span className="summary-label">5x5 TARGET</span>
+                  <span className="summary-label">{t('programBuilder.step5.target5x5')}</span>
                   <span className="summary-value">{movement.targetWeight} lbs</span>
                 </div>
               </div>
             </div>
+          ))}
+        </div>
 
-            <div className="weekly-program">
-              {[1, 2, 3, 4, 5].map((week) => {
-                const weight = movement.targetWeight - ((5 - week) * movement.weeklyJumpLbs);
-                return (
-                  <div key={week} className="week-item">
-                    <span className="week-label">Week {week}</span>
-                    <span className="week-protocol">5x5</span>
-                    <span className="week-weight">{weight} lbs</span>
+        {/* Quick Reference Table */}
+        <div className="quick-reference">
+          <h3>8-Week Progression Overview</h3>
+          <div className="reference-table-container">
+            <table className="reference-table">
+              <thead>
+                <tr>
+                  <th>Movement</th>
+                  <th>{t('programBuilder.step5.week')} 1</th>
+                  <th>{t('programBuilder.step5.week')} 2</th>
+                  <th>{t('programBuilder.step5.week')} 3</th>
+                  <th>{t('programBuilder.step5.week')} 4</th>
+                  <th>{t('programBuilder.step5.week')} 5</th>
+                  <th>{t('programBuilder.step5.week')} 6</th>
+                  <th>{t('programBuilder.step5.week')} 7</th>
+                  <th>{t('programBuilder.step5.week')} 8</th>
+                </tr>
+              </thead>
+              <tbody>
+                {movements.map((movement) => {
+                  const weights = [
+                    movement.targetWeight - (4 * movement.weeklyJumpLbs), // Week 1
+                    movement.targetWeight - (3 * movement.weeklyJumpLbs), // Week 2
+                    movement.targetWeight - (2 * movement.weeklyJumpLbs), // Week 3
+                    movement.targetWeight - movement.weeklyJumpLbs,       // Week 4
+                    movement.targetWeight,                                 // Week 5
+                    movement.targetWeight + movement.weeklyJumpLbs,       // Week 6
+                    movement.targetWeight + (2 * movement.weeklyJumpLbs), // Week 7
+                  ];
+                  return (
+                    <tr key={movement.id}>
+                      <td className="movement-name-cell">{movement.name}</td>
+                      <td className="weight-cell">{weights[0]} lbs</td>
+                      <td className="weight-cell">{weights[1]} lbs</td>
+                      <td className="weight-cell">{weights[2]} lbs</td>
+                      <td className="weight-cell">{weights[3]} lbs</td>
+                      <td className="weight-cell highlight-cell">{weights[4]} lbs</td>
+                      <td className="weight-cell">{weights[5]} lbs</td>
+                      <td className="weight-cell">{weights[6]} lbs</td>
+                      <td className="test-cell">{t('programBuilder.step5.test1RM')}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="reference-note">
+            <strong>Note:</strong> Weeks 1-5 use 5x5 protocol, Week 6 uses 3x3, Week 7 uses 2x2, Week 8 is testing week
+          </p>
+        </div>
+
+        {/* Weekly Program by Sessions */}
+        <div className="sessions-program">
+          <h3>Weekly Training Schedule</h3>
+
+          {/* Weeks 1-5 with 5x5 */}
+          {[1, 2, 3, 4, 5].filter(week => selectedWeek === 'all' || selectedWeek === week).map((week) => (
+            <div key={week} className="week-block">
+              <h4>{t('programBuilder.step5.week')} {week}</h4>
+              <div className="sessions-grid">
+                {/* Session 1 - All Heavy */}
+                <div className="session-card">
+                  <div className="session-header">
+                    <span className="session-title">Session 1 - Heavy Day</span>
+                    <span className="session-day">Monday</span>
                   </div>
-                );
-              })}
-              <div className="week-item">
-                <span className="week-label">Week 6</span>
-                <span className="week-protocol">3x3</span>
-                <span className="week-weight">{movement.targetWeight + movement.weeklyJumpLbs} lbs</span>
+                  <div className="session-exercises">
+                    {movements.map((movement) => {
+                      const heavyWeight = movement.targetWeight - ((5 - week) * movement.weeklyJumpLbs);
+                      const percentage = Math.round((heavyWeight / movement.oneRM) * 100);
+                      return (
+                        <div key={movement.id} className="exercise heavy-exercise">
+                          <span className="exercise-name">{movement.name.toUpperCase()}</span>
+                          <span className="exercise-protocol">5x5</span>
+                          <span className="exercise-weight">{heavyWeight} lbs <span className="percentage">({percentage}%)</span></span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Session 2 - All Light */}
+                <div className="session-card">
+                  <div className="session-header">
+                    <span className="session-title">Session 2 - Light Day</span>
+                    <span className="session-day">Wednesday</span>
+                  </div>
+                  <div className="session-exercises">
+                    {movements.map((movement) => {
+                      const heavyWeight = movement.targetWeight - ((5 - week) * movement.weeklyJumpLbs);
+                      const lightWeight = getLightWeight(heavyWeight);
+                      const percentage = Math.round((lightWeight / movement.oneRM) * 100);
+                      return (
+                        <div key={movement.id} className="exercise light-exercise">
+                          <span className="exercise-name">{movement.name.toLowerCase()}</span>
+                          <span className="exercise-protocol">5x5</span>
+                          <span className="exercise-weight">{lightWeight} lbs <span className="percentage">({percentage}%)</span></span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Session 3 - All Heavy */}
+                <div className="session-card">
+                  <div className="session-header">
+                    <span className="session-title">Session 3 - Heavy Day</span>
+                    <span className="session-day">Friday</span>
+                  </div>
+                  <div className="session-exercises">
+                    {movements.map((movement) => {
+                      const heavyWeight = movement.targetWeight - ((5 - week) * movement.weeklyJumpLbs);
+                      const percentage = Math.round((heavyWeight / movement.oneRM) * 100);
+                      return (
+                        <div key={movement.id} className="exercise heavy-exercise">
+                          <span className="exercise-name">{movement.name.toUpperCase()}</span>
+                          <span className="exercise-protocol">5x5</span>
+                          <span className="exercise-weight">{heavyWeight} lbs <span className="percentage">({percentage}%)</span></span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Session 4 - All Light */}
+                <div className="session-card">
+                  <div className="session-header">
+                    <span className="session-title">Session 4 - Light Day</span>
+                    <span className="session-day">Saturday</span>
+                  </div>
+                  <div className="session-exercises">
+                    {movements.map((movement) => {
+                      const heavyWeight = movement.targetWeight - ((5 - week) * movement.weeklyJumpLbs);
+                      const lightWeight = getLightWeight(heavyWeight);
+                      const percentage = Math.round((lightWeight / movement.oneRM) * 100);
+                      return (
+                        <div key={movement.id} className="exercise light-exercise">
+                          <span className="exercise-name">{movement.name.toLowerCase()}</span>
+                          <span className="exercise-protocol">5x5</span>
+                          <span className="exercise-weight">{lightWeight} lbs <span className="percentage">({percentage}%)</span></span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-              <div className="week-item">
-                <span className="week-label">Week 7</span>
-                <span className="week-protocol">2x2</span>
-                <span className="week-weight">{movement.targetWeight + (movement.weeklyJumpLbs * 2)} lbs</span>
+            </div>
+          ))}
+
+          {/* Week 6 - 3x3 */}
+          {(selectedWeek === 'all' || selectedWeek === 6) && (
+          <div className="week-block">
+            <h4>{t('programBuilder.step5.week')} 6</h4>
+            <div className="sessions-grid">
+              {/* Session 1 - All Heavy */}
+              <div className="session-card">
+                <div className="session-header">
+                  <span className="session-title">Session 1 - Heavy Day</span>
+                  <span className="session-day">Monday</span>
+                </div>
+                <div className="session-exercises">
+                  {movements.map((movement) => {
+                    const heavyWeight = movement.targetWeight + movement.weeklyJumpLbs;
+                    const percentage = Math.round((heavyWeight / movement.oneRM) * 100);
+                    return (
+                      <div key={movement.id} className="exercise heavy-exercise">
+                        <span className="exercise-name">{movement.name.toUpperCase()}</span>
+                        <span className="exercise-protocol">3x3</span>
+                        <span className="exercise-weight">{heavyWeight} lbs <span className="percentage">({percentage}%)</span></span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="week-item test-week">
-                <span className="week-label">Week 8</span>
-                <span className="week-protocol">Test Week</span>
-                <span className="week-weight">Test 1RM</span>
+
+              {/* Session 2 - All Light */}
+              <div className="session-card">
+                <div className="session-header">
+                  <span className="session-title">Session 2 - Light Day</span>
+                  <span className="session-day">Wednesday</span>
+                </div>
+                <div className="session-exercises">
+                  {movements.map((movement) => {
+                    const heavyWeight = movement.targetWeight + movement.weeklyJumpLbs;
+                    const lightWeight = getLightWeight(heavyWeight);
+                    const percentage = Math.round((lightWeight / movement.oneRM) * 100);
+                    return (
+                      <div key={movement.id} className="exercise light-exercise">
+                        <span className="exercise-name">{movement.name.toLowerCase()}</span>
+                        <span className="exercise-protocol">3x3</span>
+                        <span className="exercise-weight">{lightWeight} lbs <span className="percentage">({percentage}%)</span></span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Session 3 - All Heavy */}
+              <div className="session-card">
+                <div className="session-header">
+                  <span className="session-title">Session 3 - Heavy Day</span>
+                  <span className="session-day">Friday</span>
+                </div>
+                <div className="session-exercises">
+                  {movements.map((movement) => {
+                    const heavyWeight = movement.targetWeight + movement.weeklyJumpLbs;
+                    const percentage = Math.round((heavyWeight / movement.oneRM) * 100);
+                    return (
+                      <div key={movement.id} className="exercise heavy-exercise">
+                        <span className="exercise-name">{movement.name.toUpperCase()}</span>
+                        <span className="exercise-protocol">3x3</span>
+                        <span className="exercise-weight">{heavyWeight} lbs <span className="percentage">({percentage}%)</span></span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Session 4 - All Light */}
+              <div className="session-card">
+                <div className="session-header">
+                  <span className="session-title">Session 4 - Light Day</span>
+                  <span className="session-day">Saturday</span>
+                </div>
+                <div className="session-exercises">
+                  {movements.map((movement) => {
+                    const heavyWeight = movement.targetWeight + movement.weeklyJumpLbs;
+                    const lightWeight = getLightWeight(heavyWeight);
+                    const percentage = Math.round((lightWeight / movement.oneRM) * 100);
+                    return (
+                      <div key={movement.id} className="exercise light-exercise">
+                        <span className="exercise-name">{movement.name.toLowerCase()}</span>
+                        <span className="exercise-protocol">3x3</span>
+                        <span className="exercise-weight">{lightWeight} lbs <span className="percentage">({percentage}%)</span></span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
-        ))}
+          )}
+
+          {/* Week 7 - 2x2 */}
+          {(selectedWeek === 'all' || selectedWeek === 7) && (
+          <div className="week-block">
+            <h4>{t('programBuilder.step5.week')} 7</h4>
+            <div className="sessions-grid">
+              {/* Session 1 - All Heavy */}
+              <div className="session-card">
+                <div className="session-header">
+                  <span className="session-title">Session 1 - Heavy Day</span>
+                  <span className="session-day">Monday</span>
+                </div>
+                <div className="session-exercises">
+                  {movements.map((movement) => {
+                    const heavyWeight = movement.targetWeight + (movement.weeklyJumpLbs * 2);
+                    const percentage = Math.round((heavyWeight / movement.oneRM) * 100);
+                    return (
+                      <div key={movement.id} className="exercise heavy-exercise">
+                        <span className="exercise-name">{movement.name.toUpperCase()}</span>
+                        <span className="exercise-protocol">2x2</span>
+                        <span className="exercise-weight">{heavyWeight} lbs <span className="percentage">({percentage}%)</span></span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Session 2 - All Light */}
+              <div className="session-card">
+                <div className="session-header">
+                  <span className="session-title">Session 2 - Light Day</span>
+                  <span className="session-day">Wednesday</span>
+                </div>
+                <div className="session-exercises">
+                  {movements.map((movement) => {
+                    const heavyWeight = movement.targetWeight + (movement.weeklyJumpLbs * 2);
+                    const lightWeight = getLightWeight(heavyWeight);
+                    const percentage = Math.round((lightWeight / movement.oneRM) * 100);
+                    return (
+                      <div key={movement.id} className="exercise light-exercise">
+                        <span className="exercise-name">{movement.name.toLowerCase()}</span>
+                        <span className="exercise-protocol">2x2</span>
+                        <span className="exercise-weight">{lightWeight} lbs <span className="percentage">({percentage}%)</span></span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Session 3 - All Heavy */}
+              <div className="session-card">
+                <div className="session-header">
+                  <span className="session-title">Session 3 - Heavy Day</span>
+                  <span className="session-day">Friday</span>
+                </div>
+                <div className="session-exercises">
+                  {movements.map((movement) => {
+                    const heavyWeight = movement.targetWeight + (movement.weeklyJumpLbs * 2);
+                    const percentage = Math.round((heavyWeight / movement.oneRM) * 100);
+                    return (
+                      <div key={movement.id} className="exercise heavy-exercise">
+                        <span className="exercise-name">{movement.name.toUpperCase()}</span>
+                        <span className="exercise-protocol">2x2</span>
+                        <span className="exercise-weight">{heavyWeight} lbs <span className="percentage">({percentage}%)</span></span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Session 4 - All Light */}
+              <div className="session-card">
+                <div className="session-header">
+                  <span className="session-title">Session 4 - Light Day</span>
+                  <span className="session-day">Saturday</span>
+                </div>
+                <div className="session-exercises">
+                  {movements.map((movement) => {
+                    const heavyWeight = movement.targetWeight + (movement.weeklyJumpLbs * 2);
+                    const lightWeight = getLightWeight(heavyWeight);
+                    const percentage = Math.round((lightWeight / movement.oneRM) * 100);
+                    return (
+                      <div key={movement.id} className="exercise light-exercise">
+                        <span className="exercise-name">{movement.name.toLowerCase()}</span>
+                        <span className="exercise-protocol">2x2</span>
+                        <span className="exercise-weight">{lightWeight} lbs <span className="percentage">({percentage}%)</span></span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+          )}
+
+          {/* Week 8 - Test Week */}
+          {(selectedWeek === 'all' || selectedWeek === 8) && (
+          <div className="week-block test-week">
+            <h4>{t('programBuilder.step5.week')} 8 - {t('programBuilder.step5.testWeek')}</h4>
+
+            <div className="test-week-content">
+              <div className="test-day-card">
+                <div className="test-day-header">
+                  <span className="test-icon">🎯</span>
+                  <h5>1RM Test Day</h5>
+                </div>
+                <div className="test-movements">
+                  {movements.map((movement) => (
+                    <div key={movement.id} className="test-movement-item">
+                      <span className="test-movement-name">{movement.name.toUpperCase()}</span>
+                      <span className="test-movement-action">Test New 1RM</span>
+                      <span className="test-movement-previous">Previous: {movement.oneRM} lbs</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="test-week-instructions">
+                <h5>Testing Week Protocol</h5>
+                <ul>
+                  <li><strong>Rest 2-3 days</strong> before your test day to ensure full recovery</li>
+                  <li><strong>Test 1RM</strong> for all movements using proper warm-up protocol</li>
+                  <li><strong>Rest for the remainder</strong> of the week after testing</li>
+                  <li>Record your new 1RM values to track progress</li>
+                </ul>
+                <p className="test-week-note">
+                  <strong>Note:</strong> This is a deload and testing week. Focus on recovery and establishing new personal records safely.
+                </p>
+              </div>
+            </div>
+          </div>
+          )}
+        </div>
 
         <div className="step-actions">
           <button className="secondary-btn" onClick={() => setCurrentStep('fiveRMTest')}>
-            ← Back
+            {t('programBuilder.step5.backButton')}
           </button>
-          <button className="primary-btn" onClick={() => alert('Save program (coming soon)')}>
-            Save Program
+          <button className="primary-btn" onClick={() => alert(t('programBuilder.step5.savingComingSoon'))}>
+            {t('programBuilder.step5.saveButton')}
           </button>
         </div>
       </div>
@@ -610,8 +983,8 @@ export default function ProgramBuilder() {
   return (
     <div className="program-builder">
       <div className="builder-header">
-        <h1>Program Builder</h1>
-        <p>Create your linear strength training program</p>
+        <h1>{t('programBuilder.title')}</h1>
+        <p>{t('programBuilder.subtitle')}</p>
       </div>
 
       {renderStepIndicator()}
