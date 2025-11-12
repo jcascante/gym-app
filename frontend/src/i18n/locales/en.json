@@ -18,6 +18,7 @@
     "usernameePlaceholder": "Enter username",
     "passwordPlaceholder": "Enter password",
     "signIn": "Sign In",
+    "signingIn": "Signing In...",
     "demoCredentials": "Demo Credentials:",
     "invalidCredentials": "Invalid username or password"
   },

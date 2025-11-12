@@ -18,6 +18,7 @@
     "usernamePlaceholder": "Ingresa tu usuario",
     "passwordPlaceholder": "Ingresa tu contraseña",
     "signIn": "Iniciar Sesión",
+    "signingIn": "Iniciando Sesión...",
     "demoCredentials": "Credenciales de Demostración:",
     "invalidCredentials": "Usuario o contraseña inválidos"
   },

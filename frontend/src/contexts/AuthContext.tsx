@@ -1,48 +1,93 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { login as apiLogin, register as apiRegister, getCurrentUser } from '../services/auth';
+import { setToken, removeToken, getToken } from '../services/api';
+import type { User, RegisterRequest } from '../types/user';
 
 interface AuthContextType {
+  user: User | null;
   isAuthenticated: boolean;
-  login: (username: string, password: string) => boolean;
+  isLoading: boolean;
+  login: (username: string, password: string) => Promise<void>;
+  register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Dummy credentials
-const DUMMY_USERNAME = 'admin';
-const DUMMY_PASSWORD = 'admin123';
-
-// LocalStorage key for auth state
-const AUTH_STORAGE_KEY = 'gym-app-auth';
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Initialize auth state from localStorage
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-    return stored === 'true';
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Persist auth state to localStorage whenever it changes
+  // Check if user is already logged in on mount
   useEffect(() => {
-    localStorage.setItem(AUTH_STORAGE_KEY, String(isAuthenticated));
-  }, [isAuthenticated]);
+    const initAuth = async () => {
+      const token = getToken();
 
-  const login = (username: string, password: string): boolean => {
-    if (username === DUMMY_USERNAME && password === DUMMY_PASSWORD) {
-      setIsAuthenticated(true);
-      return true;
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Verify token is still valid by fetching user data
+        const userData = await getCurrentUser();
+        setUser(userData);
+      } catch (error) {
+        // Token is invalid or expired, clear it
+        console.error('Failed to restore session:', error);
+        removeToken();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initAuth();
+  }, []);
+
+  const login = async (username: string, password: string): Promise<void> => {
+    try {
+      const response = await apiLogin(username, password);
+
+      // Store token
+      setToken(response.access_token);
+
+      // Set user data
+      setUser(response.user);
+    } catch (error) {
+      // Re-throw error for component to handle
+      throw error;
     }
-    return false;
+  };
+
+  const register = async (data: RegisterRequest): Promise<void> => {
+    try {
+      await apiRegister(data);
+
+      // After registration, automatically log in
+      await login(data.username, data.password);
+    } catch (error) {
+      // Re-throw error for component to handle
+      throw error;
+    }
   };
 
   const logout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem(AUTH_STORAGE_KEY);
+    removeToken();
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        isLoading,
+        login,
+        register,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

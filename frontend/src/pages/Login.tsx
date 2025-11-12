@@ -9,17 +9,24 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
-    if (login(username, password)) {
+    try {
+      await login(username, password);
       navigate('/dashboard');
-    } else {
-      setError(t('login.invalidCredentials'));
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : t('login.invalidCredentials')
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -58,8 +65,8 @@ export default function Login() {
 
           {error && <div className="error-message">{error}</div>}
 
-          <button type="submit" className="login-button">
-            {t('login.signIn')}
+          <button type="submit" className="login-button" disabled={isLoading}>
+            {isLoading ? t('login.signingIn') : t('login.signIn')}
           </button>
 
           <div className="demo-credentials">
