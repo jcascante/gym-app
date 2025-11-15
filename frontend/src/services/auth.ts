@@ -12,16 +12,17 @@ import type {
 } from '../types/user';
 
 /**
- * Login with username/email and password
+ * Login with email and password
  *
- * @param username - Username or email address
+ * @param email - User email address
  * @param password - User password
  * @returns Promise with access token and user data
  */
-export async function login(username: string, password: string): Promise<LoginResponse> {
+export async function login(email: string, password: string): Promise<LoginResponse> {
   // FastAPI OAuth2PasswordRequestForm expects form data, not JSON
+  // Note: We put email in the 'username' field for OAuth2 compatibility
   const formData = new URLSearchParams();
-  formData.append('username', username);
+  formData.append('username', email);
   formData.append('password', password);
 
   const response = await fetch(

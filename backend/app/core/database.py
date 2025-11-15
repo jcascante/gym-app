@@ -46,9 +46,16 @@ async def init_db():
     Initialize database tables.
     Call this on application startup to create all tables.
     """
+    # Import all models here before creating tables
+    from app.models import (
+        Subscription,
+        Location,
+        User,
+        CoachClientAssignment,
+        AuditLog,
+    )
+
     async with engine.begin() as conn:
-        # Import all models here before creating tables
-        # from app.models import user, workout, exercise
         await conn.run_sync(Base.metadata.create_all)
 
 

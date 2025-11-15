@@ -6,7 +6,7 @@ import './Login.css';
 
 export default function Login() {
   const { t } = useTranslation();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +19,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login(username, password);
+      await login(email, password);
       navigate('/dashboard');
     } catch (err) {
       setError(
@@ -40,25 +40,25 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label htmlFor="username">{t('login.username')}</label>
+            <label htmlFor="email">Email</label>
             <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder={t('login.usernameePlaceholder')}
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">{t('login.password')}</label>
+            <label htmlFor="password">Password</label>
             <input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={t('login.passwordPlaceholder')}
+              placeholder="Enter your password"
               required
             />
           </div>
@@ -66,13 +66,14 @@ export default function Login() {
           {error && <div className="error-message">{error}</div>}
 
           <button type="submit" className="login-button" disabled={isLoading}>
-            {isLoading ? t('login.signingIn') : t('login.signIn')}
+            {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
 
           <div className="demo-credentials">
-            <p>{t('login.demoCredentials')}</p>
-            <p>{t('login.username')}: <strong>admin</strong></p>
-            <p>{t('login.password')}: <strong>admin123</strong></p>
+            <p>Demo Credentials:</p>
+            <p>Admin: <strong>admin@testgym.com</strong> / <strong>Admin123!</strong></p>
+            <p>Coach: <strong>coach@testgym.com</strong> / <strong>Coach123!</strong></p>
+            <p>Client: <strong>client@testgym.com</strong> / <strong>Client123!</strong></p>
           </div>
         </form>
       </div>

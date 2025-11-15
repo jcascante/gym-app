@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
 }
@@ -45,9 +45,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  const login = async (username: string, password: string): Promise<void> => {
+  const login = async (email: string, password: string): Promise<void> => {
     try {
-      const response = await apiLogin(username, password);
+      const response = await apiLogin(email, password);
 
       // Store token
       setToken(response.access_token);
@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await apiRegister(data);
 
       // After registration, automatically log in
-      await login(data.username, data.password);
+      await login(data.email, data.password);
     } catch (error) {
       // Re-throw error for component to handle
       throw error;
