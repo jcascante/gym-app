@@ -1,6 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import './ProgramBuilder.css';
+import {
+  fetchCalculationConstants,
+  calculateWeeklyJump,
+  calculateRampUp,
+  calculate80Percent
+} from '../services/programCalculations';
+import { apiFetch } from '../services/api';
+import { getClientDetail } from '../services/clients';
+import { assignProgramToClient } from '../services/programAssignments';
 
 interface Movement {
   id: string;
@@ -19,26 +29,125 @@ type Step = 'movements' | 'oneRM' | 'eightyPercentTest' | 'fiveRMTest' | 'progra
 
 export default function ProgramBuilder() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const clientId = searchParams.get('clientId');
+
   const [currentStep, setCurrentStep] = useState<Step>('movements');
   const [movements, setMovements] = useState<Movement[]>([]);
   const [selectedMovement, setSelectedMovement] = useState<Movement | null>(null);
   const [newMovementName, setNewMovementName] = useState('');
   const [selectedWeek, setSelectedWeek] = useState<number | 'all'>(1);
   const [lastSingleWeek, setLastSingleWeek] = useState<number>(1);
+  const [isSaving, setIsSaving] = useState(false);
+  const [constantsLoaded, setConstantsLoaded] = useState(false);
+  const [clientName, setClientName] = useState<string>('');
+  const [loadingClient, setLoadingClient] = useState(false);
 
-  // Reference tables for calculations
-  const weeklyJumpTable: { [key: number]: number } = {
-    20: 2, 19: 2, 18: 2, 17: 2, 16: 2,
-    15: 3, 14: 3, 13: 3, 12: 3, 11: 3,
-    10: 4, 9: 4, 8: 4, 7: 4, 6: 4,
-    5: 5, 4: 5, 3: 5, 2: 5, 1: 5
-  };
+  // Fetch calculation constants from backend on mount
+  useEffect(() => {
+    fetchCalculationConstants()
+      .then(() => {
+        console.log('✅ Calculation constants loaded from backend');
+        setConstantsLoaded(true);
+      })
+      .catch(err => {
+        console.error('Failed to load constants:', err);
+        // Will use fallback constants - app still works
+        setConstantsLoaded(true);
+      });
+  }, []);
 
-  const rampUpTable: { [key: number]: number } = {
-    20: 70, 19: 69, 18: 68, 17: 67, 16: 66,
-    15: 65, 14: 64, 13: 63, 12: 62, 11: 61,
-    10: 60, 9: 59, 8: 58, 7: 57, 6: 56,
-    5: 55, 4: 54, 3: 53, 2: 52, 1: 51
+  // Load client details if building for a specific client
+  useEffect(() => {
+    if (clientId) {
+      setLoadingClient(true);
+      getClientDetail(clientId)
+        .then(client => {
+          const profile = client.profile || {};
+          const basicInfo = profile.basic_info || {};
+          const name = `${basicInfo.first_name || 'Unknown'} ${basicInfo.last_name || 'Client'}`;
+          setClientName(name);
+        })
+        .catch(err => {
+          console.error('Failed to load client details:', err);
+        })
+        .finally(() => {
+          setLoadingClient(false);
+        });
+    }
+  }, [clientId]);
+
+  // Save program to backend
+  const handleSaveProgram = async () => {
+    setIsSaving(true);
+
+    try {
+      // Prepare input data for backend
+      const programName = clientName
+        ? `${clientName} - ${movements.map(m => m.name).join(', ')}`
+        : `${movements.map(m => m.name).join(', ')} - 8 Week Program`;
+
+      const programInputs = {
+        builder_type: 'strength_linear_5x5',
+        name: programName,
+        description: clientName
+          ? `Linear progression strength program for ${clientName}`
+          : 'Linear progression strength program',
+        movements: movements.map(m => ({
+          name: m.name,
+          one_rm: m.oneRM,
+          max_reps_at_80_percent: m.maxRepsAt80,
+          target_weight: m.targetWeight
+        })),
+        duration_weeks: 8,
+        days_per_week: 4,
+        is_template: !clientId  // If building for client, not a template
+      };
+
+      // Save program using apiFetch
+      const savedProgram = await apiFetch<any>('/programs', {
+        method: 'POST',
+        body: JSON.stringify(programInputs)
+      });
+
+      console.log('✅ Program saved successfully:', savedProgram);
+
+      // If building for a client, assign the program
+      if (clientId && savedProgram.id) {
+        try {
+          const assignment = await assignProgramToClient(savedProgram.id, {
+            client_id: clientId,
+            assignment_name: undefined,  // Use program name
+            start_date: new Date().toISOString().split('T')[0],  // Today
+            notes: 'Program created and assigned via Program Builder'
+          });
+
+          console.log('✅ Program assigned to client:', assignment);
+          alert(`Program created and assigned to ${clientName} successfully!`);
+
+          // Navigate back to client detail page
+          navigate(`/clients/${clientId}`);
+        } catch (assignError) {
+          console.error('Failed to assign program:', assignError);
+          const errorMsg = assignError instanceof Error
+            ? assignError.message
+            : JSON.stringify(assignError);
+          alert(`Program created but failed to assign to client: ${errorMsg}`);
+        }
+      } else {
+        // Program saved as template
+        alert(t('programBuilder.step5.saveSuccess'));
+        // Could navigate to templates page
+      }
+    } catch (error) {
+      console.error('❌ Failed to save program:', error);
+      alert(t('programBuilder.step5.saveError', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const addMovement = (name: string) => {
@@ -230,7 +339,7 @@ export default function ProgramBuilder() {
                       value={movement.oneRM || ''}
                       onChange={(e) => {
                         const value = e.target.value === '' ? 0 : Number(e.target.value);
-                        const eightyPercent = value > 0 ? Math.round(value * 0.8) : 0;
+                        const eightyPercent = calculate80Percent(value);
                         updateMovement(movement.id, {
                           oneRM: value,
                           eightyPercentRM: eightyPercent
@@ -323,22 +432,21 @@ export default function ProgramBuilder() {
                 <input
                   type="number"
                   value={movement.maxRepsAt80 || ''}
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const value = e.target.value === '' ? 0 : Number(e.target.value);
 
-                    // Calculate jump and ramp up inline to avoid double updates
+                    // Calculate jump and ramp up using backend constants
                     if (value > 0 && value <= 20) {
-                      const weeklyJumpPercent = weeklyJumpTable[value] || 5;
-                      const weeklyJumpLbs = Math.round((movement.oneRM * weeklyJumpPercent) / 100);
-                      const rampUpPercent = rampUpTable[value] || 55;
-                      const rampUpBaseLbs = Math.round((movement.oneRM * rampUpPercent) / 100);
+                      // Use backend calculation service
+                      const jumpData = await calculateWeeklyJump(value, movement.oneRM);
+                      const rampUpData = await calculateRampUp(value, movement.oneRM);
 
                       updateMovement(movement.id, {
                         maxRepsAt80: value,
-                        weeklyJumpPercent,
-                        weeklyJumpLbs,
-                        rampUpPercent,
-                        rampUpBaseLbs
+                        weeklyJumpPercent: jumpData.percent,
+                        weeklyJumpLbs: jumpData.lbs,
+                        rampUpPercent: rampUpData.percent,
+                        rampUpBaseLbs: rampUpData.baseLbs
                       });
                     } else {
                       updateMovement(movement.id, { maxRepsAt80: value });
@@ -955,8 +1063,12 @@ export default function ProgramBuilder() {
           <button className="secondary-btn" onClick={() => setCurrentStep('fiveRMTest')}>
             {t('programBuilder.step5.backButton')}
           </button>
-          <button className="primary-btn" onClick={() => alert(t('programBuilder.step5.savingComingSoon'))}>
-            {t('programBuilder.step5.saveButton')}
+          <button
+            className="primary-btn"
+            onClick={handleSaveProgram}
+            disabled={isSaving}
+          >
+            {isSaving ? t('programBuilder.step5.saving') : t('programBuilder.step5.saveButton')}
           </button>
         </div>
       </div>
@@ -985,6 +1097,24 @@ export default function ProgramBuilder() {
       <div className="builder-header">
         <h1>{t('programBuilder.title')}</h1>
         <p>{t('programBuilder.subtitle')}</p>
+        {clientId && clientName && (
+          <div className="client-indicator">
+            <span className="client-label">Building for:</span>
+            <span className="client-name">{clientName}</span>
+            <button
+              className="btn-link"
+              onClick={() => navigate(`/clients/${clientId}`)}
+              style={{ marginLeft: '1rem' }}
+            >
+              View Client →
+            </button>
+          </div>
+        )}
+        {clientId && loadingClient && (
+          <div className="client-indicator">
+            <span className="client-label">Loading client...</span>
+          </div>
+        )}
       </div>
 
       {renderStepIndicator()}

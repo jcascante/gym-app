@@ -2,6 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { getUserDisplayName } from '../types/user';
+import { useEffect, useState } from 'react';
+import { getCoachStats } from '../services/coaches';
+import type { CoachStats } from '../services/coaches';
 import './Dashboard.css';
 
 export default function CoachDashboard() {
@@ -9,6 +12,29 @@ export default function CoachDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const displayName = getUserDisplayName(user);
+
+  const [stats, setStats] = useState<CoachStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch coach statistics on mount
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        setLoading(true);
+        const data = await getCoachStats();
+        setStats(data);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to load coach stats:', err);
+        setError('Failed to load statistics');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStats();
+  }, []);
 
   return (
     <div className="dashboard">
@@ -21,29 +47,37 @@ export default function CoachDashboard() {
         <div className="dashboard-card">
           <div className="card-icon">👥</div>
           <h3>My Clients</h3>
-          <p className="card-value">--</p>
+          <p className="card-value">
+            {loading ? '--' : error ? '--' : stats?.active_clients ?? 0}
+          </p>
           <p className="card-label">Active clients</p>
         </div>
 
         <div className="dashboard-card">
           <div className="card-icon">📊</div>
-          <h3>My Programs</h3>
-          <p className="card-value">--</p>
-          <p className="card-label">Active programs</p>
+          <h3>Active Programs</h3>
+          <p className="card-value">
+            {loading ? '--' : error ? '--' : stats?.active_programs ?? 0}
+          </p>
+          <p className="card-label">Assigned to clients</p>
         </div>
 
         <div className="dashboard-card">
-          <div className="card-icon">✅</div>
-          <h3>Today's Sessions</h3>
-          <p className="card-value">--</p>
-          <p className="card-label">Scheduled sessions</p>
+          <div className="card-icon">📋</div>
+          <h3>Program Templates</h3>
+          <p className="card-value">
+            {loading ? '--' : error ? '--' : stats?.total_programs ?? 0}
+          </p>
+          <p className="card-label">Created templates</p>
         </div>
 
         <div className="dashboard-card">
           <div className="card-icon">📈</div>
-          <h3>Completion Rate</h3>
-          <p className="card-value">--%</p>
-          <p className="card-label">This week</p>
+          <h3>Total Clients</h3>
+          <p className="card-value">
+            {loading ? '--' : error ? '--' : stats?.total_clients ?? 0}
+          </p>
+          <p className="card-label">All time</p>
         </div>
       </div>
 
@@ -54,7 +88,7 @@ export default function CoachDashboard() {
             <span className="button-icon">➕</span>
             {t('dashboard.createProgram')}
           </button>
-          <button className="action-button secondary">
+          <button className="action-button secondary" onClick={() => navigate('/clients')}>
             <span className="button-icon">👤</span>
             View Clients
           </button>

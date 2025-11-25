@@ -14,6 +14,11 @@ async def lifespan(app: FastAPI):
     """
     # Import models here to ensure they're registered with SQLAlchemy
     from app.models.user import User  # noqa: F401
+    from app.models.program import Program, ProgramWeek, ProgramDay, ProgramDayExercise  # noqa: F401
+    from app.models.coach_client_assignment import CoachClientAssignment  # noqa: F401
+    from app.models.client_program_assignment import ClientProgramAssignment  # noqa: F401
+    from app.models.subscription import Subscription  # noqa: F401
+    from app.models.location import Location  # noqa: F401
 
     # Startup
     await init_db()
@@ -105,7 +110,7 @@ async def health_check():
 
 
 # Include API routers
-from app.api import auth, users, subscriptions, locations
+from app.api import auth, users, subscriptions, locations, programs, clients, coaches
 
 app.include_router(
     auth.router,
@@ -131,9 +136,26 @@ app.include_router(
     tags=["Locations"]
 )
 
+app.include_router(
+    programs.router,
+    prefix=f"{settings.API_V1_STR}/programs",
+    tags=["Programs"]
+)
+
+app.include_router(
+    clients.router,
+    prefix=f"{settings.API_V1_STR}",  # Router already has /coaches/me/clients prefix
+    tags=["Client Management"]
+)
+
+app.include_router(
+    coaches.router,
+    prefix=f"{settings.API_V1_STR}",  # Router already has /coaches/me prefix
+    tags=["Coach"]
+)
+
 # Additional routers will be added here as features are implemented
-# from app.api import programs, workouts, assignments
-# app.include_router(programs.router, prefix=f"{settings.API_V1_STR}/programs", tags=["Programs"])
+# from app.api import workouts, assignments
 # app.include_router(workouts.router, prefix=f"{settings.API_V1_STR}/workouts", tags=["Workouts"])
 # app.include_router(assignments.router, prefix=f"{settings.API_V1_STR}/assignments", tags=["Coach-Client Assignments"])
 

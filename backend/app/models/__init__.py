@@ -8,7 +8,9 @@ from app.models.subscription import Subscription, SubscriptionType, Subscription
 from app.models.location import Location
 from app.models.user import User, UserRole
 from app.models.coach_client_assignment import CoachClientAssignment
+from app.models.client_program_assignment import ClientProgramAssignment
 from app.models.audit_log import AuditLog, AuditAction
+from app.models.program import Program, ProgramWeek, ProgramDay, ProgramDayExercise
 
 __all__ = [
     "BaseModel",
@@ -22,6 +24,11 @@ __all__ = [
     "User",
     "UserRole",
     "CoachClientAssignment",
+    "ClientProgramAssignment",
     "AuditLog",
     "AuditAction",
+    "Program",
+    "ProgramWeek",
+    "ProgramDay",
+    "ProgramDayExercise",
 ]

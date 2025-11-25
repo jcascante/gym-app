@@ -5,6 +5,8 @@ import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ProgramBuilder from './pages/ProgramBuilder';
+import Clients from './pages/Clients';
+import ClientDetail from './pages/ClientDetail';
 
 function App() {
   return (
@@ -28,6 +30,26 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <ProgramBuilder />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/clients"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Clients />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/clients/:clientId"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ClientDetail />
                 </Layout>
               </ProtectedRoute>
             }
