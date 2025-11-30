@@ -1,0 +1,76 @@
+name: CI - Build & Deploy to ECR and App Runner
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  build-and-push:
+    name: Build image and push to ECR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: true
+          tags: |
+            ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+            ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY }}:latest
+
+      - name: Output image URI
+        run: |
+          echo "IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}" >> $GITHUB_OUTPUT
+
+      - name: (Optional) Trigger App Runner update
+        if: ${{ secrets.APP_RUNNER_SERVICE_ARN != '' }}
+        run: |
+          IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          echo "Deploying ${IMAGE_URI} to App Runner service ${APP_RUNNER_SERVICE_ARN:-(unset)}"
+          aws apprunner update-service \
+            --service-arn "${{ secrets.APP_RUNNER_SERVICE_ARN }}" \
+            --source-configuration "ImageRepository={ImageIdentifier='${IMAGE_URI}',ImageRepositoryType='ECR',ImageConfiguration={Port='80'}}"
+
+      - name: Success message
+        run: |
+          echo "Docker image pushed: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
+
+# Notes / required secrets and variables:
+# SECRETS (sensitive, set in Settings > Secrets and variables > Actions > Secrets):
+#   - AWS_ACCESS_KEY_ID: IAM access key ID
+#   - AWS_SECRET_ACCESS_KEY: IAM secret access key (must have ECR push permissions)
+#   - APP_RUNNER_SERVICE_ARN (optional): App Runner service ARN for auto-deployment
+#
+# VARIABLES (non-sensitive, set in Settings > Secrets and variables > Actions > Variables):
+#   - AWS_REGION: e.g., us-east-1
+#   - AWS_ACCOUNT_ID: e.g., 123456789012
+#   - ECR_REPOSITORY: e.g., gym-app-backend

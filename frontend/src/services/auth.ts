@@ -28,7 +28,7 @@ export async function login(email: string, password: string): Promise<LoginRespo
   formData.append('password', password);
 
   const response = await fetch(
-    `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/auth/login`,
+    `${import.meta.env.VITE_API_URL || '/api/v1'}/auth/login`,
     {
       method: 'POST',
       headers: {

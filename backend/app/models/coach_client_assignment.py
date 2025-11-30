@@ -81,15 +81,15 @@ class CoachClientAssignment(BaseModel):
     # Composite indexes for common queries
     __table_args__ = (
         # Index for finding all clients of a coach
-        Index('ix_assignments_coach_active', 'coach_id', 'is_active'),
+        Index('ix_coach_client_assignments_coach_active', 'coach_id', 'is_active'),
         # Index for finding the coach of a client
-        Index('ix_assignments_client_active', 'client_id', 'is_active'),
+        Index('ix_coach_client_assignments_client_active', 'client_id', 'is_active'),
         # Index for subscription-level queries
-        Index('ix_assignments_subscription_active', 'subscription_id', 'is_active'),
+        Index('ix_coach_client_assignments_subscription_active', 'subscription_id', 'is_active'),
         # Index for location-level queries (ENTERPRISE)
-        Index('ix_assignments_location_active', 'location_id', 'is_active'),
+        Index('ix_coach_client_assignments_location_active', 'location_id', 'is_active'),
         # Unique constraint to prevent duplicate active assignments
-        Index('ix_assignments_unique', 'coach_id', 'client_id', 'is_active', unique=True),
+        Index('ix_coach_client_assignments_unique', 'coach_id', 'client_id', 'is_active', unique=True),
     )
 
     def __repr__(self) -> str:

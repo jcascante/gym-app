@@ -197,14 +197,14 @@ class ProgramAssignment(BaseModel):
 
     # Composite indexes
     __table_args__ = (
-        # Index for client's active assignments
-        Index('ix_assignments_client_active', 'client_id', 'is_active'),
+        # Index for client's active assignments (unique name per table)
+        Index('ix_program_assignments_client_active', 'client_id', 'is_active'),
         # Index for template usage tracking
-        Index('ix_assignments_template', 'template_id'),
+        Index('ix_program_assignments_template', 'template_id'),
         # Index for subscription queries
-        Index('ix_assignments_subscription', 'subscription_id'),
+        Index('ix_program_assignments_subscription', 'subscription_id'),
         # Index for status queries
-        Index('ix_assignments_status_active', 'status', 'is_active'),
+        Index('ix_program_assignments_status_active', 'status', 'is_active'),
     )
 
     def __repr__(self) -> str:

@@ -38,14 +38,14 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 # Module: VPC and Networking
-module "vpc" {
-  source = "./modules/vpc"
+# module "vpc" {
+#   source = "./modules/vpc"
 
-  project_name             = var.project_name
-  aws_region               = var.aws_region
-  vpc_cidr                 = var.vpc_cidr
-  availability_zones_count = var.availability_zones_count
-}
+#   project_name             = var.project_name
+#   aws_region               = var.aws_region
+#   vpc_cidr                 = var.vpc_cidr
+#   availability_zones_count = var.availability_zones_count
+# }
 
 # Module: ECR Repositories
 module "ecr" {
@@ -53,4 +53,9 @@ module "ecr" {
 
   project_name = var.project_name
   repositories = var.ecr_repositories
+}
+
+# Module: IAM user for GitHub Actions CI/CD
+module "iam" {
+  source = "./modules/iam"
 }

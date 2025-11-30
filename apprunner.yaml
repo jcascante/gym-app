@@ -1,0 +1,51 @@
+# App Runner configuration (suggested) for deploying the backend service
+# This file is a repository-level suggested config. Update the `repositoryUrl`,
+# branch, and environment variables before creating the App Runner service.
+#
+# Two common App Runner deployment options:
+# 1) GitHub source that builds Dockerfile found in `backend/`.
+# 2) Build Docker image locally/CI, push to ECR, and reference image in App Runner.
+
+version: 1.0
+service:
+  name: gym-app-backend
+  # Repository-based deployment: set provider and repository URL
+  repository:
+    provider: GitHub
+    repositoryUrl: "https://github.com/jcascante/gym-app" # REPLACE with your repo
+    branch: main
+    path: backend              # path to the backend sources
+
+  # Runtime & instance sizing
+  runtime: python3.11         # runtime used when App Runner builds from source
+  instanceConfiguration:
+    cpu: 1024
+    memory: 2048
+    port: 8080
+
+  # Environment variables (supply production values / secrets via App Runner or Secrets Manager)
+  environment:
+    - name: ENVIRONMENT
+      value: development
+    - name: DATABASE_URL
+      value: "sqlite+aiosqlite:///./gym_app.db" # Use aiosqlite URL for runtime
+
+  # Scaling: lock to a single instance when using SQLite (ephemeral local DB)
+  scaling:
+    min_count: 1
+    max_count: 1
+
+  # Build & start commands used when App Runner builds from repository source (no Docker)
+  buildCommand: |
+    python -m pip install --upgrade pip
+    python -m pip install -r requirements.txt
+
+  startCommand: |
+    uvicorn app.main:app --host 0.0.0.0 --port 8080
+
+# NOTES:
+# - This file favors a source-based App Runner deployment (no Dockerfile required).
+# - Replace <OWNER>/<REPO> and other placeholders before deploying.
+# - For production, use a managed Postgres or RDS and point `DATABASE_URL` to it.
+# - App Runner will run the `buildCommand` in the `backend` path, so `requirements.txt`
+#   must live at the repository path `backend/requirements.txt` (or adjust the command).

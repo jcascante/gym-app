@@ -46,3 +46,9 @@ backend/.ruff_cache/
 
 # Logs
 *.log
+
+# Terraform
+*.tfvars          # Variable files may contain secrets
+*.tfstate         # State files may contain sensitive data
+*.tfstate.*       # State backup files
+.terraform/       # Terraform modules and plugins directory

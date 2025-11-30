@@ -6,8 +6,9 @@ Run this after migrations to populate the database with test data.
 """
 import asyncio
 from uuid import uuid4
-from sqlalchemy import select
-from app.core.database import AsyncSessionLocal, init_db
+from sqlalchemy import select, text
+from sqlalchemy.exc import OperationalError
+from app.core.database import AsyncSessionLocal, init_db, engine
 from app.core.security import get_password_hash
 from app.models.user import User, UserRole
 from app.models.subscription import Subscription, SubscriptionType, SubscriptionStatus
@@ -201,8 +202,61 @@ async def seed_all():
 
     # Ensure database tables exist
     print("Initializing database...")
-    await init_db()
-    print("✓ Database initialized\n")
+
+    # Some older alembic migrations used identical index names across different
+    # tables which can cause SQLite to raise "index ... already exists" when
+    # running metadata.create_all(). To make seeding robust for dev images we
+    # attempt the create_all(), and if a duplicate-index OperationalError is
+    # raised, we log diagnostics, drop well-known conflicting index names and
+    # retry once.
+    try:
+        await init_db()
+        print("✓ Database initialized\n")
+    except OperationalError as oe:
+        msg = str(oe)
+        print(f"✗ OperationalError during init_db(): {msg}")
+        # If it's a duplicate-index problem, try to gather diagnostics and
+        # remove conflicting indexes that may have been created previously.
+        if "already exists" in msg or "duplicate" in msg.lower():
+            print("Detected duplicate-index error. Gathering index diagnostics...")
+            # Run diagnostics and attempt to drop known conflicting index names
+            async with engine.begin() as conn:
+                # Helper: list existing indexes from sqlite_master
+                try:
+                    rows = await conn.execute(text("SELECT name, tbl_name, sql FROM sqlite_master WHERE type='index'"))
+                    idxs = rows.fetchall()
+                    if idxs:
+                        print("Existing indexes in sqlite_master:")
+                        for r in idxs:
+                            print(f"  - name={r[0]} table={r[1]} sql={r[2]}")
+                    else:
+                        print("  (no indexes found in sqlite_master)")
+                except Exception as diag_exc:
+                    print(f"  Failed to query sqlite_master: {diag_exc}")
+
+                # Known conflicting index names discovered in migrations/models
+                conflicting = [
+                    "ix_assignments_client_active",
+                ]
+
+                for name in conflicting:
+                    try:
+                        print(f"Attempting to drop index if exists: {name}")
+                        await conn.execute(text(f"DROP INDEX IF EXISTS \"{name}\""))
+                        print(f"  Dropped index (if it existed): {name}")
+                    except Exception as drop_exc:
+                        print(f"  Failed to drop index {name}: {drop_exc}")
+
+            # Retry init_db once more
+            try:
+                await init_db()
+                print("✓ Database initialized after cleaning conflicting indexes\n")
+            except Exception as retry_exc:
+                print(f"✗ Retry of init_db() failed: {retry_exc}")
+                raise
+        else:
+            # Unexpected OperationalError - re-raise so caller sees it.
+            raise
 
     # Seed APPLICATION_SUPPORT user
     print("Seeding APPLICATION_SUPPORT user...")
