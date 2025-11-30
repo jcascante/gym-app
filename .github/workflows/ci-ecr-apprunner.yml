@@ -52,12 +52,12 @@ jobs:
           echo "IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}" >> $GITHUB_OUTPUT
 
       - name: (Optional) Trigger App Runner update
-        if: ${{ secrets.APP_RUNNER_SERVICE_ARN != '' }}
+        if: ${{ vars.APP_RUNNER_SERVICE_ARN != '' }}
         run: |
           IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
           echo "Deploying ${IMAGE_URI} to App Runner service ${APP_RUNNER_SERVICE_ARN:-(unset)}"
           aws apprunner update-service \
-            --service-arn "${{ secrets.APP_RUNNER_SERVICE_ARN }}" \
+            --service-arn "${{ vars.APP_RUNNER_SERVICE_ARN }}" \
             --source-configuration "ImageRepository={ImageIdentifier='${IMAGE_URI}',ImageRepositoryType='ECR',ImageConfiguration={Port='80'}}"
 
       - name: Success message
@@ -68,9 +68,9 @@ jobs:
 # SECRETS (sensitive, set in Settings > Secrets and variables > Actions > Secrets):
 #   - AWS_ACCESS_KEY_ID: IAM access key ID
 #   - AWS_SECRET_ACCESS_KEY: IAM secret access key (must have ECR push permissions)
-#   - APP_RUNNER_SERVICE_ARN (optional): App Runner service ARN for auto-deployment
 #
 # VARIABLES (non-sensitive, set in Settings > Secrets and variables > Actions > Variables):
 #   - AWS_REGION: e.g., us-east-1
 #   - AWS_ACCOUNT_ID: e.g., 123456789012
 #   - ECR_REPOSITORY: e.g., gym-app-backend
+#   - APP_RUNNER_SERVICE_ARN (optional): App Runner service ARN for auto-deployment
