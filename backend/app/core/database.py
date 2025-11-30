@@ -53,6 +53,12 @@ async def init_db():
         User,
         CoachClientAssignment,
         AuditLog,
+        Program,
+        ProgramWeek,
+        ProgramDay,
+        ProgramDayExercise,
+        Exercise,
+        ProgramAssignment,
     )
 
     async with engine.begin() as conn:

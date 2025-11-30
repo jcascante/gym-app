@@ -210,3 +210,177 @@ class CalculationConstants(BaseModel):
                 }
             }
         }
+
+
+# ============================================================================
+# Template-Based System Schemas
+# ============================================================================
+
+class TemplateParameter(BaseModel):
+    """Schema for template parameter definition."""
+    key: str = Field(..., description="Parameter key (e.g., 'goal', 'focus_lifts')")
+    label: str = Field(..., description="Human-readable label")
+    type: str = Field(..., description="Parameter type: text, number, select, multi-select")
+    required: bool = Field(True, description="Whether parameter is required")
+    options: Optional[List[str]] = Field(None, description="Options for select types")
+    validation: Optional[Dict[str, Any]] = Field(None, description="Validation rules (min, max, pattern)")
+    help_text: Optional[str] = Field(None, description="Help text for users")
+
+
+class ProgramTemplateBase(BaseModel):
+    """Base schema for program template."""
+    name: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = None
+    program_type: str = Field(..., description="strength, conditioning, hypertrophy, power, sport_specific, general_fitness")
+    difficulty_level: Optional[str] = Field(None, description="beginner, intermediate, advanced, elite")
+    duration_weeks: int = Field(..., gt=0, le=52)
+    days_per_week: int = Field(..., gt=0, le=7)
+
+    is_template: bool = Field(default=True)
+    is_default: bool = Field(default=False)
+    is_public: bool = Field(default=False)
+
+    required_parameters: List[TemplateParameter] = Field(default_factory=list)
+    optional_parameters: List[TemplateParameter] = Field(default_factory=list)
+
+    tags: List[str] = Field(default_factory=list)
+    goals: Optional[List[str]] = None
+    target_gender: Optional[str] = None
+    equipment_required: Optional[List[str]] = None
+
+    thumbnail_url: Optional[str] = None
+    video_url: Optional[str] = None
+
+
+class ProgramTemplateCreate(ProgramTemplateBase):
+    """Schema for creating a program template."""
+    pass
+
+
+class ProgramTemplateUpdate(BaseModel):
+    """Schema for updating a program template."""
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = None
+    program_type: Optional[str] = None
+    difficulty_level: Optional[str] = None
+    duration_weeks: Optional[int] = Field(None, gt=0, le=52)
+    days_per_week: Optional[int] = Field(None, gt=0, le=7)
+
+    is_public: Optional[bool] = None
+
+    required_parameters: Optional[List[TemplateParameter]] = None
+    optional_parameters: Optional[List[TemplateParameter]] = None
+
+    tags: Optional[List[str]] = None
+    goals: Optional[List[str]] = None
+    target_gender: Optional[str] = None
+    equipment_required: Optional[List[str]] = None
+
+    thumbnail_url: Optional[str] = None
+    video_url: Optional[str] = None
+
+
+class ProgramTemplateResponse(ProgramTemplateBase):
+    """Schema for program template response."""
+    id: str
+    subscription_id: Optional[str]
+    created_by: str
+    times_assigned: int = 0
+    average_rating: Optional[float] = None
+    average_completion_rate: Optional[float] = None
+    created_at: str
+    updated_at: str
+
+    class Config:
+        from_attributes = True
+
+
+class ProgramTemplateListResponse(BaseModel):
+    """Schema for list of templates response."""
+    templates: List[ProgramTemplateResponse]
+    total: int
+    page: int = 1
+    page_size: int = 20
+
+
+class ProgramAssignmentCreate(BaseModel):
+    """Schema for assigning a template to a client."""
+    template_id: str
+    client_id: str
+    assignment_parameters: Dict[str, Any] = Field(..., description="Parameter values for this assignment")
+    start_date: date
+    coach_notes: Optional[str] = None
+
+
+class ProgramAssignmentResponse(BaseModel):
+    """Schema for program assignment response."""
+    id: str
+    template_id: str
+    client_id: str
+    assigned_by: str
+    program_id: str
+    assignment_parameters: Dict[str, Any]
+    start_date: str
+    end_date: Optional[str]
+    status: str
+    completion_percentage: float
+    workouts_completed: int
+    workouts_total: int
+    current_week: int
+    current_day: int
+    created_at: str
+
+    class Config:
+        from_attributes = True
+
+
+class ProgramAssignmentListResponse(BaseModel):
+    """Schema for list of assignments response."""
+    assignments: List[ProgramAssignmentResponse]
+    total: int
+
+
+class ExerciseBase(BaseModel):
+    """Base schema for exercise."""
+    name: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = None
+    category: Optional[str] = Field(None, description="compound, isolation, cardio, mobility")
+    muscle_groups: List[str] = Field(default_factory=list)
+    equipment: List[str] = Field(default_factory=list)
+
+    video_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+
+    is_bilateral: bool = True
+    is_timed: bool = False
+    default_rest_seconds: int = 90
+
+    difficulty_level: Optional[str] = None
+
+
+class ExerciseCreate(ExerciseBase):
+    """Schema for creating an exercise."""
+    pass
+
+
+class ExerciseResponse(ExerciseBase):
+    """Schema for exercise response."""
+    id: str
+    subscription_id: Optional[str]
+    created_by: Optional[str]
+    is_global: bool
+    is_verified: bool
+    is_active: bool
+    created_at: str
+    updated_at: str
+
+    class Config:
+        from_attributes = True
+
+
+class ExerciseListResponse(BaseModel):
+    """Schema for list of exercises response."""
+    exercises: List[ExerciseResponse]
+    total: int
+    page: int = 1
+    page_size: int = 50

@@ -11,6 +11,8 @@ from app.models.coach_client_assignment import CoachClientAssignment
 from app.models.client_program_assignment import ClientProgramAssignment
 from app.models.audit_log import AuditLog, AuditAction
 from app.models.program import Program, ProgramWeek, ProgramDay, ProgramDayExercise
+from app.models.exercise import Exercise
+from app.models.program_assignment import ProgramAssignment
 
 __all__ = [
     "BaseModel",
@@ -31,4 +33,6 @@ __all__ = [
     "ProgramWeek",
     "ProgramDay",
     "ProgramDayExercise",
+    "Exercise",
+    "ProgramAssignment",
 ]

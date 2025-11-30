@@ -147,6 +147,7 @@ async def create_or_find_client(
         hashed_password=get_password_hash(temp_password),
         profile=profile,
         is_active=True,
+        password_must_be_changed=True,  # Force password change on first login
     )
     new_client.created_by = current_user.id
     db.add(new_client)

@@ -45,6 +45,7 @@ export interface LoginResponse {
   access_token: string;
   token_type: string;
   user: User;
+  password_must_be_changed: boolean;
 }
 
 export interface RegisterRequest {
@@ -57,6 +58,16 @@ export interface RegisterRequest {
 }
 
 export interface RegisterResponse extends User {}
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
+export interface ChangePasswordResponse {
+  message: string;
+  detail?: string;
+}
 
 export interface UserListResponse {
   users: User[];

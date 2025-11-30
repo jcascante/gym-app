@@ -107,6 +107,13 @@ class User(BaseModel):
         doc="Timestamp of last successful login"
     )
 
+    password_must_be_changed = Column(
+        Boolean,
+        default=False,
+        nullable=False,
+        doc="Whether the user must change password on next login (true for new clients)"
+    )
+
     # Composite indexes for common queries
     __table_args__ = (
         # Index for login queries (email + active status check)

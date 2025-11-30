@@ -9,6 +9,8 @@ import type {
   RegisterRequest,
   RegisterResponse,
   User,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
 } from '../types/user';
 
 /**
@@ -78,4 +80,17 @@ export async function getCurrentUser(): Promise<User> {
  */
 export async function testAuth(): Promise<{ message: string }> {
   return apiFetch<{ message: string }>('/auth/test-auth');
+}
+
+/**
+ * Change the current user's password
+ *
+ * @param data - Current and new password
+ * @returns Promise with success message
+ */
+export async function changePassword(data: ChangePasswordRequest): Promise<ChangePasswordResponse> {
+  return apiFetch<ChangePasswordResponse>('/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }

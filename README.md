@@ -58,6 +58,39 @@ uv run uvicorn app.main:app --reload
 Backend will be available at http://localhost:8000
 API documentation at http://localhost:8000/docs
 
+## Demo Credentials
+
+After running the seed script (`uv run python -m app.core.seed`), you can use these test accounts:
+
+### Platform Support (Cross-subscription access)
+- **Email**: `support@gymapp.com`
+- **Password**: `Support123!`
+- **Role**: APPLICATION_SUPPORT
+
+### Test Gym Subscription
+
+**Admin:**
+- **Email**: `admin@testgym.com`
+- **Password**: `Admin123!`
+- **Role**: SUBSCRIPTION_ADMIN
+
+**Coach:**
+- **Email**: `coach@testgym.com`
+- **Password**: `Coach123!`
+- **Role**: COACH
+
+**Client:**
+- **Email**: `client@testgym.com`
+- **Password**: `Client123!`
+- **Role**: CLIENT
+
+**Client:**
+- **Email**: `j.ksknt@gmail.com`
+- **Password**: `Test123!`
+- **Role**: CLIENT
+
+⚠️ **Important**: These are development credentials only. Change them in production!
+
 ## Development
 
 See [CLAUDE.md](CLAUDE.md) for detailed development guidance.

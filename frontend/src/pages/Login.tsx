@@ -10,7 +10,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, passwordMustBeChanged } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,7 +20,15 @@ export default function Login() {
 
     try {
       await login(email, password);
-      navigate('/dashboard');
+
+      // Check if password must be changed
+      if (passwordMustBeChanged) {
+        navigate('/change-password', {
+          state: { passwordMustBeChanged: true }
+        });
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : t('login.invalidCredentials')
@@ -68,13 +76,6 @@ export default function Login() {
           <button type="submit" className="login-button" disabled={isLoading}>
             {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
-
-          <div className="demo-credentials">
-            <p>Demo Credentials:</p>
-            <p>Admin: <strong>admin@testgym.com</strong> / <strong>Admin123!</strong></p>
-            <p>Coach: <strong>coach@testgym.com</strong> / <strong>Coach123!</strong></p>
-            <p>Client: <strong>client@testgym.com</strong> / <strong>Client123!</strong></p>
-          </div>
         </form>
       </div>
     </div>

@@ -107,6 +107,39 @@ async def get_current_user(
     return user
 
 
+async def get_current_user_check_password(
+    token: str = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_db)
+) -> User:
+    """
+    Dependency to get the current authenticated user and check if password must be changed.
+
+    This is a stricter version of get_current_user that enforces password changes.
+    Use this dependency on ALL endpoints except login and change-password to ensure
+    users with password_must_be_changed=True cannot access other features.
+
+    Returns:
+        User: The authenticated user from the database
+
+    Raises:
+        HTTPException 401: If token is invalid, expired, or user not found
+        HTTPException 401: If user account is inactive
+        HTTPException 403: If subscription is suspended or cancelled
+        HTTPException 403: If password must be changed (directs user to change-password endpoint)
+    """
+    # First get the user using standard authentication
+    user = await get_current_user(token=token, db=db)
+
+    # Check if password must be changed
+    if user.password_must_be_changed:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Password must be changed before accessing this resource. Please use the /auth/change-password endpoint.",
+        )
+
+    return user
+
+
 def require_role(*allowed_roles: UserRole):
     """
     Dependency factory to restrict routes to specific user roles.
@@ -140,7 +173,7 @@ def require_role(*allowed_roles: UserRole):
 
 
 async def get_application_support_user(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_check_password)
 ) -> User:
     """
     Dependency to restrict routes to APPLICATION_SUPPORT users only.
@@ -157,7 +190,7 @@ async def get_application_support_user(
 
 
 async def get_subscription_admin_user(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_check_password)
 ) -> User:
     """
     Dependency to restrict routes to SUBSCRIPTION_ADMIN users.
@@ -173,7 +206,7 @@ async def get_subscription_admin_user(
 
 
 async def get_coach_or_admin_user(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_check_password)
 ) -> User:
     """
     Dependency to restrict routes to COACH or SUBSCRIPTION_ADMIN users.

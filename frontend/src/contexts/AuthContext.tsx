@@ -8,6 +8,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  passwordMustBeChanged: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [passwordMustBeChanged, setPasswordMustBeChanged] = useState<boolean>(false);
 
   // Check if user is already logged in on mount
   useEffect(() => {
@@ -54,6 +56,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Set user data
       setUser(response.user);
+
+      // Set password change flag
+      setPasswordMustBeChanged(response.password_must_be_changed || false);
     } catch (error) {
       // Re-throw error for component to handle
       throw error;
@@ -75,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     removeToken();
     setUser(null);
+    setPasswordMustBeChanged(false);
   };
 
   return (
@@ -83,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isAuthenticated: !!user,
         isLoading,
+        passwordMustBeChanged,
         login,
         register,
         logout,

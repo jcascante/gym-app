@@ -76,23 +76,37 @@ class Program(BaseModel):
         doc="Optional program description"
     )
 
+    # Program type and difficulty
+    program_type = Column(
+        String(50),
+        nullable=True,
+        index=True,
+        doc="Program type: strength, hypertrophy, conditioning, power, sport_specific, general_fitness"
+    )
+
+    difficulty_level = Column(
+        String(50),
+        nullable=True,
+        doc="Difficulty level: beginner, intermediate, advanced, elite"
+    )
+
     builder_type = Column(
         String(100),
-        nullable=False,
+        nullable=True,  # Nullable for manual/template-based programs
         index=True,
-        doc="Builder type (e.g., 'strength_linear_5x5')"
+        doc="Builder type (e.g., 'strength_linear_5x5') - only for wizard-generated programs"
     )
 
     algorithm_version = Column(
         String(50),
-        nullable=False,
-        doc="Algorithm version used (e.g., 'v1.0.0')"
+        nullable=True,  # Nullable for manual/template-based programs
+        doc="Algorithm version used (e.g., 'v1.0.0') - only for wizard-generated programs"
     )
 
     # Program data (stored as JSONB for flexibility)
     input_data = Column(
         JSONBType,
-        nullable=False,
+        nullable=True,  # Nullable for manual/template-based programs
         doc="Original inputs (movements, 1RMs, target weights, etc.)"
     )
 
@@ -111,12 +125,127 @@ class Program(BaseModel):
         doc="Whether this is a template (true) or client assignment (false)"
     )
 
+    is_default = Column(
+        Boolean,
+        default=False,
+        nullable=False,
+        index=True,
+        doc="Whether this is a platform-provided default template"
+    )
+
     is_public = Column(
         Boolean,
         default=False,
         nullable=False,
         index=True,
         doc="Whether visible in marketplace (future feature)"
+    )
+
+    template_version = Column(
+        Integer,
+        default=1,
+        nullable=False,
+        doc="Template version number for tracking updates"
+    )
+
+    parent_template_id = Column(
+        GUID,
+        ForeignKey('programs.id', ondelete='SET NULL'),
+        nullable=True,
+        doc="Parent template if this is a fork/version of another template"
+    )
+
+    # Template parameters (for parameterized templates)
+    required_parameters = Column(
+        JSONBType,
+        default=list,
+        nullable=False,
+        doc="Required parameters for this template (JSONB array)"
+    )
+
+    optional_parameters = Column(
+        JSONBType,
+        default=list,
+        nullable=False,
+        doc="Optional parameters for this template (JSONB array)"
+    )
+
+    # Media and metadata
+    thumbnail_url = Column(
+        String(500),
+        nullable=True,
+        doc="URL to program thumbnail image"
+    )
+
+    video_url = Column(
+        String(500),
+        nullable=True,
+        doc="URL to program overview video"
+    )
+
+    tags = Column(
+        JSONBType,
+        default=list,
+        nullable=False,
+        doc="Tags for categorization (e.g., ['strength', 'powerlifting', 'beginner-friendly'])"
+    )
+
+    goals = Column(
+        JSONBType,
+        nullable=True,
+        doc="Program goals (e.g., ['build_muscle', 'lose_fat', 'increase_strength'])"
+    )
+
+    target_gender = Column(
+        String(20),
+        nullable=True,
+        doc="Target gender: male, female, any"
+    )
+
+    equipment_required = Column(
+        JSONBType,
+        nullable=True,
+        doc="Equipment required (e.g., ['barbell', 'dumbbells', 'bench', 'squat_rack'])"
+    )
+
+    # Usage tracking (for templates)
+    times_assigned = Column(
+        Integer,
+        default=0,
+        nullable=False,
+        doc="Number of times this template has been assigned to clients"
+    )
+
+    average_completion_rate = Column(
+        Float,
+        nullable=True,
+        doc="Average completion rate as percentage (0-100)"
+    )
+
+    average_rating = Column(
+        Float,
+        nullable=True,
+        doc="Average rating from clients (0.00 to 5.00)"
+    )
+
+    # Marketplace fields (future)
+    price_cents = Column(
+        Integer,
+        nullable=True,
+        doc="Price in cents (null = free), for marketplace templates"
+    )
+
+    revenue_share_pct = Column(
+        Float,
+        nullable=True,
+        doc="Creator's revenue share percentage"
+    )
+
+    # Soft delete
+    archived_at = Column(
+        String(50),
+        nullable=True,
+        doc="Timestamp when program was archived"
     )
 
     # Program structure
@@ -144,8 +273,10 @@ class Program(BaseModel):
     __table_args__ = (
         # Index for template library queries
         Index('ix_programs_subscription_template', 'subscription_id', 'is_template'),
+        # Index for default templates
+        Index('ix_programs_default_type', 'is_default', 'program_type'),
         # Index for marketplace queries (future)
-        Index('ix_programs_public_builder', 'is_public', 'builder_type'),
+        Index('ix_programs_public_type', 'is_public', 'program_type'),
         # Index for creator queries
         Index('ix_programs_creator_template', 'created_by_user_id', 'is_template'),
     )
@@ -161,8 +292,12 @@ class ProgramWeek(BaseModel):
 
     Attributes:
         program_id: Foreign key to parent program
+        subscription_id: Foreign key to subscription (for multi-tenant isolation)
         week_number: Week number (1-8)
         name: Descriptive name (e.g., "Foundation Phase", "Peak Phase")
+        description: Optional description of this week's focus
+        notes: Coach notes for this week
+        focus_area: Week-level focus (volume, intensity, technique, deload)
 
     Inherits from BaseModel:
         id, created_at, created_by, updated_at, updated_by
@@ -181,6 +316,14 @@ class ProgramWeek(BaseModel):
         doc="Foreign key to parent program"
     )
 
+    subscription_id = Column(
+        GUID,
+        ForeignKey('subscriptions.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+        doc="Foreign key to subscription (multi-tenant isolation)"
+    )
+
     week_number = Column(
         Integer,
         nullable=False,
@@ -189,8 +332,26 @@ class ProgramWeek(BaseModel):
 
     name = Column(
         String(255),
-        nullable=False,
-        doc="Week name (e.g., 'Foundation Phase')"
+        nullable=True,
+        doc="Week name (e.g., 'Foundation Phase', 'Accumulation Week')"
+    )
+
+    description = Column(
+        Text,
+        nullable=True,
+        doc="Optional description of this week's focus and goals"
+    )
+
+    notes = Column(
+        Text,
+        nullable=True,
+        doc="Coach notes for this week"
+    )
+
+    focus_area = Column(
+        String(100),
+        nullable=True,
+        doc="Week-level focus: volume, intensity, technique, deload"
     )
 
     # Relationships
@@ -219,9 +380,15 @@ class ProgramDay(BaseModel):
 
     Attributes:
         program_week_id: Foreign key to parent week
-        day_number: Day number within week (1-4 typically)
-        name: Day name (e.g., "Session 1 - Heavy Day")
-        suggested_day_of_week: Optional suggested day (e.g., "Monday")
+        subscription_id: Foreign key to subscription (for multi-tenant isolation)
+        day_number: Day number within week (1-7)
+        name: Day name (e.g., "Push Day", "Pull Day", "Session 1 - Heavy")
+        description: Optional description of this day
+        day_type: Day type (strength, conditioning, active_recovery, rest)
+        suggested_day_of_week: Optional suggested day (1=Monday, 7=Sunday)
+        estimated_duration_minutes: Estimated workout duration
+        warm_up_notes: Warm-up instructions
+        cool_down_notes: Cool-down instructions
 
     Inherits from BaseModel:
         id, created_at, created_by, updated_at, updated_by
@@ -240,22 +407,60 @@ class ProgramDay(BaseModel):
         doc="Foreign key to parent week"
     )
 
+    subscription_id = Column(
+        GUID,
+        ForeignKey('subscriptions.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+        doc="Foreign key to subscription (multi-tenant isolation)"
+    )
+
     day_number = Column(
         Integer,
         nullable=False,
-        doc="Day number within week (1-based)"
+        doc="Day number within week (1-based, up to 7)"
     )
 
     name = Column(
         String(255),
         nullable=False,
-        doc="Day name (e.g., 'Session 1 - Heavy Day')"
+        doc="Day name (e.g., 'Push Day', 'Pull Day', 'Upper Body')"
+    )
+
+    description = Column(
+        Text,
+        nullable=True,
+        doc="Optional description of this day's focus"
+    )
+
+    day_type = Column(
+        String(50),
+        nullable=True,
+        doc="Day type: strength, conditioning, active_recovery, rest"
     )
 
     suggested_day_of_week = Column(
-        String(50),
+        Integer,
         nullable=True,
-        doc="Suggested day of week (e.g., 'Monday')"
+        doc="Suggested day of week (1=Monday, 7=Sunday)"
+    )
+
+    estimated_duration_minutes = Column(
+        Integer,
+        nullable=True,
+        doc="Estimated duration in minutes"
+    )
+
+    warm_up_notes = Column(
+        Text,
+        nullable=True,
+        doc="Warm-up instructions"
+    )
+
+    cool_down_notes = Column(
+        Text,
+        nullable=True,
+        doc="Cool-down instructions"
     )
 
     # Relationships
@@ -264,7 +469,7 @@ class ProgramDay(BaseModel):
         "ProgramDayExercise",
         back_populates="day",
         cascade="all, delete-orphan",
-        order_by="ProgramDayExercise.order"
+        order_by="ProgramDayExercise.exercise_order"
     )
 
     # Composite indexes
@@ -284,19 +489,36 @@ class ProgramDayExercise(BaseModel):
 
     Attributes:
         program_day_id: Foreign key to parent day
-        exercise_name: Name of exercise (e.g., "SQUAT", "squat")
+        exercise_id: Foreign key to exercise in library
+        subscription_id: Foreign key to subscription (for multi-tenant isolation)
+        exercise_order: Display order within day
         sets: Number of sets
-        reps: Number of reps per set
-        weight_lbs: Prescribed weight in lbs (null for testing week)
-        percentage_1rm: Percentage of 1RM (null for testing week)
+        reps_min: Minimum reps (for rep ranges like 8-12)
+        reps_max: Maximum reps (for rep ranges)
+        reps_target: Target reps (for fixed reps like 5x5)
+        load_type: Type of load prescription (percentage_1rm, rpe, fixed_weight, bodyweight, time)
+        load_value: Load value (185.5 lbs, or 75 for percentage)
+        load_unit: Load unit (lbs, kg, percentage, rpe)
+        tempo: Tempo prescription (e.g., '3-0-1-0')
+        rest_seconds: Rest between sets
+        duration_seconds: Duration for timed exercises
+        rpe_target: Target RPE (1.0 to 10.0)
+        percentage_1rm: Percentage of 1RM for percentage-based programming
         notes: Optional notes/instructions
-        order: Display order within day
+        coaching_cues: Form reminders and technique tips
+        is_completed: Whether exercise has been logged
+        actual_sets: Actual sets completed
+        actual_reps: Actual reps completed
+        actual_weight: Actual weight used
+        actual_rpe: Actual RPE
+        completion_date: When exercise was logged
 
     Inherits from BaseModel:
         id, created_at, created_by, updated_at, updated_by
 
     Database Relationships:
         - day: Many-to-one with ProgramDay
+        - exercise: Many-to-one with Exercise
     """
     __tablename__ = "program_day_exercises"
 
@@ -308,48 +530,153 @@ class ProgramDayExercise(BaseModel):
         doc="Foreign key to parent day"
     )
 
-    exercise_name = Column(
-        String(255),
+    exercise_id = Column(
+        GUID,
+        ForeignKey('exercises_library.id', ondelete='RESTRICT'),
         nullable=False,
         index=True,
-        doc="Exercise name (uppercase for heavy, lowercase for light)"
+        doc="Foreign key to exercise in library"
     )
 
+    subscription_id = Column(
+        GUID,
+        ForeignKey('subscriptions.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+        doc="Foreign key to subscription (multi-tenant isolation)"
+    )
+
+    exercise_order = Column(
+        Integer,
+        nullable=False,
+        doc="Display order within day (1-based)"
+    )
+
+    # Exercise prescription
     sets = Column(
         Integer,
         nullable=False,
         doc="Number of sets"
     )
 
-    reps = Column(
-        Integer,
-        nullable=False,
-        doc="Number of reps per set"
-    )
-
-    weight_lbs = Column(
+    reps_min = Column(
         Integer,
         nullable=True,
-        doc="Prescribed weight in lbs (null for testing week)"
+        doc="Minimum reps for rep ranges (e.g., 8 in 8-12)"
+    )
+
+    reps_max = Column(
+        Integer,
+        nullable=True,
+        doc="Maximum reps for rep ranges (e.g., 12 in 8-12)"
+    )
+
+    reps_target = Column(
+        Integer,
+        nullable=True,
+        doc="Target reps for fixed rep schemes (e.g., 5 in 5x5)"
+    )
+
+    # Load prescription
+    load_type = Column(
+        String(50),
+        nullable=True,
+        doc="Load type: percentage_1rm, rpe, fixed_weight, bodyweight, time"
+    )
+
+    load_value = Column(
+        Float,
+        nullable=True,
+        doc="Load value (185.5 lbs, or 75 for 75%)"
+    )
+
+    load_unit = Column(
+        String(20),
+        nullable=True,
+        doc="Load unit: lbs, kg, percentage, rpe"
+    )
+
+    # Tempo and timing
+    tempo = Column(
+        String(20),
+        nullable=True,
+        doc="Tempo prescription (e.g., '3-0-1-0' = 3s eccentric, 0s pause, 1s concentric, 0s pause)"
+    )
+
+    rest_seconds = Column(
+        Integer,
+        nullable=True,
+        doc="Rest between sets in seconds"
+    )
+
+    duration_seconds = Column(
+        Integer,
+        nullable=True,
+        doc="Duration for timed exercises (planks, cardio)"
+    )
+
+    # Intensity markers
+    rpe_target = Column(
+        Float,
+        nullable=True,
+        doc="Target RPE (Rate of Perceived Exertion, 1.0 to 10.0)"
     )
 
     percentage_1rm = Column(
-        Integer,
+        Float,
         nullable=True,
-        doc="Percentage of 1RM (null if not applicable)"
+        doc="Percentage of 1RM for percentage-based programming"
     )
 
+    # Notes and cues
     notes = Column(
         Text,
         nullable=True,
         doc="Optional notes/instructions"
     )
 
-    order = Column(
-        Integer,
+    coaching_cues = Column(
+        Text,
+        nullable=True,
+        doc="Form reminders and technique tips"
+    )
+
+    # Progression tracking (for assigned programs)
+    is_completed = Column(
+        Boolean,
+        default=False,
         nullable=False,
-        default=0,
-        doc="Display order within day (0-based)"
+        doc="Whether this exercise has been logged/completed"
+    )
+
+    actual_sets = Column(
+        Integer,
+        nullable=True,
+        doc="Actual sets completed (logged by client)"
+    )
+
+    actual_reps = Column(
+        Integer,
+        nullable=True,
+        doc="Actual reps completed (logged by client)"
+    )
+
+    actual_weight = Column(
+        Float,
+        nullable=True,
+        doc="Actual weight used (logged by client)"
+    )
+
+    actual_rpe = Column(
+        Float,
+        nullable=True,
+        doc="Actual RPE (logged by client)"
+    )
+
+    completion_date = Column(
+        String(50),
+        nullable=True,
+        doc="Timestamp when exercise was logged"
     )
 
     # Relationships
@@ -358,11 +685,13 @@ class ProgramDayExercise(BaseModel):
     # Composite indexes
     __table_args__ = (
         # Index for day + order queries
-        Index('ix_program_day_exercises_day_order', 'program_day_id', 'order'),
-        # Index for exercise name searches
-        Index('ix_program_day_exercises_name', 'exercise_name'),
+        Index('ix_program_day_exercises_day_order', 'program_day_id', 'exercise_order'),
+        # Index for exercise library references
+        Index('ix_program_day_exercises_exercise', 'exercise_id'),
+        # Unique constraint for order within day
+        Index('ix_program_day_exercises_unique_order', 'program_day_id', 'exercise_order', unique=True),
     )
 
     def __repr__(self) -> str:
         """String representation for debugging."""
-        return f"<ProgramDayExercise(id={self.id}, exercise='{self.exercise_name}', sets={self.sets}, reps={self.reps}, weight={self.weight_lbs})>"
+        return f"<ProgramDayExercise(id={self.id}, exercise_id={self.exercise_id}, sets={self.sets})>"

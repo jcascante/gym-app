@@ -1,100 +1,269 @@
-# Program Builder Ecosystem - Design Specification
+# Program Builder - Template-Based Architecture
 
 ## Overview
 
-The Program Builder Ecosystem is a comprehensive system for creating, managing, assigning, and tracking workout programs. It consists of three main components:
+The Program Builder is a **template-based system** for creating, customizing, and assigning workout programs. The core concept is that coaches work with parameterized templates that can be customized with specific inputs (focus, goals, exercises, weights) to generate personalized training programs for clients.
 
-1. **Program Builder Modules** - Wizard-style tools for creating specific types of programs
-2. **Template Library** - Repository of saved programs ready for assignment
-3. **Assignment & Tracking** - System for assigning programs to clients and monitoring progress
+### Key Concepts
 
-This document defines the architecture, data models, workflows, and analytics for the entire program ecosystem.
+1. **Template-Based Workflow** - Programs are created from templates, not wizards
+2. **Default Templates** - Platform provides ready-to-use templates available to all coaches
+3. **Custom Templates** - Coaches can create and save their own templates
+4. **Parameterized Inputs** - Templates require inputs (focus, goals, exercises, weights) to generate programs
+5. **Reusability** - Templates can be assigned to multiple clients with different parameters
+
+### Template Architecture
+
+```
+Default Templates (Platform-provided)
+├── Strength Templates
+│   ├── Linear Progression (Focus: Strength, Goal: Increase 1RM)
+│   ├── 5/3/1 Progression (Focus: Strength, Goal: Long-term gains)
+│   └── Powerlifting Peaking (Focus: Strength, Goal: Competition prep)
+├── Conditioning Templates
+│   ├── KB Press Conditioning (Focus: Conditioning, Goal: Improve KB press)
+│   ├── Endurance Builder (Focus: Conditioning, Goal: Stamina)
+│   └── HIIT Protocol (Focus: Conditioning, Goal: Fat loss)
+└── Hypertrophy Templates
+    ├── PPL Split (Focus: Hypertrophy, Goal: Muscle mass)
+    └── Upper/Lower Split (Focus: Hypertrophy, Goal: Balanced growth)
+
+Custom Templates (Coach-created)
+├── Coach's Template 1 (private to subscription)
+├── Coach's Template 2 (private to subscription)
+└── Shared Template (can be made public)
+```
 
 ---
 
-## Existing Implementation
+## Template Parameters
 
-### Current Program Builder (/program-builder)
+All templates require input parameters when creating a program for a client. These parameters customize the template to the client's specific needs.
 
-**Location**: `frontend/src/pages/ProgramBuilder.tsx`
+### Core Parameters
 
-**Type**: Strength Training / Linear Progression Builder
+#### 1. Focus (Required)
+The primary training adaptation goal:
+- **Strength** - Maximal force production, neural adaptations
+- **Hypertrophy** - Muscle growth, volume accumulation
+- **Conditioning** - Work capacity, cardiovascular fitness
+- **Power** - Rate of force development, explosiveness
+- **Sport-Specific** - Athletic performance, movement patterns
+- **General Fitness** - Overall health and fitness
 
-**Functionality**:
-- **Step 1**: Select movements (up to 4 compound lifts)
-- **Step 2**: Test 1RM for each movement
-- **Step 3**: Test 80% of 1RM for max reps (determines weekly progression rate)
-- **Step 4**: Perform 5RM test protocol to establish target weight
-- **Step 5**: Generate 8-week linear progression program
-  - Weeks 1-5: 5×5 protocol with progressive overload
-  - Week 6: 3×3 protocol at higher intensity
-  - Week 7: 2×2 protocol at peak intensity
-  - Week 8: Testing week (new 1RM test)
+#### 2. Goal (Required)
+Specific measurable objective within the focus area:
 
-**Program Structure**:
-- 4 sessions per week (Mon/Wed/Fri/Sat)
-- Alternating Heavy-Light-Heavy-Light pattern
-- Automatic percentage calculations based on 1RM
-- Weekly weight progressions based on rep test results
+**Strength Examples:**
+- "Increase bench press to 400 lbs"
+- "Achieve bodyweight back squat"
+- "Deadlift 500 lbs by competition"
 
-**Current Status**:
-- ✅ UI/UX complete with step-by-step wizard
-- ✅ Calculations and progression logic implemented
-- ❌ Backend integration pending (save functionality shows "coming soon")
-- ❌ Template saving not yet implemented
-- ❌ Client assignment not yet implemented
+**Conditioning Examples:**
+- "Improve kettlebell press endurance"
+- "Complete 5K in under 25 minutes"
+- "Increase work capacity for CrossFit"
 
-**Next Steps for Existing Builder**:
-1. Integrate with backend API to save programs
-2. Add option to save as template
-3. Add option to assign directly to client
-4. Store program data in database according to schema below
+**Hypertrophy Examples:**
+- "Gain 10 lbs lean muscle"
+- "Build bigger arms (16-inch biceps)"
+- "Develop chest and shoulders"
+
+#### 3. Target Exercises (Optional, template-dependent)
+Specific movements to emphasize:
+- Compound lifts: Squat, Bench Press, Deadlift, Overhead Press
+- Accessory work: Rows, Lunges, Pull-ups, Dips
+- Conditioning tools: Kettlebells, Rowers, Assault Bikes
+- Sport-specific: Olympic lifts, Plyometrics
+
+#### 4. Starting Weights/Capacity (Optional, template-dependent)
+Client's current performance levels:
+- 1RM values for main lifts
+- RPE ranges for conditioning
+- Max reps at specific weights
+- Baseline times/distances
+
+#### 5. Schedule Parameters (Required)
+Training frequency and duration:
+- **Days per week**: 2-7 sessions
+- **Program duration**: 4-52 weeks
+- **Session length**: 30-120 minutes
+- **Preferred training days**: Mon/Wed/Fri, etc.
+
+#### 6. Additional Customization (Optional)
+- Equipment availability
+- Injury limitations
+- Preference for rep ranges
+- Volume tolerance
 
 ---
 
-## Core Concepts
+## Template Structure
 
-### Program Hierarchy
+### Template Definition
 
+Each template is a reusable program blueprint with:
+
+```typescript
+interface ProgramTemplate {
+  id: string;
+  name: string;
+  description: string;
+
+  // Template categorization
+  focus: TemplateFocus; // Strength, Conditioning, Hypertrophy, etc.
+  difficulty_level: 'beginner' | 'intermediate' | 'advanced' | 'elite';
+
+  // Template ownership
+  created_by: string; // User ID of creator
+  subscription_id: string | null; // null for default templates
+  is_default: boolean; // Platform-provided templates
+  is_public: boolean; // Available in marketplace
+
+  // Required parameters for this template
+  required_parameters: TemplateParameter[];
+  optional_parameters: TemplateParameter[];
+
+  // Program structure (defined but parameterized)
+  duration_weeks: number;
+  days_per_week: number;
+  program_structure: ProgramStructure; // Weeks, days, exercises
+
+  // Usage and ratings
+  times_assigned: number;
+  average_rating: number;
+  average_completion_rate: number;
+}
+
+interface TemplateParameter {
+  key: string; // 'goal', 'target_weight', 'focus_lift'
+  label: string; // 'Primary Goal', 'Target Bench Press Weight'
+  type: 'text' | 'number' | 'select' | 'multi-select';
+  required: boolean;
+  options?: string[]; // For select types
+  validation?: {
+    min?: number;
+    max?: number;
+    pattern?: string;
+  };
+  help_text?: string;
+}
 ```
-Program (12-Week Strength Builder)
-├── Week 1
-│   ├── Day 1: Push (Monday)
-│   │   ├── Exercise 1: Bench Press (4 sets × 8 reps @ 185 lbs)
-│   │   ├── Exercise 2: Overhead Press (3 sets × 10 reps @ 95 lbs)
-│   │   └── Exercise 3: Tricep Dips (3 sets × 12 reps)
-│   ├── Day 2: Pull (Wednesday)
-│   │   └── ...
-│   └── Day 3: Legs (Friday)
-│       └── ...
-├── Week 2
-│   └── ... (progressive overload)
-└── Week 12
-    └── ... (peak performance)
+
+### Example: Strength - Linear Progression Template
+
+```typescript
+{
+  id: "default-strength-linear",
+  name: "Linear Progression - Compound Lifts",
+  description: "Classic 5×5 linear progression for building maximal strength on compound lifts",
+  focus: "strength",
+  difficulty_level: "beginner",
+  is_default: true,
+  is_public: true,
+
+  required_parameters: [
+    {
+      key: "goal",
+      label: "Strength Goal",
+      type: "text",
+      required: true,
+      help_text: "Example: Bench press 315 lbs, Squat 405 lbs"
+    },
+    {
+      key: "focus_lifts",
+      label: "Primary Lifts",
+      type: "multi-select",
+      required: true,
+      options: ["Squat", "Bench Press", "Deadlift", "Overhead Press"],
+      help_text: "Select 3-4 compound movements to focus on"
+    },
+    {
+      key: "current_1rm",
+      label: "Current 1RM Values",
+      type: "number",
+      required: true,
+      help_text: "Enter current max for each selected lift"
+    }
+  ],
+
+  optional_parameters: [
+    {
+      key: "days_per_week",
+      label: "Training Days",
+      type: "select",
+      required: false,
+      options: ["3", "4", "5"],
+      help_text: "Number of sessions per week"
+    }
+  ],
+
+  duration_weeks: 8,
+  days_per_week: 4,
+
+  program_structure: {
+    // Week-by-week progression defined in the template
+    // Uses parameter values to calculate actual weights/reps
+  }
+}
 ```
 
-### Program Types
+### Example: Conditioning - KB Press Improvement Template
 
-1. **Program Templates**
-   - Reusable workout program blueprints
-   - Created by coaches/admins within a subscription
-   - Can be private (subscription-only) or public (marketplace)
-   - Not tied to specific clients
-   - Can be assigned to multiple clients
-   - Versioned for improvements over time
+```typescript
+{
+  id: "default-conditioning-kb-press",
+  name: "Kettlebell Press Conditioning",
+  description: "Build pressing endurance and work capacity with kettlebells",
+  focus: "conditioning",
+  difficulty_level: "intermediate",
+  is_default: true,
+  is_public: true,
 
-2. **Assigned Programs**
-   - Instance of a template assigned to a specific client
-   - Has a start date and schedule
-   - Tracks actual completion and performance
-   - Can be customized after assignment (per-client adjustments)
-   - Maintains link to original template for updates
+  required_parameters: [
+    {
+      key: "goal",
+      label: "Conditioning Goal",
+      type: "text",
+      required: true,
+      help_text: "Example: Improve KB press endurance, 100 presses in 10 minutes"
+    },
+    {
+      key: "kb_weight",
+      label: "Kettlebell Weight (lbs)",
+      type: "number",
+      required: true,
+      validation: { min: 8, max: 106 },
+      help_text: "Weight you can press for 5-10 reps"
+    },
+    {
+      key: "current_capacity",
+      label: "Current Max Reps",
+      type: "number",
+      required: true,
+      help_text: "Maximum consecutive presses per arm"
+    }
+  ],
 
-3. **Marketplace Templates** (Future)
-   - Public templates created by any coach
-   - Available for purchase/download by other subscriptions
-   - Rated and reviewed by community
-   - Revenue sharing for creators
+  optional_parameters: [
+    {
+      key: "supplemental_work",
+      label: "Include Supplemental Work",
+      type: "select",
+      options: ["None", "Core only", "Full conditioning"],
+      help_text: "Additional work beyond KB pressing"
+    }
+  ],
+
+  duration_weeks: 6,
+  days_per_week: 3,
+
+  program_structure: {
+    // Progressive volume and density work
+    // EMOM, ladders, intervals based on parameters
+  }
+}
+```
 
 ---
 
@@ -105,22 +274,27 @@ Program (12-Week Strength Builder)
 ```sql
 CREATE TABLE programs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    subscription_id UUID NOT NULL REFERENCES subscriptions(id),
+    subscription_id UUID REFERENCES subscriptions(id), -- NULL for default templates
     created_by UUID NOT NULL REFERENCES users(id),
 
     -- Program metadata
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    program_type VARCHAR(50) NOT NULL, -- 'strength', 'hypertrophy', 'conditioning', 'sport_specific', 'general_fitness'
+    program_type VARCHAR(50) NOT NULL, -- 'strength', 'hypertrophy', 'conditioning', 'power', 'sport_specific'
     difficulty_level VARCHAR(50), -- 'beginner', 'intermediate', 'advanced', 'elite'
     duration_weeks INT NOT NULL CHECK (duration_weeks > 0 AND duration_weeks <= 52),
     days_per_week INT NOT NULL CHECK (days_per_week > 0 AND days_per_week <= 7),
 
     -- Template settings
     is_template BOOLEAN DEFAULT FALSE,
-    is_public BOOLEAN DEFAULT FALSE, -- marketplace visibility (ENTERPRISE only)
+    is_default BOOLEAN DEFAULT FALSE, -- Platform-provided default templates
+    is_public BOOLEAN DEFAULT FALSE, -- Available to other subscriptions
     template_version INT DEFAULT 1,
-    parent_template_id UUID REFERENCES programs(id), -- for template versioning
+    parent_template_id UUID REFERENCES programs(id), -- for template versioning/forking
+
+    -- Template parameters (JSON schema)
+    required_parameters JSONB DEFAULT '[]', -- Array of parameter definitions
+    optional_parameters JSONB DEFAULT '[]', -- Array of parameter definitions
 
     -- Media and resources
     thumbnail_url VARCHAR(500),
@@ -137,8 +311,8 @@ CREATE TABLE programs (
     average_completion_rate DECIMAL(5,2), -- percentage
     average_rating DECIMAL(3,2), -- 0.00 to 5.00
 
-    -- Marketplace (ENTERPRISE, future)
-    price_cents INT, -- null = free, for marketplace templates
+    -- Marketplace (future)
+    price_cents INT, -- null = free
     revenue_share_pct DECIMAL(5,2), -- creator's cut
 
     -- Soft delete
@@ -152,8 +326,64 @@ CREATE TABLE programs (
 );
 
 CREATE INDEX idx_programs_subscription ON programs(subscription_id) WHERE is_active = TRUE;
-CREATE INDEX idx_programs_template ON programs(is_template, is_public) WHERE is_active = TRUE;
+CREATE INDEX idx_programs_template ON programs(is_template, is_default, is_public) WHERE is_active = TRUE;
+CREATE INDEX idx_programs_type ON programs(program_type);
 CREATE INDEX idx_programs_creator ON programs(created_by);
+```
+
+### Program Assignments Table
+
+```sql
+CREATE TABLE program_assignments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    subscription_id UUID NOT NULL REFERENCES subscriptions(id),
+
+    -- Template and client
+    template_id UUID NOT NULL REFERENCES programs(id), -- Source template
+    client_id UUID NOT NULL REFERENCES users(id), -- Assigned to
+    assigned_by UUID NOT NULL REFERENCES users(id), -- Coach who assigned
+
+    -- Program instance (can be customized after assignment)
+    program_id UUID NOT NULL REFERENCES programs(id), -- Actual program instance (copy of template)
+
+    -- Assignment parameters (values provided when creating from template)
+    assignment_parameters JSONB NOT NULL, -- { "goal": "Bench 315 lbs", "focus_lifts": [...], "current_1rm": {...} }
+
+    -- Scheduling
+    start_date DATE NOT NULL,
+    end_date DATE, -- Calculated from template duration
+    actual_end_date DATE, -- When client actually completed
+
+    -- Status
+    status VARCHAR(50) DEFAULT 'active', -- 'active', 'paused', 'completed', 'cancelled'
+    completion_percentage DECIMAL(5,2) DEFAULT 0.00,
+
+    -- Progress tracking
+    workouts_completed INT DEFAULT 0,
+    workouts_total INT NOT NULL,
+    current_week INT DEFAULT 1,
+    current_day INT DEFAULT 1,
+
+    -- Client feedback
+    client_rating DECIMAL(3,2), -- 0.00 to 5.00
+    client_feedback TEXT,
+
+    -- Coach notes
+    coach_notes TEXT,
+
+    -- Soft delete
+    is_active BOOLEAN DEFAULT TRUE,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_by UUID REFERENCES users(id)
+);
+
+CREATE INDEX idx_assignments_client ON program_assignments(client_id) WHERE is_active = TRUE;
+CREATE INDEX idx_assignments_template ON program_assignments(template_id);
+CREATE INDEX idx_assignments_subscription ON program_assignments(subscription_id);
+CREATE INDEX idx_assignments_status ON program_assignments(status) WHERE is_active = TRUE;
 ```
 
 ### Program Weeks Table
@@ -298,9 +528,13 @@ CREATE TABLE program_day_exercises (
     notes TEXT,
     coaching_cues TEXT, -- form reminders, technique tips
 
-    -- Supersets and circuits
-    superset_group INT, -- exercises with same number are supersetted
-    circuit_group INT,
+    -- Progression tracking (for assigned programs)
+    is_completed BOOLEAN DEFAULT FALSE,
+    actual_sets INT,
+    actual_reps INT,
+    actual_weight DECIMAL(10,2),
+    actual_rpe DECIMAL(3,1),
+    completion_date TIMESTAMP WITH TIME ZONE,
 
     -- Audit fields
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -315,1728 +549,607 @@ CREATE INDEX idx_program_day_exercises_day ON program_day_exercises(program_day_
 CREATE INDEX idx_program_day_exercises_exercise ON program_day_exercises(exercise_id);
 ```
 
-### Client Program Assignments Table
-
-```sql
-CREATE TABLE client_program_assignments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    subscription_id UUID NOT NULL REFERENCES subscriptions(id),
-
-    -- Assignment details
-    program_template_id UUID NOT NULL REFERENCES programs(id),
-    client_id UUID NOT NULL REFERENCES users(id),
-    assigned_by UUID NOT NULL REFERENCES users(id), -- coach or admin
-
-    -- Scheduling
-    start_date DATE NOT NULL,
-    scheduled_end_date DATE, -- calculated from start_date + duration
-    actual_end_date DATE, -- when client actually finished
-
-    -- Customization
-    is_customized BOOLEAN DEFAULT FALSE,
-    customization_notes TEXT,
-
-    -- Progress tracking
-    status VARCHAR(50) DEFAULT 'active', -- 'active', 'paused', 'completed', 'abandoned'
-    current_week INT DEFAULT 1,
-    current_day INT DEFAULT 1,
-
-    -- Performance metrics
-    workouts_completed INT DEFAULT 0,
-    workouts_total INT, -- total workouts in program
-    completion_percentage DECIMAL(5,2) DEFAULT 0.00,
-
-    -- Satisfaction
-    client_rating INT, -- 1-5 stars
-    client_feedback TEXT,
-
-    -- Audit fields
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    assigned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_by UUID REFERENCES users(id),
-
-    CONSTRAINT client_rating_range CHECK (client_rating >= 1 AND client_rating <= 5)
-);
-
-CREATE INDEX idx_client_assignments_client ON client_program_assignments(client_id);
-CREATE INDEX idx_client_assignments_program ON client_program_assignments(program_template_id);
-CREATE INDEX idx_client_assignments_status ON client_program_assignments(status);
-CREATE INDEX idx_client_assignments_subscription ON client_program_assignments(subscription_id);
-```
-
-### Workout Logs Table
-
-```sql
-CREATE TABLE workout_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    subscription_id UUID NOT NULL REFERENCES subscriptions(id),
-
-    -- Assignment context
-    client_assignment_id UUID NOT NULL REFERENCES client_program_assignments(id),
-    program_day_id UUID NOT NULL REFERENCES program_days(id),
-    client_id UUID NOT NULL REFERENCES users(id),
-
-    -- Workout session details
-    scheduled_date DATE,
-    actual_date DATE NOT NULL,
-    started_at TIMESTAMP WITH TIME ZONE,
-    completed_at TIMESTAMP WITH TIME ZONE,
-    duration_minutes INT,
-
-    -- Session quality
-    status VARCHAR(50) DEFAULT 'completed', -- 'completed', 'partial', 'skipped'
-    overall_rpe DECIMAL(3,1), -- session RPE
-    energy_level INT, -- 1-5
-
-    -- Client notes
-    notes TEXT,
-    how_you_felt TEXT,
-
-    -- Calculated metrics
-    total_volume_lbs DECIMAL(12,2), -- sum of (sets × reps × weight) for all exercises
-    exercises_completed INT,
-    exercises_total INT,
-
-    -- Audit fields
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-CREATE INDEX idx_workout_logs_client ON workout_logs(client_id);
-CREATE INDEX idx_workout_logs_assignment ON workout_logs(client_assignment_id);
-CREATE INDEX idx_workout_logs_date ON workout_logs(actual_date);
-```
-
-### Exercise Logs Table
-
-```sql
-CREATE TABLE exercise_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    subscription_id UUID NOT NULL REFERENCES subscriptions(id),
-
-    -- Context
-    workout_log_id UUID NOT NULL REFERENCES workout_logs(id) ON DELETE CASCADE,
-    program_day_exercise_id UUID NOT NULL REFERENCES program_day_exercises(id),
-    exercise_id UUID NOT NULL REFERENCES exercises_library(id),
-    client_id UUID NOT NULL REFERENCES users(id),
-
-    exercise_order INT,
-
-    -- Prescribed vs actual
-    prescribed_sets INT,
-    prescribed_reps INT,
-    prescribed_load DECIMAL(10,2),
-    prescribed_load_unit VARCHAR(20),
-
-    -- Actual performance (JSONB array for flexibility)
-    sets_performed JSONB, -- [
-                          --   {"set": 1, "reps": 10, "weight": 185, "rpe": 7, "notes": "felt strong"},
-                          --   {"set": 2, "reps": 9, "weight": 185, "rpe": 8, "notes": ""},
-                          --   {"set": 3, "reps": 8, "weight": 185, "rpe": 9, "notes": "struggled"}
-                          -- ]
-
-    -- Calculated summary
-    total_reps INT, -- sum of all reps
-    total_volume DECIMAL(12,2), -- sum of (reps × weight) for all sets
-    average_rpe DECIMAL(3,1),
-    top_set_weight DECIMAL(10,2), -- heaviest weight used
-    top_set_reps INT, -- reps at heaviest weight
-
-    -- Performance indicators
-    is_personal_record BOOLEAN DEFAULT FALSE,
-    pr_type VARCHAR(50), -- '1rm', 'volume', 'reps_at_weight', 'time'
-
-    -- Client feedback
-    notes TEXT,
-    difficulty_rating INT, -- 1-5
-    form_quality INT, -- 1-5, self-assessed
-
-    -- Audit fields
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-CREATE INDEX idx_exercise_logs_workout ON exercise_logs(workout_log_id);
-CREATE INDEX idx_exercise_logs_client ON exercise_logs(client_id);
-CREATE INDEX idx_exercise_logs_exercise ON exercise_logs(exercise_id);
-CREATE INDEX idx_exercise_logs_pr ON exercise_logs(is_personal_record) WHERE is_personal_record = TRUE;
-```
-
 ---
 
-## Program Ecosystem Architecture
+## User Workflows
 
-### Three-Layer System
+### Workflow 1: Coach Assigns Default Template to Client
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    LAYER 1: PROGRAM BUILDERS                     │
-│  Wizard-style tools for creating specific types of programs     │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  [Strength Builder]  [Hypertrophy]  [Conditioning]  [Custom]   │
-│   (Existing 5x5)     (Future)        (Future)        (Future)   │
-│                                                                  │
-│  Each builder outputs → Program Template                         │
-│                                                                  │
-└────────────────────┬────────────────────────────────────────────┘
-                     │
-                     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                   LAYER 2: TEMPLATE LIBRARY                      │
-│     Repository of saved programs ready for assignment           │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  📁 My Templates (Private)                                      │
-│     ├─ "8-Week Linear Strength" (from Strength Builder)        │
-│     ├─ "12-Week Hypertrophy" (from Hypertrophy Builder)       │
-│     └─ "4-Week Peaking Cycle" (Custom)                         │
-│                                                                  │
-│  📁 Subscription Templates (Shared within gym)                  │
-│     └─ Templates created by other coaches in gym               │
-│                                                                  │
-│  🏪 Marketplace Templates (Public - ENTERPRISE, Future)         │
-│     └─ Templates from coaches worldwide                        │
-│                                                                  │
-└────────────────────┬────────────────────────────────────────────┘
-                     │
-                     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              LAYER 3: ASSIGNMENT & TRACKING                      │
-│         Programs assigned to specific clients                    │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  Client: John Doe                                               │
-│  Assigned Program: "8-Week Linear Strength"                     │
-│  Start Date: Jan 15, 2025                                       │
-│  Current Progress: Week 2, Day 3 (25% complete)                │
-│  Status: Active                                                  │
-│                                                                  │
-│  [Workout Log] → Exercise Performance → Analytics               │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+**Scenario**: Coach wants to use a platform-provided Strength template for a client who wants to bench 400 lbs.
 
-### Workflow: Builder → Template → Assignment
-
-#### Path 1: Direct Assignment (Quick Path)
-```
-Coach → Program Builder → Configure Program → "Assign to Client"
-  ↓
-Select Client → Set Start Date → Confirm
-  ↓
-Client receives notification → Program appears in their app
-```
-
-#### Path 2: Save as Template First (Reusable Path)
-```
-Coach → Program Builder → Configure Program → "Save as Template"
-  ↓
-Enter Template Details (name, description, tags, visibility)
-  ↓
-Template saved to library
-  ↓
-[Later] Coach → Template Library → Select Template → "Assign to Client"
-  ↓
-Select Client → Set Start Date → Optional Customization → Confirm
-  ↓
-Client receives notification → Program appears in their app
-```
-
-#### Path 3: Use Existing Template
-```
-Coach → Template Library → Browse/Search Templates
-  ↓
-Preview Template → "Assign to Client"
-  ↓
-Select Client → Set Start Date → Optional Customization → Confirm
-  ↓
-Client receives notification → Program appears in their app
-```
-
-### Builder Types (Current + Future)
-
-#### 1. Strength Builder (EXISTING - Current Implementation)
-**Target**: Linear progression for compound lifts
-**Output**: 8-week 5×5 program with heavy/light alternation
-**Inputs**:
-- Movements selection
-- 1RM tests
-- 80% max rep test
-- 5RM test protocol
-**Features**:
-- Auto-calculated progression rates
-- Percentage-based loading
-- Deload and test week built-in
-
-#### 2. Hypertrophy Builder (FUTURE)
-**Target**: Muscle building programs with volume focus
-**Output**: 8-12 week program with varied rep ranges
-**Inputs**:
-- Muscle group split selection (PPL, Upper/Lower, Bro Split)
-- Training frequency (3-6 days/week)
-- Exercise selection per muscle group
-- Volume preferences (sets per week per muscle)
-**Features**:
-- 8-12 rep range focus
-- Progressive overload via volume or weight
-- Deload weeks every 4-6 weeks
-- Exercise variety and rotation
-
-#### 3. Conditioning Builder (FUTURE)
-**Target**: Cardio, HIIT, metabolic conditioning
-**Output**: 4-8 week conditioning program
-**Inputs**:
-- Goal (fat loss, endurance, general fitness)
-- Available equipment (bike, rower, running, bodyweight)
-- Training frequency
-- Session duration
-**Features**:
-- Interval protocols (Tabata, EMOM, AMRAP)
-- Progressive duration/intensity
-- Recovery day planning
-- Heart rate zone guidance
-
-#### 4. Custom Builder (FUTURE)
-**Target**: Fully customizable programs for advanced coaches
-**Output**: Any program structure coach designs
-**Features**:
-- Drag-and-drop week/day/exercise builder
-- Manual set/rep/load prescription
-- Custom progression schemes
-- Blank canvas approach
-- Most flexible, requires most expertise
-
----
-
-## Program Management Workflows
-
-### Creating a Program Template
-
-**Who Can Create:**
-- SUBSCRIPTION_ADMIN (all subscription types)
-- COACH (GYM and ENTERPRISE subscriptions only)
-
-**Creation Flow:**
-
-1. **Initialize Program**
-   - Name, description, type, difficulty
-   - Duration (weeks), frequency (days/week)
-   - Goals, equipment requirements
-   - Upload thumbnail/video (optional)
-
-2. **Define Program Structure**
-   - Create weeks (auto-generated based on duration, or manual)
-   - Name each week (optional)
-   - Set week-level focus/notes
-
-3. **Build Workout Days**
-   - For each week, create training days
-   - Name day (Push, Pull, Legs, etc.)
-   - Set suggested day of week
-   - Estimate duration
-
-4. **Add Exercises**
-   - Search/select from exercise library
-   - Set order, sets, reps, load
-   - Configure rest periods, tempo, RPE
-   - Add coaching cues and notes
-   - Create supersets/circuits
-
-5. **Review and Publish**
-   - Preview full program
-   - Mark as template
-   - Set visibility (private/public)
-   - Save and make available for assignment
-
-**Template Versioning:**
-- When editing a template that's already assigned to clients:
-  - Option 1: Create new version (original assignments unchanged)
-  - Option 2: Update in place (affects future assignments only, not current)
-  - Option 3: Update and migrate (update current assignments with approval)
-
-### Assigning a Program to a Client
-
-**Who Can Assign:**
-- SUBSCRIPTION_ADMIN: Can assign to any client in subscription
-- COACH: Can assign to their assigned clients only
-
-**Assignment Sources:**
-1. **From Program Builder** (Path 1: Direct Assignment)
-   - Complete builder wizard
-   - At final step: "Assign to Client" button
-   - Optionally save as template for future reuse
-
-2. **From Template Library** (Path 3: Use Existing)
-   - Navigate to Templates page
-   - Browse/search/filter templates
-   - Click "Assign" on template card
-
-**Assignment Flow:**
-
-1. **Select Template/Program**
-   - Browse subscription's template library
-   - Filter by:
-     - Program type (strength, hypertrophy, conditioning)
-     - Difficulty level (beginner, intermediate, advanced)
-     - Duration (4-week, 8-week, 12-week)
-     - Equipment requirements
-     - Creator (me, my gym, marketplace)
-   - Preview program details with full week/day/exercise breakdown
+1. **Browse Templates**
+   - Coach navigates to "Program Templates"
+   - Filters by Focus: "Strength"
+   - Finds "Linear Progression - Compound Lifts" (default template)
 
 2. **Select Client**
-   - Choose from available clients
-   - View client profile:
-     - Current program status (if any)
-     - Training history
-     - Recent progress
-     - Goals and preferences
-   - Check for conflicts:
-     - Warning if client has active program
-     - Option to replace or schedule after current program ends
+   - Coach clicks "Assign to Client"
+   - Selects client from their roster
 
-3. **Configure Assignment**
-   - **Start Date Selection**:
-     - Choose immediate start or future date
-     - Calendar view with client's current schedule
-     - Auto-calculate end date (start + duration)
+3. **Provide Parameters**
+   - **Goal**: "Bench press 400 lbs by June 2026"
+   - **Focus Lifts**: Bench Press, Squat, Overhead Press
+   - **Current 1RM**: Bench 315 lbs, Squat 405 lbs, OHP 185 lbs
+   - **Days per Week**: 4
+   - **Start Date**: Monday, December 2, 2025
 
-   - **Customization Options** (optional):
-     - Adjust exercises (swap, add, remove)
-     - Modify sets/reps/load prescriptions
-     - Add client-specific notes and cues
-     - Set customization flag (tracks divergence from template)
+4. **Generate Program**
+   - System creates program instance from template
+   - Calculates all weights based on current 1RM and progression
+   - Creates 8-week schedule with 4 sessions/week
 
-   - **Assignment Notes**:
-     - Coach notes visible to client
-     - Program expectations and goals
-     - Special instructions
+5. **Review & Assign**
+   - Coach reviews generated program
+   - Can make adjustments to specific exercises/weights
+   - Clicks "Assign Program"
 
-4. **Review & Confirm**
-   - Summary of assignment:
-     - Client name
-     - Program name
-     - Start/end dates
-     - Customizations (if any)
-   - Click "Assign Program"
+6. **Client Notification**
+   - Client receives notification
+   - Can view program in their dashboard
+   - Begins tracking workouts
 
-5. **Notification & Client Access**
-   - **Automatic Notifications**:
-     - Email: "New program assigned: [Program Name]"
-     - In-app notification
-     - Push notification (mobile app)
+### Workflow 2: Coach Creates Custom Template
 
-   - **Client View**:
-     - Program appears in client dashboard
-     - "Today's Workout" shows current day
-     - Full program preview available
-     - Start workout button activates on start date
+**Scenario**: Coach has a unique conditioning protocol they use for multiple clients.
+
+1. **Create New Template**
+   - Coach navigates to "My Templates"
+   - Clicks "Create New Template"
+
+2. **Template Setup**
+   - **Name**: "KB Complex Conditioning"
+   - **Focus**: Conditioning
+   - **Difficulty**: Intermediate
+   - **Duration**: 6 weeks
+   - **Days/Week**: 3
+
+3. **Define Parameters**
+   - Add required parameter: "Goal" (text)
+   - Add required parameter: "KB Weight" (number, 8-106 lbs)
+   - Add required parameter: "Current Max Reps" (number)
+   - Add optional parameter: "Supplemental Work" (select)
+
+4. **Build Program Structure**
+   - Week 1: Foundation
+     - Day 1: KB Complex A (3 rounds)
+     - Day 2: KB Complex B (4 rounds)
+     - Day 3: KB Complex C (3 rounds)
+   - Week 2-6: Progressive volume/intensity
+   - For each exercise, specify sets/reps/rest
+
+5. **Save Template**
+   - Template saved to coach's subscription
+   - Private by default (only coach can use)
+   - Can optionally share with other coaches in subscription
+
+6. **Assign to Multiple Clients**
+   - Coach can now assign this template to any client
+   - Each assignment gets customized parameters
+
+### Workflow 3: Client Follows Assigned Program
+
+**Scenario**: Client has been assigned "Linear Progression" template focused on bench press.
+
+1. **View Program**
+   - Client logs in
+   - Dashboard shows "Active Program: Linear Progression"
+   - Can see current week and upcoming workouts
+
+2. **Start Workout**
+   - Monday: "Push Day - Week 1"
+   - Warm-up instructions displayed
+   - Exercise list with prescribed sets/reps/weights
+
+3. **Log Performance**
+   - Exercise 1: Bench Press 5×5 @ 225 lbs
+   - Client logs each set (weight, reps, RPE)
+   - Can add notes: "Felt strong, bar speed good"
+
+4. **Complete Workout**
+   - All exercises logged
+   - System marks workout as complete
+   - Updates progress: "3/32 workouts complete (9%)"
+
+5. **Progress Tracking**
+   - Client can view progression over weeks
+   - Graphs show weight increases
+   - Completion percentage shown
 
 6. **Coach Monitoring**
-   - Assignment appears in coach's "Active Assignments" list
-   - Real-time progress tracking:
-     - Completion percentage
-     - Adherence rate
-     - Workout logs
-     - Performance trends
-   - Option to adjust program mid-cycle if needed
+   - Coach can view client's logged workouts
+   - Can provide feedback on performance
+   - Can adjust future weeks if needed
 
-### Customizing an Assigned Program
+### Workflow 4: Browse and Use Community Templates (Future)
 
-After assignment, coaches can customize the program for a specific client:
+**Scenario**: Coach wants to find a proven hypertrophy template from the marketplace.
 
-**Customization Options:**
-- Adjust sets, reps, load for any exercise
-- Add or remove exercises
-- Modify rest periods, tempo
-- Add client-specific notes
-- Swap exercises (e.g., replace barbell with dumbbells due to injury)
+1. **Browse Marketplace**
+   - Navigate to "Template Marketplace"
+   - Filter: Focus = Hypertrophy, Rating > 4.5 stars
 
-**Customization Tracking:**
-- `is_customized` flag set to TRUE
-- Changes logged in `customization_notes`
-- Customizations only affect this client's assignment
-- Original template remains unchanged
+2. **Review Template**
+   - Click on "PPL Hypertrophy - 12 Weeks"
+   - See description, required parameters, sample week
+   - Read reviews from other coaches
+   - View creator's profile and other templates
 
----
+3. **Purchase/Download**
+   - Free templates: Click "Add to My Templates"
+   - Paid templates: Purchase for $X.XX
+   - Template now available in coach's library
 
-## Template Library Interface
-
-### Navigation & Access
-
-**URL Routes:**
-- `/templates` - Main template library page (coaches/admins)
-- `/templates/:id` - Template detail/preview page
-- `/templates/new` - Create new template (redirects to builder selection)
-- `/templates/:id/edit` - Edit existing template
-
-**Access from Dashboard:**
-- Coach Dashboard: "My Programs" → "Templates" tab
-- Quick action: "Create Program" → Choose builder type
-- Quick action: "Browse Templates" → Template library
-
-### Template Library Page (`/templates`)
-
-**Page Layout:**
-
-```
-┌────────────────────────────────────────────────────────────┐
-│  Templates                                    [+ Create]    │
-├────────────────────────────────────────────────────────────┤
-│                                                             │
-│  🔍 Search templates...                                    │
-│                                                             │
-│  Filters:                                                  │
-│  [Type ▾] [Difficulty ▾] [Duration ▾] [Equipment ▾]      │
-│                                                             │
-│  Tabs: [📁 My Templates] [👥 Shared] [🏪 Marketplace]    │
-│                                                             │
-├────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
-│  │ 📸 Thumbnail │  │ 📸 Thumbnail │  │ 📸 Thumbnail │    │
-│  │              │  │              │  │              │    │
-│  │ Linear 5x5   │  │ PPL Builder  │  │ Conditioning │    │
-│  │ Strength     │  │ Hypertrophy  │  │ HIIT         │    │
-│  │              │  │              │  │              │    │
-│  │ 8 weeks      │  │ 12 weeks     │  │ 6 weeks      │    │
-│  │ 4 days/week  │  │ 6 days/week  │  │ 4 days/week  │    │
-│  │              │  │              │  │              │    │
-│  │ ⭐ 4.8 (23)  │  │ ⭐ 4.6 (15)  │  │ ⭐ 4.9 (8)   │    │
-│  │ 📊 87% comp  │  │ 📊 78% comp  │  │ 📊 92% comp  │    │
-│  │              │  │              │  │              │    │
-│  │ [Preview]    │  │ [Preview]    │  │ [Preview]    │    │
-│  │ [Assign]     │  │ [Assign]     │  │ [Assign]     │    │
-│  └──────────────┘  └──────────────┘  └──────────────┘    │
-│                                                             │
-└────────────────────────────────────────────────────────────┘
-```
-
-**Filter Options:**
-
-1. **Type Filter**
-   - Strength
-   - Hypertrophy
-   - Conditioning
-   - Sport-Specific
-   - General Fitness
-   - All
-
-2. **Difficulty Filter**
-   - Beginner
-   - Intermediate
-   - Advanced
-   - Elite
-   - All
-
-3. **Duration Filter**
-   - 4 weeks
-   - 6 weeks
-   - 8 weeks
-   - 12 weeks
-   - 16+ weeks
-   - Custom
-
-4. **Equipment Filter**
-   - Minimal (bodyweight, dumbbells)
-   - Standard (barbell, rack, bench)
-   - Full gym
-   - Home gym
-   - No equipment
-
-5. **Creator Filter** (My Templates tab only)
-   - Created by me
-   - Created by others in gym
-
-**Template Card Components:**
-
-```jsx
-<TemplateCard>
-  <Thumbnail /> {/* Image or default based on type */}
-  <TemplateHeader>
-    <Name>8-Week Linear Strength</Name>
-    <Type badge>Strength</Type>
-    <Difficulty badge>Intermediate</Difficulty>
-  </TemplateHeader>
-  <TemplateStats>
-    <Duration>8 weeks • 4 days/week</Duration>
-    <Assigned>23 times assigned</Assigned>
-    <Rating>⭐ 4.8 (23 ratings)</Rating>
-    <Completion>87% avg completion</Completion>
-  </TemplateStats>
-  <EquipmentTags>
-    <Tag>Barbell</Tag>
-    <Tag>Rack</Tag>
-    <Tag>Bench</Tag>
-  </EquipmentTags>
-  <Actions>
-    <Button variant="secondary" onClick={handlePreview}>
-      Preview
-    </Button>
-    <Button variant="primary" onClick={handleAssign}>
-      Assign to Client
-    </Button>
-    {isCreator && (
-      <Menu>
-        <MenuItem>Edit</MenuItem>
-        <MenuItem>Duplicate</MenuItem>
-        <MenuItem>Archive</MenuItem>
-      </Menu>
-    )}
-  </Actions>
-</TemplateCard>
-```
-
-### Template Detail/Preview Page (`/templates/:id`)
-
-**Full Program View:**
-
-```
-┌────────────────────────────────────────────────────────────┐
-│  ← Back to Templates                                        │
-├────────────────────────────────────────────────────────────┤
-│                                                             │
-│  8-Week Linear Strength Program                [Assign]    │
-│  By: Coach Mike Johnson                                     │
-│                                                             │
-│  Type: Strength | Difficulty: Intermediate | 8 weeks       │
-│                                                             │
-│  Description:                                              │
-│  Classic linear progression strength program based on      │
-│  5x5 protocol. Suitable for intermediate lifters...       │
-│                                                             │
-│  ⭐ 4.8 (23 ratings) | 📊 87% completion | 23 assignments │
-│                                                             │
-├────────────────────────────────────────────────────────────┤
-│                                                             │
-│  [Week 1] [Week 2] [Week 3] ... [Week 8]                  │
-│                                                             │
-│  Week 1: Foundation Phase                                  │
-│  ├─ Day 1: Full Body Heavy (Monday)                       │
-│  │  └─ Squat: 5x5 @ calculated weight                    │
-│  │  └─ Bench Press: 5x5                                   │
-│  │  └─ Rows: 5x5                                          │
-│  │  └─ Overhead Press: 5x5                                │
-│  │                                                          │
-│  ├─ Day 2: Full Body Light (Wednesday)                    │
-│  │  └─ squat: 5x5 @ 80% of heavy                         │
-│  │  └─ bench press: 5x5 @ 80%                            │
-│  │  └─ ...                                                 │
-│  │                                                          │
-│  └─ Day 3: Full Body Heavy (Friday)                       │
-│      └─ ...                                                 │
-│                                                             │
-│  [Expand All] [Collapse All]                              │
-│                                                             │
-├────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Equipment Required:                                       │
-│  • Barbell • Squat Rack • Bench • Weights                 │
-│                                                             │
-│  Target Audience:                                          │
-│  Intermediate lifters with 1+ year experience              │
-│                                                             │
-│  Goals:                                                    │
-│  • Increase absolute strength                              │
-│  • Build muscle mass                                       │
-│  • Improve 1RM on compound lifts                           │
-│                                                             │
-└────────────────────────────────────────────────────────────┘
-```
-
-### Subscription Template Library
-
-Each subscription has its own library of program templates:
-
-**Library Categories:**
-
-1. **My Templates** (Private to creator)
-   - Templates created by the current user
-   - Full edit/delete permissions
-   - Can be shared with subscription or made public
-
-2. **Subscription Templates** (Shared within gym)
-   - Templates created by other coaches in the subscription
-   - Read-only (can duplicate to customize)
-   - Visible to all coaches/admins in subscription
-
-3. **Marketplace Templates** (ENTERPRISE only - Future)
-   - Public templates from coaches worldwide
-   - Purchase/download to copy to subscription
-   - Read-only originals with local customization copies
-
-**Template Visibility Settings:**
-
-```typescript
-enum TemplateVisibility {
-  PRIVATE = 'private',        // Only creator can see
-  SUBSCRIPTION = 'subscription', // All coaches in subscription can see
-  PUBLIC = 'public'           // Marketplace (ENTERPRISE only)
-}
-```
-
-When creating/editing a template:
-- **INDIVIDUAL subscriptions**: Can only set PRIVATE
-- **GYM subscriptions**: Can set PRIVATE or SUBSCRIPTION
-- **ENTERPRISE subscriptions**: Can set PRIVATE, SUBSCRIPTION, or PUBLIC (marketplace)
-
-### Global Exercise Library
-
-Platform-wide exercise database:
-
-**Exercise Categories:**
-- Compound movements (squat, deadlift, bench press)
-- Isolation exercises (bicep curl, leg extension)
-- Cardio (running, rowing, cycling)
-- Bodyweight (push-ups, pull-ups, planks)
-- Olympic lifts (clean, snatch, jerk)
-- Mobility and stretching
-
-**Exercise Data:**
-- Name, description, instructions
-- Video demonstration
-- Muscle groups targeted
-- Equipment needed
-- Difficulty level
-- Progression/regression variants
-- Common mistakes and cues
-
-**Custom Exercises:**
-- Subscription admins and coaches can create custom exercises
-- Stored in subscription's private library
-- Can be marked for inclusion in global library (review process)
-
-### Marketplace (ENTERPRISE - Future)
-
-Public template marketplace for buying/selling programs:
-
-**Features:**
-- Browse templates from coaches worldwide
-- Ratings and reviews
-- Preview before purchase
-- One-time purchase or subscription
-- Revenue sharing (70% creator, 30% platform)
-- Featured templates and collections
-
-**Quality Control:**
-- Verification process for marketplace templates
-- Minimum quality standards
-- User reports for inappropriate content
-- Platform moderation
+4. **Customize and Assign**
+   - Follow standard assignment workflow
+   - Can further customize after download
+   - Can save customizations as own template variant
 
 ---
 
-## Tracking and Analytics
+## Default Platform Templates
 
-### Client-Level Tracking
+### Template Library v1.0
 
-**Program Progress:**
-- Current week and day
-- Workouts completed vs scheduled
-- Completion percentage
-- Estimated completion date
-- Adherence rate (workouts completed on time)
+The platform will launch with the following default templates available to all coaches:
 
-**Performance Metrics:**
-- Total volume (lbs/kg lifted)
-- Personal records achieved
-- Average session RPE
-- Average workout duration
-- Energy levels trend
-- Exercise-specific progression
+#### Strength Focus
 
-**Progress Dashboard:**
-```
-Current Program: 12-Week Hypertrophy Builder
-Progress: Week 4 of 12 (33% complete)
-Adherence: 11/12 workouts (92%)
-Total Volume: 145,230 lbs
-Personal Records: 5
-Average RPE: 7.8
-```
+1. **Linear Progression - Classic 5×5**
+   - Difficulty: Beginner
+   - Duration: 8 weeks
+   - Days/Week: 3-4
+   - Goal Examples: "Squat 315 lbs", "Bench 225 lbs"
+   - Parameters: Focus lifts (3-4), Current 1RM, Days/week
 
-### Coach Analytics
+2. **Intermediate Strength Builder**
+   - Difficulty: Intermediate
+   - Duration: 12 weeks
+   - Days/Week: 4
+   - Goal Examples: "400 lb bench press", "500 lb deadlift"
+   - Parameters: Primary goal lift, Current 1RM, Weak points
 
-**Program Performance:**
-- Templates created
-- Times each template assigned
-- Average completion rate per template
-- Average client satisfaction rating
-- Most/least successful programs
+3. **Powerlifting Peaking Protocol**
+   - Difficulty: Advanced
+   - Duration: 16 weeks (12 weeks + 4 week peak)
+   - Days/Week: 4-5
+   - Goal Examples: "Competition prep", "Test new maxes"
+   - Parameters: Meet date, Current 1RM (SBD), Weight class
 
-**Client Overview:**
-- Active programs count
-- Client adherence rates
-- Clients at risk (low adherence)
-- Recent personal records
-- Clients needing check-in
+#### Conditioning Focus
 
-**Coach Dashboard:**
-```
-Active Clients: 18
-Active Programs: 18
-Avg Completion Rate: 78%
-Avg Client Rating: 4.6/5.0
-Programs Created: 12
-Most Assigned: "Beginner Strength Foundations" (8 times)
-```
+4. **KB Press Conditioning**
+   - Difficulty: Intermediate
+   - Duration: 6 weeks
+   - Days/Week: 3
+   - Goal Examples: "Improve KB press endurance", "100 presses in 10 min"
+   - Parameters: KB weight, Current max reps, Supplemental work preference
 
-### Admin Analytics (Subscription-Level)
+5. **General Conditioning Builder**
+   - Difficulty: Beginner to Intermediate
+   - Duration: 8 weeks
+   - Days/Week: 3-4
+   - Goal Examples: "Improve work capacity", "Better cardiovascular fitness"
+   - Parameters: Equipment available, Session length, Intensity preference
 
-**Subscription Metrics:**
-- Total programs created
-- Total assignments (all-time, monthly)
-- Overall completion rate
-- Most popular program types
-- Coach performance comparison
-- Client engagement metrics
+6. **CrossFit-Style Conditioning**
+   - Difficulty: Intermediate to Advanced
+   - Duration: 10 weeks
+   - Days/Week: 5
+   - Goal Examples: "Improve CrossFit performance", "Increase engine"
+   - Parameters: Weaknesses (gymnastics/weightlifting/cardio), Equipment
 
-**Retention Insights:**
-- Correlation between program completion and client retention
-- Average client lifetime (days active)
-- Churn risk indicators
+#### Hypertrophy Focus
 
-**Revenue Impact (GYM/ENTERPRISE):**
-- Clients with active programs vs those without
-- Retention rate difference
-- Upsell opportunities (clients ready for advanced programs)
+7. **Push/Pull/Legs Split**
+   - Difficulty: Intermediate
+   - Duration: 12 weeks
+   - Days/Week: 6 (2x per muscle group)
+   - Goal Examples: "Build muscle mass", "Gain 10 lbs lean mass"
+   - Parameters: Weak body parts, Rep range preference, Volume tolerance
 
----
+8. **Upper/Lower Split**
+   - Difficulty: Beginner to Intermediate
+   - Duration: 10 weeks
+   - Days/Week: 4
+   - Goal Examples: "Balanced muscle growth", "Build strength and size"
+   - Parameters: Focus areas (upper/lower priority), Equipment, Session length
 
-## API Endpoints
+#### General Fitness
 
-### Program Template Endpoints
+9. **Beginner Full Body**
+   - Difficulty: Beginner
+   - Duration: 8 weeks
+   - Days/Week: 3
+   - Goal Examples: "Get stronger and fitter", "Build foundation"
+   - Parameters: Equipment available, Limitations/injuries, Session length
 
-```
-POST   /api/v1/programs/templates
-GET    /api/v1/programs/templates
-GET    /api/v1/programs/templates/{id}
-PUT    /api/v1/programs/templates/{id}
-DELETE /api/v1/programs/templates/{id}
-POST   /api/v1/programs/templates/{id}/duplicate
-POST   /api/v1/programs/templates/{id}/publish
-```
-
-### Program Structure Endpoints
-
-```
-POST   /api/v1/programs/{program_id}/weeks
-PUT    /api/v1/programs/weeks/{week_id}
-DELETE /api/v1/programs/weeks/{week_id}
-
-POST   /api/v1/programs/weeks/{week_id}/days
-PUT    /api/v1/programs/days/{day_id}
-DELETE /api/v1/programs/days/{day_id}
-
-POST   /api/v1/programs/days/{day_id}/exercises
-PUT    /api/v1/programs/exercises/{exercise_id}
-DELETE /api/v1/programs/exercises/{exercise_id}
-POST   /api/v1/programs/exercises/{exercise_id}/reorder
-```
-
-### Exercise Library Endpoints
-
-```
-GET    /api/v1/exercises
-POST   /api/v1/exercises
-GET    /api/v1/exercises/{id}
-PUT    /api/v1/exercises/{id}
-DELETE /api/v1/exercises/{id}
-GET    /api/v1/exercises/categories
-GET    /api/v1/exercises/search?q=bench&category=compound
-```
-
-### Assignment Endpoints
-
-```
-POST   /api/v1/assignments
-GET    /api/v1/assignments
-GET    /api/v1/assignments/{id}
-PUT    /api/v1/assignments/{id}
-DELETE /api/v1/assignments/{id}
-POST   /api/v1/assignments/{id}/customize
-PATCH  /api/v1/assignments/{id}/status
-GET    /api/v1/assignments/{id}/progress
-```
-
-### Workout Logging Endpoints
-
-```
-POST   /api/v1/workouts/log
-GET    /api/v1/workouts/log/{id}
-PUT    /api/v1/workouts/log/{id}
-GET    /api/v1/workouts/history?client_id={id}&date_from={date}
-
-POST   /api/v1/workouts/log/{workout_id}/exercises
-PUT    /api/v1/workouts/log/exercises/{exercise_log_id}
-POST   /api/v1/workouts/log/exercises/{exercise_log_id}/set
-```
-
-### Analytics Endpoints
-
-```
-GET    /api/v1/analytics/client/{client_id}/progress
-GET    /api/v1/analytics/client/{client_id}/personal-records
-GET    /api/v1/analytics/coach/{coach_id}/overview
-GET    /api/v1/analytics/subscription/overview
-GET    /api/v1/analytics/programs/{program_id}/performance
-```
+10. **Athletic Development**
+    - Difficulty: Intermediate
+    - Duration: 12 weeks
+    - Days/Week: 4-5
+    - Goal Examples: "Improve athleticism", "Sport-specific training"
+    - Parameters: Sport, Weaknesses, Competition schedule
 
 ---
 
-## Multi-Tenant Considerations
+## Technical Implementation
 
-### Data Isolation
+### Backend API Endpoints
 
-All program data is scoped by `subscription_id`:
-
-```python
-# Example: Fetching programs for a subscription
-@router.get("/programs/templates")
-async def get_program_templates(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    # Automatic subscription filtering
-    query = select(Program).where(
-        Program.subscription_id == current_user.subscription_id,
-        Program.is_template == True,
-        Program.is_active == True
-    )
-    result = await db.execute(query)
-    return result.scalars().all()
-```
-
-### Permission Enforcement
-
-**SUBSCRIPTION_ADMIN:**
-- Create, edit, delete any program in subscription
-- Assign programs to any client
-- View all program analytics
-- Manage exercise library
-
-**COACH (GYM/ENTERPRISE):**
-- Create, edit, delete own programs
-- Assign programs to assigned clients only
-- View analytics for assigned clients
-- Add to exercise library
-
-**CLIENT:**
-- View assigned programs only
-- Log workouts
-- View own progress and history
-- Cannot create or edit programs
-
-### Cross-Subscription Features
-
-**Global Exercise Library:**
-- `is_global = TRUE` exercises visible to all subscriptions
-- Created by APPLICATION_SUPPORT
-- Read-only for all other users
-- Subscriptions can add custom exercises to own library
-
-**Marketplace Templates (ENTERPRISE - Future):**
-- `is_public = TRUE` templates visible across subscriptions
-- Purchasing copies template to buyer's subscription
-- Original creator retains ownership
-- Platform revenue sharing
-
----
-
-## User Experience Flows
-
-### Coach: Creating a Program
-
-1. Navigate to "Programs" tab
-2. Click "Create New Program"
-3. Fill out program details form
-4. Click "Build Program" to enter builder interface
-5. Add weeks (or use auto-generate)
-6. For each week, add training days
-7. For each day, search and add exercises from library
-8. Configure sets, reps, load for each exercise
-9. Preview full program
-10. Save as template
-11. Assign to clients or save for later
-
-### Coach: Assigning a Program
-
-1. Navigate to "Clients" tab
-2. Select a client
-3. Click "Assign Program"
-4. Browse template library or search
-5. Select template and preview
-6. Set start date
-7. Optionally customize exercises
-8. Add assignment notes
-9. Confirm assignment
-10. Client receives notification
-
-### Client: Logging a Workout
-
-1. Open mobile app or web dashboard
-2. View "Today's Workout"
-3. See list of exercises with prescribed sets/reps/load
-4. Complete first exercise
-5. For each set:
-   - Enter actual reps
-   - Enter actual weight
-   - Enter RPE (optional)
-   - Add notes (optional)
-6. Submit set
-7. Rest timer starts automatically
-8. Repeat for all sets
-9. Move to next exercise
-10. After all exercises, mark workout complete
-11. Add session notes and overall rating
-12. Submit workout log
-
-### Client: Viewing Progress
-
-1. Navigate to "Progress" tab
-2. See current program overview
-   - Completion percentage
-   - Current week/day
-   - Adherence rate
-3. View recent workout history
-4. See personal records achieved
-5. View exercise-specific progression charts
-6. Filter by date range, exercise, or muscle group
-
----
-
-## Client Program Experience
-
-### Client Dashboard - Program View
-
-**When Client Has Active Program:**
+#### Template Management
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│  Welcome back, John!                                        │
-├────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Current Program: 8-Week Linear Strength                   │
-│  Week 2 of 8 • Day 3 (Friday)                              │
-│  Progress: ████████░░░░░░░░░░ 25%                         │
-│  Adherence: 11/12 workouts (92%)                           │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │  TODAY'S WORKOUT - Heavy Day                         │  │
-│  │                                                       │  │
-│  │  Session 3: Full Body Heavy                          │  │
-│  │  Estimated time: 60 minutes                          │  │
-│  │                                                       │  │
-│  │  Exercises:                                          │  │
-│  │  • Squat: 5×5 @ 225 lbs                             │  │
-│  │  • Bench Press: 5×5 @ 185 lbs                       │  │
-│  │  • Barbell Row: 5×5 @ 165 lbs                       │  │
-│  │  • Overhead Press: 5×5 @ 115 lbs                    │  │
-│  │                                                       │  │
-│  │  [Start Workout] →                                   │  │
-│  └─────────────────────────────────────────────────────┘  │
-│                                                             │
-│  Quick Stats:                                              │
-│  • Next workout: Saturday (Light Day)                      │
-│  • Personal Records this program: 3                        │
-│  • Total volume lifted: 145,230 lbs                        │
-│                                                             │
-│  [View Full Program] [Progress Details]                   │
-│                                                             │
-└────────────────────────────────────────────────────────────┘
+GET    /api/v1/programs/templates              # List all templates (default + coach's custom)
+GET    /api/v1/programs/templates/default      # List only default templates
+GET    /api/v1/programs/templates/my-templates # List coach's custom templates
+GET    /api/v1/programs/templates/{id}         # Get template details
+POST   /api/v1/programs/templates              # Create new custom template
+PUT    /api/v1/programs/templates/{id}         # Update custom template
+DELETE /api/v1/programs/templates/{id}         # Delete custom template (soft delete)
+
+# Template assignment workflow
+POST   /api/v1/programs/templates/{id}/preview # Preview program with parameters (doesn't save)
+POST   /api/v1/programs/templates/{id}/assign  # Create program instance and assign to client
 ```
 
-**When Client Has NO Active Program:**
+#### Program Assignment Management
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│  Welcome back, John!                                        │
-├────────────────────────────────────────────────────────────┤
-│                                                             │
-│  📋 No Active Program                                      │
-│                                                             │
-│  You don't have an active training program yet.            │
-│  Your coach will assign one soon!                          │
-│                                                             │
-│  In the meantime:                                          │
-│  • [View Program History]                                  │
-│  • [Browse Workout Library]                                │
-│  • [Log Custom Workout]                                    │
-│                                                             │
-└────────────────────────────────────────────────────────────┘
+GET    /api/v1/coaches/me/assignments          # Coach's view of all program assignments
+GET    /api/v1/clients/me/assignments          # Client's active programs
+GET    /api/v1/assignments/{id}                # Get assignment details
+PUT    /api/v1/assignments/{id}                # Update assignment (status, notes)
+DELETE /api/v1/assignments/{id}                # Cancel assignment
+
+# Progress tracking
+GET    /api/v1/assignments/{id}/progress       # Get detailed progress
+POST   /api/v1/assignments/{id}/workouts/{workout_id}/log  # Log workout completion
+PUT    /api/v1/assignments/{id}/workouts/{workout_id}      # Update logged workout
 ```
 
-### Client Program Details Page
-
-**Full Program View (Read-Only):**
+#### Exercise Library
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│  ← Back to Dashboard                                        │
-├────────────────────────────────────────────────────────────┤
-│                                                             │
-│  8-Week Linear Strength Program                            │
-│  Assigned by: Coach Mike                                    │
-│  Started: Jan 15, 2025 • Ends: Mar 10, 2025               │
-│                                                             │
-│  Coach Notes:                                              │
-│  "Focus on form over weight. Take the rest days seriously. │
-│   You've got this! 💪"                                     │
-│                                                             │
-│  Progress: Week 2 of 8 (25% complete)                      │
-│  ████████░░░░░░░░░░░░░░░░░░                               │
-│                                                             │
-├────────────────────────────────────────────────────────────┤
-│                                                             │
-│  [Week 1✓] [Week 2 ◐] [Week 3] [Week 4] ... [Week 8]     │
-│                                                             │
-│  Week 2: Building Phase                                    │
-│  ├─ ✅ Day 1: Heavy (Completed Mon, Jan 22)              │
-│  ├─ ✅ Day 2: Light (Completed Wed, Jan 24)              │
-│  ├─ 🎯 Day 3: Heavy (Today - Friday)                      │
-│  │   └─ Squat: 5×5 @ 225 lbs                             │
-│  │   └─ Bench Press: 5×5 @ 185 lbs                       │
-│  │   └─ Barbell Row: 5×5 @ 165 lbs                       │
-│  │   └─ Overhead Press: 5×5 @ 115 lbs                    │
-│  │   [Start Workout] →                                    │
-│  │                                                          │
-│  └─ ⏸️  Day 4: Light (Scheduled Sat, Jan 27)              │
-│      └─ Preview exercises...                               │
-│                                                             │
-└────────────────────────────────────────────────────────────┘
+GET    /api/v1/exercises                       # List exercises (global + subscription's)
+GET    /api/v1/exercises/{id}                  # Get exercise details
+POST   /api/v1/exercises                       # Create custom exercise
+PUT    /api/v1/exercises/{id}                  # Update exercise
+DELETE /api/v1/exercises/{id}                  # Delete exercise
 ```
 
-### Workout Execution Flow (Client Mobile App)
+### Frontend Components
 
-**Pre-Workout Screen:**
-
-```
-┌──────────────────────┐
-│  Today's Workout     │
-│  Heavy Day           │
-│                      │
-│  📊 Session 3/32     │
-│  ⏱️  ~60 minutes     │
-│  🏋️  4 exercises     │
-│                      │
-│  Squat               │
-│  Bench Press         │
-│  Barbell Row         │
-│  Overhead Press      │
-│                      │
-│  Ready?              │
-│                      │
-│  [Start Workout] →   │
-│                      │
-│  Warm-up tips:       │
-│  • 5-10 min cardio   │
-│  • Dynamic stretches │
-│  • Empty bar sets    │
-└──────────────────────┘
-```
-
-**During Workout - Exercise View:**
+#### Coach View
 
 ```
-┌──────────────────────┐
-│  Exercise 1 of 4     │
-│  ━━━━━━━━━░░░░       │
-│                      │
-│  SQUAT               │
-│  🎯 Target: 5×5      │
-│  ⚖️  Weight: 225 lbs  │
-│                      │
-│  Set 1 of 5          │
-│  ┌────────────────┐  │
-│  │ Reps: [ 5  ]   │  │
-│  │ Weight: [225]  │  │
-│  │ RPE: [●●●●●○○] │  │
-│  │               │  │
-│  │ [✓ Log Set]   │  │
-│  └────────────────┘  │
-│                      │
-│  Rest Timer: 3:00    │
-│  ⏱️  2:45 remaining   │
-│  [Skip Rest]         │
-│                      │
-│  Sets Completed:     │
-│  ✅ Set 1: 5 @ 225   │
-│  ⏳ Set 2            │
-│  ⏳ Set 3            │
-│  ⏳ Set 4            │
-│  ⏳ Set 5            │
-│                      │
-│  Video Guide ▶️       │
-│  Form Tips 💡        │
-└──────────────────────┘
+/program-templates              # Browse all templates
+/program-templates/default      # Default template library
+/program-templates/my-templates # Coach's custom templates
+/program-templates/create       # Create new template
+/program-templates/{id}         # View/edit template
+/program-templates/{id}/assign  # Assign template to client (parameter form)
+
+/clients/{id}/programs          # Client's program history
+/assignments/{id}               # Monitor client's progress on assignment
 ```
 
-**Post-Workout Summary:**
+#### Client View
 
 ```
-┌──────────────────────┐
-│  Workout Complete!   │
-│  🎉 Great job!       │
-│                      │
-│  Session Summary     │
-│  ⏱️  Duration: 58min  │
-│  🏋️  Exercises: 4/4   │
-│  📊 Total Volume:    │
-│     12,450 lbs       │
-│                      │
-│  🏆 New PR!          │
-│  Squat: 225×5        │
-│  (prev: 220×5)       │
-│                      │
-│  How did you feel?   │
-│  Energy: ●●●●○       │
-│  Difficulty: ●●●○○   │
-│                      │
-│  Notes (optional):   │
-│  ┌────────────────┐  │
-│  │ Felt strong    │  │
-│  │ today!         │  │
-│  └────────────────┘  │
-│                      │
-│  [Save & Finish]     │
-│                      │
-│  Next workout:       │
-│  Saturday - Light    │
-└──────────────────────┘
+/my-programs                    # Active and past programs
+/my-programs/{id}               # View program details
+/my-programs/{id}/week/{week}   # Current week view
+/workout/{id}                   # Today's workout (log performance)
+/workout/{id}/history           # Past workout logs for same exercises
 ```
 
-### Client Program Progress Dashboard
-
-**Progress Analytics View:**
+### Data Flow: Template Assignment
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│  Program Progress - 8-Week Linear Strength                 │
-├────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Overall Progress                                          │
-│  Week 2 of 8 • 25% Complete                                │
-│  ████████░░░░░░░░░░░░░░░░░░                               │
-│                                                             │
-│  Adherence: 11/12 workouts (92%)                           │
-│  On track to finish: March 10, 2025                        │
-│                                                             │
-├────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Performance Trends                                         │
-│                                                             │
-│  Squat Progression                                         │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │ 240│                                            ●    │  │
-│  │ 230│                                      ●          │  │
-│  │ 220│                                ●                │  │
-│  │ 210│                          ●                      │  │
-│  │ 200│                    ●                            │  │
-│  │    └───────────────────────────────────────────────  │  │
-│  │      W1   W2   W3   W4   W5   W6   W7   W8          │  │
-│  └─────────────────────────────────────────────────────┘  │
-│                                                             │
-│  Volume Per Week                                           │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │ 60K│     █                                           │  │
-│  │ 50K│     █  █                                        │  │
-│  │ 40K│  █  █  █                                        │  │
-│  │ 30K│  █  █  █                                        │  │
-│  │    └───────────────────────────────────────────────  │  │
-│  │      W1  W2 W3  W4  W5  W6  W7  W8                  │  │
-│  └─────────────────────────────────────────────────────┘  │
-│                                                             │
-│  Personal Records This Program: 3                          │
-│  • Squat: 225×5 (Jan 26)                                  │
-│  • Bench: 185×5 (Jan 24)                                  │
-│  • Row: 165×5 (Jan 22)                                    │
-│                                                             │
-└────────────────────────────────────────────────────────────┘
+1. Coach selects template
+   ↓
+2. Coach selects client
+   ↓
+3. Frontend displays parameter form
+   (based on template.required_parameters and template.optional_parameters)
+   ↓
+4. Coach fills in parameters:
+   - Goal: "Bench press 400 lbs"
+   - Focus lifts: [Bench Press, Squat, OHP]
+   - Current 1RM: {bench: 315, squat: 405, ohp: 185}
+   - Days/week: 4
+   ↓
+5. Frontend calls POST /api/v1/programs/templates/{id}/preview
+   Backend generates program instance (not saved yet)
+   Returns full program structure for review
+   ↓
+6. Coach reviews generated program
+   Can make manual adjustments
+   ↓
+7. Coach clicks "Assign Program"
+   Frontend calls POST /api/v1/programs/templates/{id}/assign
+   ↓
+8. Backend:
+   a. Creates program instance (copy of template structure)
+   b. Applies parameters to calculate all weights/reps
+   c. Creates program_weeks, program_days, program_day_exercises
+   d. Creates program_assignment record
+   e. Links assignment to client
+   ↓
+9. Client receives notification
+   Program appears in client dashboard
 ```
-
-### Client Notifications
-
-**Program Assignment Notification:**
-```
-📧 Email: "New Training Program Assigned"
-
-Hi John,
-
-Coach Mike has assigned you a new training program!
-
-Program: 8-Week Linear Strength
-Start Date: January 15, 2025
-Duration: 8 weeks
-Frequency: 4 workouts per week
-
-Coach's Message:
-"Focus on form over weight. Take the rest days seriously. You've got this! 💪"
-
-[View Program in App] [Log in to Web Dashboard]
-
-Questions? Reply to this email or message Coach Mike in the app.
-```
-
-**Workout Reminder Notification:**
-```
-🔔 Push Notification (Mobile):
-
-"Today's Workout Ready!"
-Heavy Day - Session 3
-Squat, Bench, Row, OHP
-Tap to start →
-```
-
-**Milestone Achievement:**
-```
-🎉 Push Notification:
-
-"New Personal Record! 🏆"
-Squat: 225 lbs × 5 reps
-Previous: 220 lbs × 5 reps
-Keep crushing it!
-```
-
----
-
-## Progressive Overload Strategies
-
-### Built-in Progression Models
-
-**Linear Progression:**
-- Increase weight by fixed amount each week (e.g., +5 lbs)
-- Suitable for beginners
-- Example: Week 1: 135 lbs → Week 2: 140 lbs → Week 3: 145 lbs
-
-**Percentage-Based Progression:**
-- Sets prescribed as % of 1RM
-- Week 1: 70% × 5 reps
-- Week 2: 75% × 5 reps
-- Week 3: 80% × 3 reps
-
-**RPE-Based Progression:**
-- Maintain RPE while increasing weight
-- Week 1: RPE 7 @ 185 lbs
-- Week 2: RPE 7 @ 190 lbs (client naturally progressed)
-
-**Volume Progression:**
-- Increase total sets or reps
-- Week 1: 3×8
-- Week 2: 4×8
-- Week 3: 4×10
-
-**Undulating Periodization:**
-- Vary intensity and volume within week
-- Monday: 4×10 @ 70%
-- Wednesday: 5×5 @ 85%
-- Friday: 3×8 @ 75%
-
-### Auto-Regulation Features
-
-**RPE-Based Auto-Regulation:**
-- Client logs actual RPE for each set
-- System suggests weight adjustments based on RPE trends
-- If consistently hitting RPE 8 when prescribed RPE 7, suggest +5 lbs
-
-**Performance-Based Suggestions:**
-- Track exercise performance over time
-- Identify plateaus or regression
-- Suggest deload weeks or program changes
-- Alert coach when client exceeds expected progression (potential PR)
-
----
-
-## Mobile App Integration
-
-### Workout Mode
-
-**Features:**
-- Offline-first (sync when connected)
-- Rest timers with notifications
-- Exercise video demonstrations
-- Form tracking (front camera, AI form analysis - future)
-- Voice logging (say reps/weight instead of typing)
-- Playlist integration (Spotify, Apple Music)
-
-**Workout Flow:**
-- Pre-workout warm-up reminders
-- Exercise-by-exercise guided flow
-- Visual progress bar (X of Y exercises complete)
-- Superset grouping (perform both, then rest)
-- Post-workout summary and rating
-
-### Progress Tracking
-
-**Features:**
-- Visual charts and graphs (weight progression, volume trends)
-- Personal record celebrations (confetti animation!)
-- Body weight and measurements tracking
-- Progress photos with before/after comparison
-- Share achievements on social media (optional)
-
----
-
-## Technical Implementation Notes
-
-### Performance Considerations
-
-**Database Indexing:**
-- Index on `subscription_id` for all tables (multi-tenant queries)
-- Index on `client_id` for workout logs (client history queries)
-- Index on `program_template_id` for assignments (template usage stats)
-- Composite index on `(client_id, actual_date)` for workout history
-
-**Query Optimization:**
-- Use eager loading for nested relationships (programs → weeks → days → exercises)
-- Paginate program library (50 templates per page)
-- Cache global exercise library (rarely changes)
-- Denormalize completion stats on `client_program_assignments` (avoid complex aggregations)
-
-**Data Volume:**
-- Exercise logs grow rapidly (sets × exercises × workouts × clients)
-- Archive completed programs after 1 year
-- Implement partitioning on `workout_logs` by date (monthly partitions)
-
-### Caching Strategy
-
-**Redis Cache:**
-- Global exercise library (TTL: 24 hours)
-- Program template previews (TTL: 1 hour)
-- User's active assignments (TTL: 5 minutes)
-- Analytics dashboard data (TTL: 15 minutes)
-
-**Cache Invalidation:**
-- On program template edit: invalidate template cache
-- On assignment creation: invalidate user's active assignments
-- On workout log: invalidate client progress cache
-
-### Real-Time Features (Future)
-
-**WebSocket Updates:**
-- Coach sees live workout progress as client logs sets
-- Real-time notifications for PR achievements
-- Live leaderboard for group challenges
-
----
-
-## Future Enhancements
-
-### Advanced Features
-
-**AI-Powered Program Generation:**
-- Input: Client goals, experience level, equipment, schedule
-- Output: Fully generated program tailored to client
-- Uses ML trained on successful programs
-
-**Form Analysis:**
-- Use device camera + AI to analyze exercise form
-- Provide real-time feedback on depth, bar path, tempo
-- Flag potential injury risk (excessive rounding, knee valgus)
-
-**Nutrition Integration:**
-- Macro tracking integrated with workout programs
-- Periodized nutrition (high carb on training days, lower on rest days)
-- Meal planning based on training phase
-
-**Wearable Integration:**
-- Import heart rate data from Apple Watch, Fitbit, Garmin
-- Track recovery metrics (HRV, sleep quality, resting HR)
-- Auto-suggest deload weeks based on recovery scores
-
-**Social Features:**
-- Client can share workouts with friends
-- Group challenges (total volume lifted, workouts completed)
-- Leaderboards within subscription
-- Community feed of achievements
-
-**Voice Assistant:**
-- "Hey Gym App, log 10 reps at 185 pounds, RPE 8"
-- "What's my next exercise?"
-- "Start rest timer"
-
-### Business Features
-
-**Program Marketplace:**
-- Buy/sell program templates
-- Revenue sharing for creators
-- Ratings and reviews
-- Featured programs
-
-**Certification Integration:**
-- NASM, ACE, NSCA program templates
-- CEU credits for creating programs
-- Verified coach badges
-
-**API for Third-Party Apps:**
-- Allow fitness apps to integrate with Gym App
-- Export workout data to MyFitnessPal, Strava
-- Import programs from Training Peaks, TrainHeroic
 
 ---
 
 ## Implementation Roadmap
 
-### Phase 1: Core Backend Integration (Weeks 1-3)
+### Phase 1: Foundation (Weeks 1-2)
+**Goal**: Core template system and database
 
-**Goal**: Connect existing Strength Builder to backend and enable saving programs
+- [ ] Database migrations
+  - [ ] Update `programs` table with template fields
+  - [ ] Create `program_assignments` table
+  - [ ] Create `program_weeks`, `program_days`, `program_day_exercises` tables
+  - [ ] Create `exercises_library` table
+- [ ] Seed default exercises library
+  - [ ] Compound lifts (Squat, Bench, Deadlift, OHP, Row)
+  - [ ] Accessory exercises (50+ exercises)
+  - [ ] Conditioning movements (KB, rowing, running, etc.)
+- [ ] Backend models and schemas
+  - [ ] ProgramTemplate model
+  - [ ] ProgramAssignment model
+  - [ ] Exercise model
+  - [ ] Pydantic schemas for all models
 
-**Tasks:**
-1. **Database Setup**
-   - Create all tables from schema (programs, program_weeks, program_days, program_day_exercises, etc.)
-   - Set up migrations using Alembic
-   - Add indexes and foreign key constraints
-   - Implement audit fields (created_at/by, updated_at/by)
+**Deliverable**: Database ready, basic models in place
 
-2. **Backend API - Program CRUD**
-   - POST `/api/v1/programs` - Create program from builder
-   - GET `/api/v1/programs` - List programs (filtered by subscription)
-   - GET `/api/v1/programs/:id` - Get program details with full hierarchy
-   - PUT `/api/v1/programs/:id` - Update program
-   - DELETE `/api/v1/programs/:id` - Soft delete program
+### Phase 2: Template Management API (Weeks 3-4)
+**Goal**: CRUD operations for templates
 
-3. **Frontend Integration**
-   - Update ProgramBuilder.tsx final step to save via API
-   - Add "Save as Template" option with metadata form
-   - Add "Assign to Client" option (basic version)
-   - Handle success/error states
+- [ ] Template endpoints
+  - [ ] GET /api/v1/programs/templates (list with filters)
+  - [ ] GET /api/v1/programs/templates/{id}
+  - [ ] POST /api/v1/programs/templates (create custom template)
+  - [ ] PUT /api/v1/programs/templates/{id}
+  - [ ] DELETE /api/v1/programs/templates/{id}
+- [ ] Exercise library endpoints
+  - [ ] GET /api/v1/exercises
+  - [ ] POST /api/v1/exercises (custom exercises)
+- [ ] Authorization
+  - [ ] Coaches can create templates in their subscription
+  - [ ] APPLICATION_SUPPORT can create default templates
+  - [ ] Template visibility rules (default/public/private)
 
-4. **Exercise Library**
-   - Seed global exercise library with common movements
-   - API endpoints for exercise CRUD
-   - Frontend exercise selector component
+**Deliverable**: Full template CRUD API with authorization
 
-**Deliverables:**
-- Coaches can create and save programs from existing Strength Builder
-- Programs stored in database with proper multi-tenant isolation
-- Basic exercise library available
+### Phase 3: Default Templates Creation (Weeks 5-6)
+**Goal**: Seed 10 default platform templates
 
----
+- [ ] Create 10 default templates (see "Default Platform Templates" section)
+  - [ ] 3 Strength templates
+  - [ ] 3 Conditioning templates
+  - [ ] 2 Hypertrophy templates
+  - [ ] 2 General Fitness templates
+- [ ] Define required_parameters for each template
+- [ ] Build week-by-week structure for each
+- [ ] Create seed script to populate database
+- [ ] Test each template with sample parameters
 
-### Phase 2: Template Library & Assignment (Weeks 4-6)
+**Deliverable**: 10 production-ready default templates
 
-**Goal**: Build template browsing and enable assignment to clients
+### Phase 4: Assignment Workflow API (Weeks 7-8)
+**Goal**: Assign templates to clients with parameters
 
-**Tasks:**
-1. **Template Library Page**
-   - Create `/templates` route in frontend
-   - Build template card grid with filters
-   - Implement search functionality
-   - Template detail/preview page
-   - "My Templates" vs "Subscription Templates" tabs
+- [ ] Preview endpoint
+  - [ ] POST /api/v1/programs/templates/{id}/preview
+  - [ ] Accept parameters, return generated program (not saved)
+  - [ ] Calculate all weights based on 1RM and parameters
+- [ ] Assignment endpoint
+  - [ ] POST /api/v1/programs/templates/{id}/assign
+  - [ ] Create program instance from template
+  - [ ] Apply parameters to generate weeks/days/exercises
+  - [ ] Create assignment record
+  - [ ] Link to client
+- [ ] Assignment management
+  - [ ] GET /api/v1/assignments (coach view)
+  - [ ] GET /api/v1/clients/me/assignments (client view)
+  - [ ] PUT /api/v1/assignments/{id} (update status, notes)
 
-2. **Assignment System**
-   - Assignment modal/wizard component
-   - Client selection dropdown
-   - Start date picker
-   - Assignment notes textarea
-   - POST `/api/v1/assignments` endpoint
-   - GET `/api/v1/assignments` endpoint (for coach view)
+**Deliverable**: Full template-to-assignment workflow backend
 
-3. **Client View - Assigned Programs**
-   - Update client dashboard to show active program
-   - Display "Today's Workout" card
-   - Program detail page (read-only view)
-   - Week/day navigation
+### Phase 5: Coach Frontend (Weeks 9-11)
+**Goal**: UI for coaches to manage and assign templates
 
-4. **Notifications**
-   - Email notification on assignment
-   - In-app notification system (basic)
+- [ ] Template browsing
+  - [ ] /program-templates page (list view with filters)
+  - [ ] Template cards showing focus, difficulty, rating
+  - [ ] Filter by focus, difficulty, default/custom
+- [ ] Template details
+  - [ ] /program-templates/{id} page
+  - [ ] Show full template structure
+  - [ ] Display required/optional parameters
+  - [ ] Sample week view
+- [ ] Assignment workflow
+  - [ ] "Assign to Client" button
+  - [ ] Client selection modal
+  - [ ] Parameter form (dynamic based on template)
+  - [ ] Preview generated program
+  - [ ] Confirm and assign
+- [ ] My Templates
+  - [ ] /program-templates/my-templates
+  - [ ] List custom templates
+  - [ ] Create new template UI (Phase 6)
 
-**Deliverables:**
-- Template library fully functional
-- Coaches can assign programs to clients
-- Clients can view assigned programs
+**Deliverable**: Coach can browse and assign default templates
 
----
+### Phase 6: Template Builder UI (Weeks 12-14)
+**Goal**: UI for coaches to create custom templates
 
-### Phase 3: Workout Logging & Tracking (Weeks 7-10)
+- [ ] Template creation wizard
+  - [ ] Step 1: Basic info (name, focus, difficulty, duration)
+  - [ ] Step 2: Define parameters (add required/optional inputs)
+  - [ ] Step 3: Build week structure (add weeks, name them)
+  - [ ] Step 4: Build day structure (add days per week, name/type)
+  - [ ] Step 5: Add exercises (search exercise library, add to days)
+  - [ ] Step 6: Set prescriptions (sets, reps, load, rest)
+  - [ ] Step 7: Review and save
+- [ ] Exercise selection
+  - [ ] Searchable exercise library
+  - [ ] Filter by muscle group, equipment, category
+  - [ ] Add custom exercises on-the-fly
+- [ ] Template editing
+  - [ ] Edit existing custom templates
+  - [ ] Version control (create new version)
+  - [ ] Duplicate template (fork from default or other custom)
 
-**Goal**: Enable clients to log workouts and track progress
+**Deliverable**: Full template builder for coaches
 
-**Tasks:**
-1. **Workout Logging Interface**
-   - "Start Workout" flow in client app
-   - Exercise-by-exercise logging
-   - Set/rep/weight input
-   - RPE tracking
-   - Rest timer
-   - Workout completion summary
+### Phase 7: Client Frontend (Weeks 15-16)
+**Goal**: UI for clients to view and track programs
 
-2. **Workout Log API**
-   - POST `/api/v1/workouts/log` - Create workout log
-   - POST `/api/v1/workouts/log/:id/exercises` - Log exercise sets
-   - GET `/api/v1/workouts/history` - Client workout history
+- [ ] Program dashboard
+  - [ ] /my-programs page
+  - [ ] Show active program(s)
+  - [ ] Show past programs
+  - [ ] Progress indicators
+- [ ] Program details
+  - [ ] /my-programs/{id} page
+  - [ ] Current week highlighted
+  - [ ] Upcoming workouts
+  - [ ] Completion statistics
+- [ ] Workout logging
+  - [ ] /workout/{id} page
+  - [ ] Exercise list with prescribed sets/reps/weight
+  - [ ] Log actual performance
+  - [ ] RPE tracking
+  - [ ] Notes field
+  - [ ] Mark workout complete
+- [ ] Progress visualization
+  - [ ] Graphs showing weight progression
+  - [ ] Completion percentage
+  - [ ] Week-by-week summary
 
-3. **Progress Tracking**
-   - Client progress dashboard
-   - Exercise progression charts
-   - Volume tracking
-   - Personal record detection and celebration
-   - Adherence calculations
+**Deliverable**: Full client program experience
 
-4. **Coach Monitoring**
-   - View client's workout logs
-   - Assignment progress overview
-   - Adherence metrics
-   - Performance trends
+### Phase 8: Analytics & Refinement (Weeks 17-18)
+**Goal**: Insights and optimizations
 
-**Deliverables:**
-- Clients can log workouts from assigned programs
-- Progress tracking with analytics
-- Coaches can monitor client progress
+- [ ] Template analytics
+  - [ ] Times assigned
+  - [ ] Average completion rate
+  - [ ] Average rating
+  - [ ] Client feedback
+- [ ] Coach dashboard insights
+  - [ ] Client progress summaries
+  - [ ] Alerts for missed workouts
+  - [ ] Adherence rates
+- [ ] Performance optimizations
+  - [ ] Caching for template queries
+  - [ ] Optimize assignment preview generation
+- [ ] UX improvements based on feedback
 
----
-
-### Phase 4: Advanced Features (Weeks 11-14)
-
-**Goal**: Polish and add customization features
-
-**Tasks:**
-1. **Program Customization**
-   - Mid-assignment program editing
-   - Exercise substitution
-   - Load/volume adjustments
-   - Custom notes per client
-
-2. **Template Versioning**
-   - Version tracking for templates
-   - Update propagation options
-   - Change history
-
-3. **Analytics Dashboard**
-   - Subscription-level program analytics
-   - Template performance metrics
-   - Client retention correlation
-   - Coach performance comparison (GYM/ENTERPRISE)
-
-4. **Mobile App Enhancement**
-   - Offline-first workout logging
-   - Push notifications
-   - Video exercise demonstrations
-   - Form timer and audio cues
-
-**Deliverables:**
-- Full customization capabilities
-- Comprehensive analytics
-- Enhanced mobile experience
-
----
-
-### Phase 5: Additional Builders (Weeks 15-20)
-
-**Goal**: Add Hypertrophy and Conditioning builders
-
-**Tasks:**
-1. **Builder Selection Page**
-   - `/program-builder/select` route
-   - Cards for each builder type
-   - Builder descriptions and use cases
-
-2. **Hypertrophy Builder**
-   - Wizard interface for muscle group splits
-   - Volume calculator
-   - Exercise selection per muscle group
-   - Rep range configuration
-   - Generate 8-12 week program
-
-3. **Conditioning Builder**
-   - HIIT/cardio program wizard
-   - Interval protocol selection
-   - Duration and intensity progression
-   - Generate conditioning program
-
-4. **Custom Builder** (Blank Canvas)
-   - Drag-and-drop week/day/exercise interface
-   - Manual prescription fields
-   - Free-form program creation
-
-**Deliverables:**
-- Multiple builder types available
-- Coaches can choose appropriate builder for client goals
+**Deliverable**: Production-ready, analytics-enabled system
 
 ---
 
-### Phase 6: Marketplace (Future - Weeks 21+)
+## Future Enhancements
 
-**Goal**: ENTERPRISE feature for public template sharing
-
-**Tasks:**
-1. **Marketplace Infrastructure**
-   - Public template discovery
-   - Purchase/download flow
-   - Revenue sharing system
-   - Payment processing integration
-
-2. **Quality Control**
-   - Template review system
-   - Rating and reviews
-   - Content moderation
-   - Featured templates
-
-3. **Creator Tools**
-   - Template publishing wizard
-   - Pricing configuration
-   - Sales analytics
-   - Payout management
-
-**Deliverables:**
-- Public marketplace for templates
+### Marketplace Templates (Phase 9)
+- Public template marketplace
+- Template ratings and reviews
+- Purchase/download paid templates
 - Revenue sharing for creators
-- Community-driven content
+- Featured templates and creators
+
+### AI-Assisted Programming (Phase 10)
+- AI suggests templates based on client goals
+- Auto-adjusts parameters based on client progress
+- Generates new template variations
+- Personalized recommendations
+
+### Advanced Features (Phase 11+)
+- Autoregulation (adjust based on readiness)
+- Video form analysis integration
+- Social features (share workouts, compare with friends)
+- Program challenges and competitions
+- Mobile app for workout logging
+- Wearable integration (track HR, HRV, recovery)
+
+---
+
+## Success Metrics
+
+### Template Usage
+- Number of default templates used per month
+- Number of custom templates created per subscription
+- Average templates per coach
+- Most popular templates
+
+### Assignment & Completion
+- Programs assigned per month
+- Active programs per client
+- Average program completion rate
+- Time to first assignment (coach onboarding)
+
+### Client Engagement
+- Workout logging frequency
+- Average workouts per week
+- Program adherence rate (workouts completed / planned)
+- Client ratings of programs
+
+### Coach Efficiency
+- Time to assign program (template-based vs manual)
+- Number of clients per program template
+- Template reuse rate
+
+---
+
+## Technical Considerations
+
+### Performance
+- Template preview generation must be fast (<2 seconds)
+- Cache template structures
+- Optimize queries with proper indexes
+- Consider read replicas for template browsing
+
+### Scalability
+- Millions of potential template assignments
+- Partition program_day_exercises table by subscription_id
+- Archive old completed assignments
+- Efficient JSONB queries for parameters
+
+### Security
+- Multi-tenant isolation (subscription_id everywhere)
+- Template visibility rules strictly enforced
+- Prevent cross-subscription template access
+- Validate all parameter inputs (XSS, injection)
+
+### Data Integrity
+- Cascading deletes for program hierarchy
+- Soft deletes for templates (preserve assignment history)
+- Audit trails for template modifications
+- Version control for template updates
 
 ---
 
 ## Summary
 
-The Program Builder Ecosystem is a comprehensive three-layer system:
+The new **Template-Based Program Builder** architecture shifts from wizard-driven program creation to a reusable, parameterized template system. Coaches leverage default platform templates or create custom templates that can be assigned to multiple clients with personalized parameters (focus, goals, exercises, weights).
 
-### Architecture Layers
+**Key Benefits:**
+- **Efficiency**: Assign proven programs in minutes
+- **Consistency**: Reuse successful templates across clients
+- **Flexibility**: Customize templates with parameters for each client
+- **Quality**: Default templates provide best practices
+- **Scalability**: Templates enable coaches to manage more clients
 
-1. **LAYER 1: Program Builders**
-   - ✅ Strength Builder (Existing - needs backend integration)
-   - ⏳ Hypertrophy Builder (Phase 5)
-   - ⏳ Conditioning Builder (Phase 5)
-   - ⏳ Custom Builder (Phase 5)
+**Implementation Timeline**: 18 weeks (4.5 months) for full v1.0 with coach template builder and client tracking.
 
-2. **LAYER 2: Template Library**
-   - ⏳ Template browsing and filtering (Phase 2)
-   - ⏳ Template preview and detail pages (Phase 2)
-   - ⏳ Visibility controls (private/subscription/public) (Phase 2)
-   - ⏳ Version management (Phase 4)
+---
 
-3. **LAYER 3: Assignment & Tracking**
-   - ⏳ Assignment workflow (Phase 2)
-   - ⏳ Client program view (Phase 2)
-   - ⏳ Workout logging (Phase 3)
-   - ⏳ Progress analytics (Phase 3)
-   - ⏳ Customization (Phase 4)
+**Status**: 🚧 Planning Complete - Ready for Implementation
 
-### Key Design Principles
+**Last Updated**: 2025-11-29
 
-1. **Flexibility**: Support diverse training methodologies (strength, hypertrophy, conditioning)
-2. **Scalability**: Handle thousands of concurrent assignments and workout logs
-3. **Multi-Tenancy**: Strict data isolation by subscription
-4. **Progressive Overload**: Built-in support for periodization and progression
-5. **User Experience**: Intuitive flows for coaches and clients
-6. **Analytics**: Data-driven insights for coaches and admins
-7. **Modularity**: Separate builders, templates, and assignments for clean architecture
-
-### Success Metrics
-
-**Coach Metrics:**
-- Time to create first program: < 15 minutes
-- Programs created per coach: 5+ in first month
-- Template reuse rate: 60%+
-
-**Client Metrics:**
-- Workout completion rate: 75%+
-- Client satisfaction rating: 4.5+ / 5.0
-- Adherence to program: 80%+
-
-**Business Metrics:**
-- Feature adoption: 70%+ of active subscriptions use program builder
-- Client retention: 15% improvement for clients with active programs
-- Upgrade driver: 30% of Individual → Gym upgrades cite program features
-
-This design provides a strong foundation for the core Program Builder MVP (Phases 1-3), with clear pathways for advanced features (Phase 4), additional builders (Phase 5), and marketplace expansion (Phase 6).
+**Document Owner**: Development Team

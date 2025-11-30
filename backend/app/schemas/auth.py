@@ -68,6 +68,11 @@ class TokenResponse(BaseModel):
             "is_active": True
         }]
     )
+    password_must_be_changed: bool = Field(
+        default=False,
+        description="Whether user must change password before accessing other endpoints",
+        examples=[False]
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -189,6 +194,41 @@ class PasswordChangeRequest(BaseModel):
             "example": {
                 "current_password": "OldPassword123!",
                 "new_password": "NewSecurePassword456!"
+            }
+        }
+    )
+
+
+class AdminResetPasswordRequest(BaseModel):
+    """
+    Schema for admin password reset requests.
+
+    Only APPLICATION_SUPPORT and SUBSCRIPTION_ADMIN can use this.
+    """
+    user_email: EmailStr = Field(
+        ...,
+        description="Email of the user whose password should be reset",
+        examples=["client@testgym.com"]
+    )
+    new_password: str = Field(
+        ...,
+        min_length=8,
+        max_length=100,
+        description="New temporary password (user must change on next login)",
+        examples=["TempPassword123!"]
+    )
+    force_password_change: bool = Field(
+        default=True,
+        description="Whether to force user to change password on next login (recommended: true)",
+        examples=[True]
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "user_email": "client@testgym.com",
+                "new_password": "TempPassword123!",
+                "force_password_change": True
             }
         }
     )
