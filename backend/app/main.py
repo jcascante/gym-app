@@ -96,11 +96,12 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
+    db_type = "SQLite" if "sqlite" in settings.DATABASE_URL.lower() else "PostgreSQL"
     return {
         "message": "Gym App API",
         "version": settings.VERSION,
         "environment": settings.ENVIRONMENT,
-        "database": "SQLite" if settings.ENVIRONMENT == "development" else "PostgreSQL"
+        "database": db_type
     }
 
 

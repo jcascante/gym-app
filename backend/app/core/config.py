@@ -13,21 +13,14 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]
 
-    # Database - automatically uses SQLite for dev, PostgreSQL for prod
-    SQLITE_URL: str = "sqlite+aiosqlite:///./gym_app.db"
-    POSTGRES_URL: str = "postgresql+asyncpg://user:password@localhost/gym_app"
-
-    @property
-    def DATABASE_URL(self) -> str:
-        """Returns the appropriate database URL based on environment"""
-        if self.ENVIRONMENT == "development":
-            return self.SQLITE_URL
-        return self.POSTGRES_URL
+    # Database - can be set directly via DATABASE_URL env var, or falls back to environment-based defaults
+    DATABASE_URL: str = "sqlite+aiosqlite:///./gym_app.db"
 
     @property
     def DATABASE_CONNECT_ARGS(self) -> dict:
         """Returns connection arguments specific to the database type"""
-        if self.ENVIRONMENT == "development":
+        # Auto-detect database type from the URL
+        if "sqlite" in self.DATABASE_URL.lower():
             return {"check_same_thread": False}
         return {}
 
