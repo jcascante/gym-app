@@ -63,16 +63,7 @@ export default function CoachDashboard() {
         </div>
 
         <div className="dashboard-card">
-          <div className="card-icon">📋</div>
-          <h3>Program Templates</h3>
-          <p className="card-value">
-            {loading ? '--' : error ? '--' : stats?.total_programs ?? 0}
-          </p>
-          <p className="card-label">Created templates</p>
-        </div>
-
-        <div className="dashboard-card">
-          <div className="card-icon">📈</div>
+          <div className="card-icon"></div>
           <h3>Total Clients</h3>
           <p className="card-value">
             {loading ? '--' : error ? '--' : stats?.total_clients ?? 0}

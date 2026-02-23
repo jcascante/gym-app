@@ -124,10 +124,11 @@ export default function ProgramBuilder() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const clientId = searchParams.get('clientId');
+  const queryClientId = searchParams.get('clientId');
 
   // ─── Existing state ────────────────────────────────────────────────────────
-  const [currentStep, setCurrentStep] = useState<Step>(clientId ? 'clientContext' : 'selectClient');
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(queryClientId);
+  const [currentStep, setCurrentStep] = useState<Step>(queryClientId ? 'clientContext' : 'selectClient');
   const [movements, setMovements] = useState<Movement[]>([]);
   const [selectedMovement, setSelectedMovement] = useState<Movement | null>(null);
   const [newMovementName, setNewMovementName] = useState('');
@@ -169,9 +170,9 @@ export default function ProgramBuilder() {
   }, [currentStep]);
 
   useEffect(() => {
-    if (clientId) {
+    if (selectedClientId) {
       setLoadingClient(true);
-      getClientDetail(clientId)
+      getClientDetail(selectedClientId)
         .then(client => {
           setClientData(client);
           const basicInfo = client.profile?.basic_info ?? {};
@@ -197,7 +198,7 @@ export default function ProgramBuilder() {
         .catch(err => console.error('Failed to load client details:', err))
         .finally(() => setLoadingClient(false));
     }
-  }, [clientId]);
+  }, [selectedClientId]);
 
   // ─── Program save ─────────────────────────────────────────────────────────
 
@@ -223,7 +224,7 @@ export default function ProgramBuilder() {
         duration_weeks: 8,
         days_per_week: 4,
         is_template: false,
-        client_id: clientId,
+        client_id: selectedClientId,
       };
 
       const savedProgram = await apiFetch<{ id: string; assignment_id?: string }>('/programs/', {
@@ -231,7 +232,7 @@ export default function ProgramBuilder() {
         body: JSON.stringify(programInputs),
       });
 
-      navigate(`/programs/draft/${savedProgram.id}?clientId=${clientId}`);
+      navigate(`/programs/draft/${savedProgram.id}?clientId=${selectedClientId}`);
     } catch (error) {
       setIsSaving(false);
       alert(t('programBuilder.step5.saveError', {
@@ -258,6 +259,19 @@ export default function ProgramBuilder() {
 
   // ─── Step: selectClient ───────────────────────────────────────────────────
 
+  const handleSelectClient = (clientId: string) => {
+    setSelectedClientId(clientId);
+    setCurrentStep('clientContext');
+  };
+
+  const handleBackToClientSelect = () => {
+    setSelectedClientId(null);
+    setClientData(null);
+    setClientName('');
+    setCurrentStep('selectClient');
+    setClientSearch('');
+  };
+
   const renderSelectClientStep = () => {
     if (loadingClients) {
       return (
@@ -279,15 +293,14 @@ export default function ProgramBuilder() {
         <input
           type="search"
           className="search-input"
-          placeholder="Search clients…"
+          placeholder="Search clients by name or email…"
           value={clientSearch}
           onChange={e => setClientSearch(e.target.value)}
           autoFocus
-          style={{ marginBottom: '1rem', maxWidth: '400px' }}
         />
 
         {filtered.length === 0 ? (
-          <p style={{ color: '#888' }}>
+          <p style={{ color: '#888', marginTop: '2rem', textAlign: 'center' }}>
             {clients.length === 0 ? 'No clients found. Add clients first.' : `No clients match "${clientSearch}".`}
           </p>
         ) : (
@@ -296,15 +309,28 @@ export default function ProgramBuilder() {
               <button
                 key={c.id}
                 className="client-select-item"
-                onClick={() => navigate(`/program-builder?clientId=${c.id}`)}
+                onClick={() => handleSelectClient(c.id)}
               >
-                <span className="client-select-name">{c.name}</span>
-                <span className="client-select-email">{c.email}</span>
-                <span className="client-select-arrow">›</span>
+                <div className="client-select-item-content">
+                  <div className="client-select-info">
+                    <div className="client-select-name">{c.name}</div>
+                    <div className="client-select-email">{c.email}</div>
+                  </div>
+                  <span className="client-select-arrow">→</span>
+                </div>
               </button>
             ))}
           </div>
         )}
+
+        <div className="step-actions select-client-actions" style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+          <button
+            className="tertiary-btn"
+            onClick={() => navigate('/clients')}
+          >
+            ← Back to Clients
+          </button>
+        </div>
       </div>
     );
   };
@@ -397,6 +423,12 @@ export default function ProgramBuilder() {
 
         <div className="step-actions context-actions">
           <button
+            className="tertiary-btn"
+            onClick={handleBackToClientSelect}
+          >
+            ← Back to Client Selection
+          </button>
+          <button
             className="secondary-btn"
             onClick={() => {
               setPrefilledMovements([]);
@@ -470,7 +502,7 @@ export default function ProgramBuilder() {
         </div>
 
         <div className="step-actions">
-          {clientId && (
+          {selectedClientId && (
             <button className="secondary-btn" onClick={() => setCurrentStep('clientContext')}>
               Back
             </button>
@@ -1234,16 +1266,16 @@ export default function ProgramBuilder() {
       <div className="builder-header">
         <h1>{t('programBuilder.title')}</h1>
         <p>{t('programBuilder.subtitle')}</p>
-        {clientId && clientName && (
+        {selectedClientId && clientName && (
           <div className="client-indicator">
             <span className="client-label">Building for:</span>
             <span className="client-name">{clientName}</span>
-            <button className="btn-link" onClick={() => navigate(`/clients/${clientId}`)} style={{ marginLeft: '1rem' }}>
+            <button className="btn-link" onClick={() => navigate(`/clients/${selectedClientId}`)} style={{ marginLeft: '1rem' }}>
               View Client →
             </button>
           </div>
         )}
-        {clientId && loadingClient && (
+        {selectedClientId && loadingClient && (
           <div className="client-indicator">
             <span className="client-label">Loading client…</span>
           </div>

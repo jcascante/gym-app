@@ -28,9 +28,6 @@ export default function Clients() {
       if (statusFilter !== 'all') {
         params.status = statusFilter;
       }
-      if (searchQuery.trim()) {
-        params.search = searchQuery.trim();
-      }
 
       const response = await listMyClients(params);
       setClients(response.clients);
@@ -46,9 +43,8 @@ export default function Clients() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    loadClients();
+  const handleClearSearch = () => {
+    setSearchQuery('');
   };
 
   const handleClientAdded = () => {
@@ -98,18 +94,26 @@ export default function Clients() {
       </div>
 
       <div className="clients-controls">
-        <form className="search-bar" onSubmit={handleSearch}>
+        <div className="search-bar">
           <input
-            type="text"
+            type="search"
             placeholder="Search by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
+            autoFocus
           />
-          <button type="submit" className="search-button">
-            🔍 Search
-          </button>
-        </form>
+          {searchQuery && (
+            <button
+              type="button"
+              className="clear-button"
+              onClick={handleClearSearch}
+              title="Clear search"
+            >
+              ✕
+            </button>
+          )}
+        </div>
 
         <div className="filter-tabs">
           <button
@@ -139,42 +143,43 @@ export default function Clients() {
         </div>
       </div>
 
-      {error && (
-        <div className="error-banner">
-          <span className="error-icon">⚠️</span>
-          {error}
-        </div>
-      )}
-
       {loading ? (
         <div className="loading-state">
           <div className="spinner"></div>
           <p>Loading clients...</p>
         </div>
-      ) : clients.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">👥</div>
-          <h2>No clients found</h2>
-          <p>
-            {statusFilter !== 'all'
-              ? `No ${statusFilter} clients. Try changing the filter.`
-              : 'Get started by adding your first client!'}
-          </p>
-          {statusFilter === 'all' && (
-            <button className="btn-primary" onClick={() => setShowAddModal(true)}>
-              <span className="button-icon">➕</span>
-              Add Your First Client
-            </button>
-          )}
-        </div>
-      ) : (
-        <>
-          <div className="clients-count">
-            Showing {clients.length} client{clients.length !== 1 ? 's' : ''}
-          </div>
+      ) : (() => {
+        // Apply instant filtering based on search query
+        const filtered = searchQuery.trim()
+          ? clients.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.email.toLowerCase().includes(searchQuery.toLowerCase()))
+          : clients;
 
-          <div className="clients-grid">
-            {clients.map((client) => (
+        return filtered.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">👥</div>
+            <h2>No clients found</h2>
+            <p>
+              {searchQuery
+                ? `No clients match "${searchQuery}".`
+                : statusFilter !== 'all'
+                  ? `No ${statusFilter} clients. Try changing the filter.`
+                  : 'Get started by adding your first client!'}
+            </p>
+            {statusFilter === 'all' && !searchQuery && (
+              <button className="btn-primary" onClick={() => setShowAddModal(true)}>
+                <span className="button-icon">➕</span>
+                Add Your First Client
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="clients-count">
+              Showing {filtered.length} client{filtered.length !== 1 ? 's' : ''}
+            </div>
+
+            <div className="clients-grid">
+              {filtered.map((client) => (
               <div
                 key={client.id}
                 className="client-card"
@@ -247,9 +252,10 @@ export default function Clients() {
                 </div>
               </div>
             ))}
-          </div>
-        </>
-      )}
+            </div>
+          </>
+        );
+      })()}
 
       {showAddModal && (
         <AddClientModal
