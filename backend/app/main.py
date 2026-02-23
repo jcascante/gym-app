@@ -19,6 +19,8 @@ async def lifespan(app: FastAPI):
     from app.models.client_program_assignment import ClientProgramAssignment  # noqa: F401
     from app.models.subscription import Subscription  # noqa: F401
     from app.models.location import Location  # noqa: F401
+    from app.models.workout_log import WorkoutLog  # noqa: F401
+    from app.models.exercise import Exercise  # noqa: F401
 
     # Startup
     await init_db()
@@ -111,7 +113,7 @@ async def health_check():
 
 
 # Include API routers
-from app.api import auth, users, subscriptions, locations, programs, clients, coaches
+from app.api import auth, users, subscriptions, locations, programs, clients, coaches, workouts, exercises
 
 app.include_router(
     auth.router,
@@ -155,9 +157,20 @@ app.include_router(
     tags=["Coach"]
 )
 
+app.include_router(
+    workouts.router,
+    prefix=f"{settings.API_V1_STR}/workouts",
+    tags=["Workouts"]
+)
+
+app.include_router(
+    exercises.router,
+    prefix=f"{settings.API_V1_STR}/exercises",
+    tags=["Exercise Library"]
+)
+
 # Additional routers will be added here as features are implemented
-# from app.api import workouts, assignments
-# app.include_router(workouts.router, prefix=f"{settings.API_V1_STR}/workouts", tags=["Workouts"])
+# from app.api import assignments
 # app.include_router(assignments.router, prefix=f"{settings.API_V1_STR}/assignments", tags=["Coach-Client Assignments"])
 
 

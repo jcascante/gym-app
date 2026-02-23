@@ -205,6 +205,22 @@ async def get_subscription_admin_user(
     return current_user
 
 
+async def get_admin_user(
+    current_user: User = Depends(get_current_user_check_password)
+) -> User:
+    """
+    Dependency to restrict routes to admin users (SUBSCRIPTION_ADMIN or APPLICATION_SUPPORT).
+
+    Used for admin dashboard and system management endpoints.
+    """
+    if current_user.role not in [UserRole.SUBSCRIPTION_ADMIN, UserRole.APPLICATION_SUPPORT]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied. Admin role required.",
+        )
+    return current_user
+
+
 async def get_coach_or_admin_user(
     current_user: User = Depends(get_current_user_check_password)
 ) -> User:

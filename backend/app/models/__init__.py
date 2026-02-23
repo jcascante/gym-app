@@ -13,6 +13,7 @@ from app.models.audit_log import AuditLog, AuditAction
 from app.models.program import Program, ProgramWeek, ProgramDay, ProgramDayExercise
 from app.models.exercise import Exercise
 from app.models.program_assignment import ProgramAssignment
+from app.models.workout_log import WorkoutLog, WorkoutStatus
 
 __all__ = [
     "BaseModel",
@@ -35,4 +36,6 @@ __all__ = [
     "ProgramDayExercise",
     "Exercise",
     "ProgramAssignment",
+    "WorkoutLog",
+    "WorkoutStatus",
 ]

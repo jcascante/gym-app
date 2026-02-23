@@ -24,6 +24,7 @@ export default function AddClientModal({ onClose, onClientAdded }: AddClientModa
     message: string;
     isNew?: boolean;
     alreadyAssigned?: boolean;
+    temporaryPassword?: string;
   } | null>(null);
 
   const validateForm = (): boolean => {
@@ -69,6 +70,7 @@ export default function AddClientModal({ onClose, onClientAdded }: AddClientModa
           success: true,
           message: `New client ${response.name} has been created and assigned to you!`,
           isNew: true,
+          temporaryPassword: response.temporary_password,
         });
       } else if (response.already_assigned) {
         setResult({
@@ -269,6 +271,19 @@ export default function AddClientModal({ onClose, onClientAdded }: AddClientModa
 
               {result.success && result.isNew && (
                 <div className="result-note">
+                  {result.temporaryPassword && (
+                    <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#f0f8ff', borderRadius: '4px', border: '1px solid #b0d4ff' }}>
+                      <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#0066cc' }}>
+                        Temporary Password:
+                      </p>
+                      <p style={{ margin: '0', fontFamily: 'monospace', fontSize: '14px', color: '#333', wordBreak: 'break-all' }}>
+                        {result.temporaryPassword}
+                      </p>
+                      <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#666' }}>
+                        ⚠️ Share this password with the client. They will be required to change it on first login.
+                      </p>
+                    </div>
+                  )}
                   {formData.send_welcome_email ? (
                     <p>
                       📧 A welcome email with login credentials has been sent to{' '}

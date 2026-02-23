@@ -8,6 +8,11 @@ import Dashboard from './pages/Dashboard';
 import ProgramBuilder from './pages/ProgramBuilder';
 import Clients from './pages/Clients';
 import ClientDetail from './pages/ClientDetail';
+import Programs from './pages/Programs';
+import MyPrograms from './pages/MyPrograms';
+import ProgramDetails from './pages/ProgramDetails';
+import ProgramTemplateView from './pages/ProgramTemplateView';
+import ProgramDraftReview from './pages/ProgramDraftReview';
 
 function App() {
   return (
@@ -59,6 +64,56 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <ClientDetail />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/programs"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Programs />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/programs/draft/:programId"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ProgramDraftReview />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/programs/:programId"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ProgramTemplateView />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-programs"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <MyPrograms />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-programs/:assignmentId"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ProgramDetails />
                 </Layout>
               </ProtectedRoute>
             }

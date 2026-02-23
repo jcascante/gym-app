@@ -90,6 +90,7 @@ class ProgramAssignmentSummary(BaseModel):
     end_date: Optional[date] = None
     actual_completion_date: Optional[date] = None
     status: str = Field(..., description="assigned, in_progress, completed, paused, cancelled")
+    program_status: Optional[str] = Field(None, description="Program lifecycle status: None (template), 'draft', 'published'")
     current_week: int
     current_day: int
     progress_percentage: float = Field(0.0, description="Percentage complete (0-100)")

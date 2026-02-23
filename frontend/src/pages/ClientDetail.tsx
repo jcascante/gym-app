@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getClientDetail, type ClientDetailResponse, type OneRepMax } from '../services/clients';
+import { getClientDetail, getClientWorkoutHistory, updateClientOneRepMax, type ClientDetailResponse, type OneRepMax, type ClientWorkoutEntry, type UpdateOneRepMaxRequest } from '../services/clients';
 import { getClientPrograms, removeProgramAssignment, type ProgramAssignmentSummary } from '../services/programAssignments';
 import { ApiError } from '../services/api';
+import EditProfileModal, { type ProfileSection } from '../components/EditProfileModal';
 import './ClientDetail.css';
 
 type TabType = 'overview' | 'profile' | 'programs' | 'progress';
@@ -17,6 +18,19 @@ export default function ClientDetail() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [showCancelledPrograms, setShowCancelledPrograms] = useState(false);
+  const [editSection, setEditSection] = useState<ProfileSection | null>(null);
+  const [progressWorkouts, setProgressWorkouts] = useState<ClientWorkoutEntry[]>([]);
+  const [progressLoading, setProgressLoading] = useState(false);
+  const [showOrmModal, setShowOrmModal] = useState(false);
+  const [ormForm, setOrmForm] = useState<UpdateOneRepMaxRequest>({
+    exercise_name: '',
+    weight: 0,
+    unit: 'lbs',
+    tested_date: new Date().toISOString().split('T')[0],
+    verified: false,
+  });
+  const [ormSaving, setOrmSaving] = useState(false);
+  const [ormError, setOrmError] = useState<string | null>(null);
 
   useEffect(() => {
     if (clientId) {
@@ -38,28 +52,19 @@ export default function ClientDetail() {
       } else {
         setError('Failed to load client details');
       }
-      console.error('Error loading client:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const loadPrograms = async () => {
-    console.log('loadPrograms called with clientId:', clientId);
-    if (!clientId) {
-      console.log('No clientId, returning');
-      return;
-    }
-
+    if (!clientId) return;
     try {
       setProgramsLoading(true);
-      console.log('Fetching programs from API...');
       const data = await getClientPrograms(clientId);
-      console.log('Programs received:', data);
       setPrograms(data.programs);
-    } catch (err) {
-      console.error('Error loading programs:', err);
-      // Don't set error state, just log it
+    } catch {
+      // Don't set error state — programs tab shows empty state on failure
     } finally {
       setProgramsLoading(false);
     }
@@ -79,19 +84,66 @@ export default function ClientDetail() {
       // Reload client to update stats
       await loadClient();
     } catch (err) {
-      console.error('Error removing program:', err);
       alert(`Failed to remove program: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
   // Load programs when Programs tab is selected
   useEffect(() => {
-    console.log('Programs tab useEffect triggered:', { activeTab, clientId });
     if (activeTab === 'programs' && clientId) {
-      console.log('Calling loadPrograms...');
       loadPrograms();
     }
+    if (activeTab === 'progress' && clientId) {
+      loadProgressWorkouts();
+    }
   }, [activeTab, clientId]);
+
+  const loadProgressWorkouts = async () => {
+    if (!clientId) return;
+    setProgressLoading(true);
+    try {
+      const data = await getClientWorkoutHistory(clientId);
+      setProgressWorkouts(data.workouts);
+    } catch {
+      // silently fail — progress tab shows empty state
+    } finally {
+      setProgressLoading(false);
+    }
+  };
+
+  const openOrmModal = (exerciseName?: string, existing?: OneRepMax) => {
+    setOrmError(null);
+    setOrmForm({
+      exercise_name: exerciseName || '',
+      weight: existing?.weight || 0,
+      unit: existing?.unit || 'lbs',
+      tested_date: existing?.tested_date || new Date().toISOString().split('T')[0],
+      verified: existing?.verified || false,
+    });
+    setShowOrmModal(true);
+  };
+
+  const handleOrmSave = async () => {
+    if (!clientId || !ormForm.exercise_name.trim() || ormForm.weight <= 0) {
+      setOrmError('Exercise name and a positive weight are required.');
+      return;
+    }
+    setOrmSaving(true);
+    setOrmError(null);
+    try {
+      await updateClientOneRepMax(clientId, ormForm);
+      setShowOrmModal(false);
+      await loadClient(); // Refresh client to get updated 1RMs
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setOrmError(err.message);
+      } else {
+        setOrmError('Failed to save. Please try again.');
+      }
+    } finally {
+      setOrmSaving(false);
+    }
+  };
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Not set';
@@ -184,6 +236,13 @@ export default function ClientDetail() {
               <span className="button-icon">➕</span>
               Build New Program
             </button>
+            <button
+              className="btn-secondary"
+              onClick={() => navigate(`/program-builder?clientId=${clientId}`)}
+            >
+              <span className="button-icon">📋</span>
+              Build Program
+            </button>
             <button className="btn-secondary">
               <span className="button-icon">✉️</span>
               Message Client
@@ -265,20 +324,26 @@ export default function ClientDetail() {
                 <div className="info-card">
                   <div className="info-card-header">
                     <h3>💪 One Rep Maxes</h3>
-                    <button className="btn-sm btn-secondary">+ Add 1RM</button>
+                    <button className="btn-sm btn-secondary" onClick={() => openOrmModal()}>+ Add 1RM</button>
                   </div>
                   <div className="info-card-body">
                     {Object.keys(oneRepMaxes).length === 0 ? (
                       <div className="empty-message">
                         <p>No 1RMs recorded yet</p>
-                        <button className="btn-link">Add first 1RM →</button>
+                        <button className="btn-link" onClick={() => openOrmModal()}>Add first 1RM →</button>
                       </div>
                     ) : (
                       <div className="one-rm-list">
                         {Object.entries(oneRepMaxes).map(([exercise, data]) => {
                           const orm = data as OneRepMax;
                           return (
-                            <div key={exercise} className="one-rm-item">
+                            <div
+                              key={exercise}
+                              className="one-rm-item"
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => openOrmModal(exercise, orm)}
+                              title="Click to update"
+                            >
                               <div className="one-rm-name">
                                 {exercise}
                                 {orm.verified && <span className="verified-badge">✓</span>}
@@ -301,7 +366,7 @@ export default function ClientDetail() {
                 <div className="info-card">
                   <div className="info-card-header">
                     <h3>🎯 Fitness Goals</h3>
-                    <button className="btn-sm btn-secondary">Edit</button>
+                    <button className="btn-sm btn-secondary" onClick={() => setEditSection('fitness_goals')}>Edit</button>
                   </div>
                   <div className="info-card-body">
                     {fitnessGoals.primary_goal ? (
@@ -340,7 +405,7 @@ export default function ClientDetail() {
                 <div className="info-card">
                   <div className="info-card-header">
                     <h3>⚙️ Training Preferences</h3>
-                    <button className="btn-sm btn-secondary">Edit</button>
+                    <button className="btn-sm btn-secondary" onClick={() => setEditSection('training_preferences')}>Edit</button>
                   </div>
                   <div className="info-card-body">
                     {trainingPrefs.available_days_per_week ? (
@@ -379,7 +444,7 @@ export default function ClientDetail() {
                 <div className="info-card">
                   <div className="info-card-header">
                     <h3>🏥 Health Information</h3>
-                    <button className="btn-sm btn-secondary">Edit</button>
+                    <button className="btn-sm btn-secondary" onClick={() => setEditSection('health_info')}>Edit</button>
                   </div>
                   <div className="info-card-body">
                     <div className="health-content">
@@ -420,7 +485,7 @@ export default function ClientDetail() {
                 <div className="profile-section">
                   <div className="section-header">
                     <h3>Basic Information</h3>
-                    <button className="btn-sm btn-secondary">Edit</button>
+                    <button className="btn-sm btn-secondary" onClick={() => setEditSection('basic_info')}>Edit</button>
                   </div>
                   <div className="section-content">
                     <div className="info-row">
@@ -456,7 +521,7 @@ export default function ClientDetail() {
                 <div className="profile-section">
                   <div className="section-header">
                     <h3>Body Measurements</h3>
-                    <button className="btn-sm btn-secondary">Edit</button>
+                    <button className="btn-sm btn-secondary" onClick={() => setEditSection('anthropometrics')}>Edit</button>
                   </div>
                   <div className="section-content">
                     <div className="info-row">
@@ -504,7 +569,7 @@ export default function ClientDetail() {
                 <div className="profile-section">
                   <div className="section-header">
                     <h3>Training Experience</h3>
-                    <button className="btn-sm btn-secondary">Edit</button>
+                    <button className="btn-sm btn-secondary" onClick={() => setEditSection('training_experience')}>Edit</button>
                   </div>
                   <div className="section-content">
                     <div className="info-row">
@@ -545,13 +610,13 @@ export default function ClientDetail() {
                 <div className="empty-state">
                   <div className="empty-icon">📋</div>
                   <h3>No Programs Yet</h3>
-                  <p>Create a program for this client to get started.</p>
+                  <p>Assign a program template to this client to get started.</p>
                   <button
                     className="btn-primary"
                     onClick={() => navigate(`/program-builder?clientId=${clientId}`)}
                   >
                     <span className="button-icon">➕</span>
-                    Build First Program
+                    Build Program
                   </button>
                 </div>
               ) : (() => {
@@ -575,13 +640,13 @@ export default function ClientDetail() {
                     <div className="empty-state">
                       <div className="empty-icon">📋</div>
                       <h3>All Programs Cancelled</h3>
-                      <p>All assigned programs have been cancelled. Check "Show cancelled programs" to view them, or create a new program.</p>
+                      <p>All assigned programs have been cancelled. Check "Show cancelled programs" to view them, or assign a new program.</p>
                       <button
                         className="btn-primary"
                         onClick={() => navigate(`/program-builder?clientId=${clientId}`)}
                       >
                         <span className="button-icon">➕</span>
-                        Build New Program
+                        Build Program
                       </button>
                     </div>
                   ) : (
@@ -649,24 +714,27 @@ export default function ClientDetail() {
                       </div>
 
                       <div className="program-card-footer">
-                        <button
-                          className="btn-secondary btn-sm"
-                          onClick={() => {
-                            // TODO: Navigate to program view/edit
-                            console.log('View program:', program.program_id);
-                          }}
-                        >
-                          View Details
-                        </button>
+                        {program.program_status === 'draft' ? (
+                          <button
+                            className="btn-primary btn-sm"
+                            onClick={() => navigate(`/programs/draft/${program.program_id}?clientId=${clientId}`)}
+                          >
+                            Review Draft
+                          </button>
+                        ) : (
+                          <button
+                            className="btn-secondary btn-sm"
+                            onClick={() => navigate(`/programs/${program.program_id}`)}
+                          >
+                            View Details
+                          </button>
+                        )}
                         {program.status === 'in_progress' && (
                           <button
                             className="btn-primary btn-sm"
-                            onClick={() => {
-                              // TODO: Navigate to workout logging
-                              console.log('Log workout for:', program.assignment_id);
-                            }}
+                            onClick={() => navigate(`/my-programs/${program.assignment_id}`)}
                           >
-                            Log Workout
+                            View Workouts
                           </button>
                         )}
                         {program.status !== 'cancelled' && (
@@ -692,15 +760,224 @@ export default function ClientDetail() {
           {/* Progress Tab */}
           {activeTab === 'progress' && (
             <div className="progress-tab">
-              <div className="empty-state">
-                <div className="empty-icon">📈</div>
-                <h3>No Progress Data Yet</h3>
-                <p>Progress tracking will appear here once the client starts logging workouts.</p>
-              </div>
+              {progressLoading ? (
+                <div className="loading-state">
+                  <div className="spinner" />
+                  <p>Loading workout history…</p>
+                </div>
+              ) : progressWorkouts.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-icon">📈</div>
+                  <h3>No Progress Data Yet</h3>
+                  <p>Workout history will appear here once the client starts logging sessions.</p>
+                </div>
+              ) : (() => {
+                const completed = progressWorkouts.filter(w => w.status === 'completed');
+                const skipped   = progressWorkouts.filter(w => w.status === 'skipped');
+                const totalLogged = progressWorkouts.length;
+                const adherencePct = totalLogged > 0
+                  ? Math.round((completed.length / totalLogged) * 100) : 0;
+
+                // Last 8 weeks activity: bucket by ISO week
+                const weekBuckets: Record<string, { completed: number; skipped: number }> = {};
+                progressWorkouts.forEach(w => {
+                  const d = new Date(w.workout_date);
+                  // simple week key: year-weekNumber
+                  const startOfYear = new Date(d.getFullYear(), 0, 1);
+                  const weekNum = Math.ceil(((d.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7);
+                  const key = `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+                  if (!weekBuckets[key]) weekBuckets[key] = { completed: 0, skipped: 0 };
+                  if (w.status === 'completed') weekBuckets[key].completed++;
+                  else if (w.status === 'skipped') weekBuckets[key].skipped++;
+                });
+                const weekKeys = Object.keys(weekBuckets).sort().slice(-8);
+
+                return (
+                  <>
+                    {/* Summary cards */}
+                    <div className="progress-stats-grid">
+                      <div className="progress-stat-card">
+                        <span className="progress-stat-value">{totalLogged}</span>
+                        <span className="progress-stat-label">Total Sessions</span>
+                      </div>
+                      <div className="progress-stat-card">
+                        <span className="progress-stat-value">{completed.length}</span>
+                        <span className="progress-stat-label">Completed</span>
+                      </div>
+                      <div className="progress-stat-card">
+                        <span className="progress-stat-value">{skipped.length}</span>
+                        <span className="progress-stat-label">Skipped</span>
+                      </div>
+                      <div className="progress-stat-card progress-stat-highlight">
+                        <span className="progress-stat-value">{adherencePct}%</span>
+                        <span className="progress-stat-label">Adherence</span>
+                      </div>
+                    </div>
+
+                    {/* Weekly activity chart (simple bar-style) */}
+                    {weekKeys.length > 0 && (
+                      <div className="progress-weekly-section">
+                        <h3 className="progress-section-title">Weekly Activity (last 8 weeks)</h3>
+                        <div className="progress-weekly-bars">
+                          {weekKeys.map(wk => {
+                            const b = weekBuckets[wk];
+                            const total = b.completed + b.skipped;
+                            return (
+                              <div key={wk} className="progress-week-col">
+                                <div className="progress-week-bar-wrap">
+                                  <div
+                                    className="progress-week-bar completed-bar"
+                                    style={{ height: `${Math.min(b.completed * 24, 96)}px` }}
+                                    title={`${b.completed} completed`}
+                                  />
+                                  {b.skipped > 0 && (
+                                    <div
+                                      className="progress-week-bar skipped-bar"
+                                      style={{ height: `${Math.min(b.skipped * 24, 48)}px` }}
+                                      title={`${b.skipped} skipped`}
+                                    />
+                                  )}
+                                </div>
+                                <span className="progress-week-label">{total}</span>
+                                <span className="progress-week-key">{wk.split('-W')[1] ? `W${wk.split('-W')[1]}` : wk}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="progress-legend">
+                          <span className="legend-dot completed-dot" /> Completed
+                          <span className="legend-dot skipped-dot" style={{ marginLeft: 12 }} /> Skipped
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Workout history list */}
+                    <div className="progress-history-section">
+                      <h3 className="progress-section-title">Session History</h3>
+                      <div className="progress-history-list">
+                        {progressWorkouts.map(w => (
+                          <div key={w.id} className="progress-history-row">
+                            <span className={`progress-status-dot dot-${w.status}`} title={w.status} />
+                            <div className="progress-history-info">
+                              <span className="progress-history-date">
+                                {new Date(w.workout_date).toLocaleDateString(undefined, {
+                                  weekday: 'short', month: 'short', day: 'numeric',
+                                })}
+                              </span>
+                              {w.program_name && (
+                                <span className="progress-history-program">{w.program_name}</span>
+                              )}
+                            </div>
+                            <div className="progress-history-meta">
+                              {w.duration_minutes && (
+                                <span className="progress-history-duration">{w.duration_minutes} min</span>
+                              )}
+                              <span className={`progress-history-status status-${w.status}`}>{w.status}</span>
+                            </div>
+                            {w.notes && (
+                              <span className="progress-history-notes" title={w.notes}>
+                                {w.notes.length > 60 ? w.notes.slice(0, 60) + '…' : w.notes}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           )}
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {editSection && client && (
+        <EditProfileModal
+          clientId={clientId!}
+          section={editSection}
+          currentProfile={client.profile || {}}
+          onClose={() => setEditSection(null)}
+          onSaved={updated => {
+            setClient(updated);
+            setEditSection(null);
+          }}
+        />
+      )}
+
+      {/* Add / Update 1RM Modal */}
+      {showOrmModal && (
+        <div className="modal-overlay" onClick={() => setShowOrmModal(false)}>
+          <div className="modal-content" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{ormForm.exercise_name ? `Update ${ormForm.exercise_name}` : 'Add 1RM'}</h2>
+              <button className="modal-close" onClick={() => setShowOrmModal(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              {ormError && <div className="edit-error-banner">{ormError}</div>}
+              <div className="form-group">
+                <label>Exercise Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Squat, Bench Press, Deadlift"
+                  value={ormForm.exercise_name}
+                  onChange={e => setOrmForm(f => ({ ...f, exercise_name: e.target.value }))}
+                  autoFocus
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Weight</label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="0.5"
+                    placeholder="0"
+                    value={ormForm.weight || ''}
+                    onChange={e => setOrmForm(f => ({ ...f, weight: parseFloat(e.target.value) || 0 }))}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Unit</label>
+                  <select
+                    value={ormForm.unit}
+                    onChange={e => setOrmForm(f => ({ ...f, unit: e.target.value as 'lbs' | 'kg' }))}
+                  >
+                    <option value="lbs">lbs</option>
+                    <option value="kg">kg</option>
+                  </select>
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Test Date</label>
+                <input
+                  type="date"
+                  value={ormForm.tested_date}
+                  onChange={e => setOrmForm(f => ({ ...f, tested_date: e.target.value }))}
+                />
+              </div>
+              <div className="form-group checkbox-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={ormForm.verified || false}
+                    onChange={e => setOrmForm(f => ({ ...f, verified: e.target.checked }))}
+                  />
+                  <span>Verified (tested under supervision)</span>
+                </label>
+              </div>
+              <div className="modal-footer">
+                <button className="btn-secondary" onClick={() => setShowOrmModal(false)} disabled={ormSaving}>
+                  Cancel
+                </button>
+                <button className="btn-primary" onClick={handleOrmSave} disabled={ormSaving}>
+                  {ormSaving ? 'Saving…' : 'Save 1RM'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

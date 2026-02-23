@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
 from app.core.database import get_db
+from app.core.config import settings
 from app.core.deps import get_current_user, get_coach_or_admin_user
 from app.models.user import User, UserRole
 from app.models.coach_client_assignment import CoachClientAssignment
@@ -167,12 +168,15 @@ async def create_or_find_client(
     await db.commit()
     await db.refresh(new_client)
 
-    # TODO: Send welcome email with credentials if send_welcome_email is True
-    # This would include:
-    # - Login URL
-    # - Email (username)
-    # - Temporary password
-    # - Instructions to change password on first login
+    # Send welcome email if requested
+    if request.send_welcome_email:
+        from app.services.email_service import EmailService
+        await EmailService.send_welcome_email(
+            recipient_email=new_client.email,
+            recipient_name=f"{request.first_name} {request.last_name}",
+            temporary_password=temp_password,
+            login_url=f"{settings.FRONTEND_URL}/login"
+        )
 
     return CreateClientResponse(
         client_id=new_client.id,
@@ -180,7 +184,8 @@ async def create_or_find_client(
         name=f"{request.first_name} {request.last_name}",
         is_new=True,
         profile_complete=False,  # New clients haven't completed profile yet
-        already_assigned=False
+        already_assigned=False,
+        temporary_password=temp_password  # Display password in response for sharing
     )
 
 
@@ -254,6 +259,8 @@ async def list_my_clients(
 
         # Count active programs for this client
         from app.models.client_program_assignment import ClientProgramAssignment
+        from app.services.workout_service import WorkoutService
+        
         active_programs_result = await db.execute(
             select(func.count(ClientProgramAssignment.id)).where(
                 and_(
@@ -265,6 +272,10 @@ async def list_my_clients(
         )
         active_programs_count = active_programs_result.scalar_one()
 
+        # Get workout stats
+        workout_stats = await WorkoutService.get_client_workout_stats(db, user.id)
+        last_workout_date = workout_stats.get('last_workout_date')
+
         clients.append(
             ClientSummary(
                 id=user.id,
@@ -274,7 +285,7 @@ async def list_my_clients(
                 name=name,
                 profile_photo=None,  # TODO: Add profile photo support
                 active_programs=active_programs_count,
-                last_workout=None,  # TODO: Get from workout_logs table
+                last_workout=last_workout_date,
                 status=client_status,
                 profile_complete=profile_complete,
                 has_one_rep_maxes=has_one_rep_maxes,
@@ -649,6 +660,7 @@ async def get_client_programs(
             end_date=assignment.end_date,
             actual_completion_date=assignment.actual_completion_date,
             status=assignment.status,
+            program_status=program.status,
             current_week=assignment.current_week,
             current_day=assignment.current_day,
             progress_percentage=progress_percentage,
@@ -771,3 +783,79 @@ async def remove_client_assignment(
     await db.commit()
 
     return {"message": "Client assignment removed successfully"}
+
+
+@router.get("/{client_id}/workouts")
+async def get_client_workout_history(
+    client_id: UUID,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    current_user: User = Depends(get_coach_or_admin_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get workout history for a client (coach view).
+
+    Returns workout logs across all program assignments for the client,
+    including program name for context. Ordered by workout_date descending.
+
+    **Required permissions**: COACH (own clients) or SUBSCRIPTION_ADMIN
+    """
+    from app.models.workout_log import WorkoutLog
+    from app.models.client_program_assignment import ClientProgramAssignment
+    from app.models.program import Program
+    from sqlalchemy import select, and_, desc
+
+    # Verify coach–client relationship
+    result = await db.execute(
+        select(CoachClientAssignment).where(
+            and_(
+                CoachClientAssignment.coach_id == current_user.id,
+                CoachClientAssignment.client_id == client_id,
+                CoachClientAssignment.is_active == True,
+            )
+        )
+    )
+    if not result.scalar_one_or_none() and current_user.role.value != "SUBSCRIPTION_ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Client is not assigned to you",
+        )
+
+    # Load workout logs with program name via join
+    stmt = (
+        select(WorkoutLog, Program.name.label("program_name"))
+        .join(Program, WorkoutLog.program_id == Program.id, isouter=True)
+        .where(WorkoutLog.client_id == client_id)
+        .order_by(desc(WorkoutLog.workout_date))
+        .offset(offset)
+        .limit(limit)
+    )
+    rows = (await db.execute(stmt)).all()
+
+    # Count total
+    count_stmt = select(func.count()).select_from(WorkoutLog).where(WorkoutLog.client_id == client_id)
+    total = (await db.execute(count_stmt)).scalar_one()
+
+    workouts = [
+        {
+            "id": str(row.WorkoutLog.id),
+            "status": row.WorkoutLog.status.value if hasattr(row.WorkoutLog.status, "value") else row.WorkoutLog.status,
+            "workout_date": row.WorkoutLog.workout_date.isoformat() if row.WorkoutLog.workout_date else None,
+            "duration_minutes": row.WorkoutLog.duration_minutes,
+            "notes": row.WorkoutLog.notes,
+            "program_name": row.program_name,
+            "assignment_id": str(row.WorkoutLog.client_program_assignment_id),
+            "created_at": row.WorkoutLog.created_at.isoformat(),
+        }
+        for row in rows
+    ]
+
+    return {
+        "client_id": str(client_id),
+        "total": total,
+        "count": len(workouts),
+        "offset": offset,
+        "limit": limit,
+        "workouts": workouts,
+    }

@@ -26,6 +26,7 @@ export interface CreateClientResponse {
   is_new: boolean;
   profile_complete: boolean;
   already_assigned: boolean;
+  temporary_password?: string;
 }
 
 export interface ClientSummary {
@@ -247,4 +248,37 @@ export async function removeClientAssignment(clientId: string): Promise<{ messag
   return apiFetch<{ message: string }>(`/coaches/me/clients/${clientId}`, {
     method: 'DELETE',
   });
+}
+
+export interface ClientWorkoutEntry {
+  id: string;
+  status: 'completed' | 'skipped' | 'scheduled';
+  workout_date: string;
+  duration_minutes: string | null;
+  notes: string | null;
+  program_name: string | null;
+  assignment_id: string;
+  created_at: string;
+}
+
+export interface ClientWorkoutHistoryResponse {
+  client_id: string;
+  total: number;
+  count: number;
+  offset: number;
+  limit: number;
+  workouts: ClientWorkoutEntry[];
+}
+
+/**
+ * Get workout history for a client (coach view)
+ */
+export async function getClientWorkoutHistory(
+  clientId: string,
+  limit = 50,
+  offset = 0
+): Promise<ClientWorkoutHistoryResponse> {
+  return apiFetch<ClientWorkoutHistoryResponse>(
+    `/coaches/me/clients/${clientId}/workouts?limit=${limit}&offset=${offset}`
+  );
 }

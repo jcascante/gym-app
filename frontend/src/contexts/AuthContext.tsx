@@ -9,7 +9,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   passwordMustBeChanged: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ passwordMustBeChanged: boolean }>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
 }
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  const login = async (email: string, password: string): Promise<void> => {
+  const login = async (email: string, password: string): Promise<{ passwordMustBeChanged: boolean }> => {
     try {
       const response = await apiLogin(email, password);
 
@@ -58,7 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.user);
 
       // Set password change flag
-      setPasswordMustBeChanged(response.password_must_be_changed || false);
+      const mustChangePassword = response.password_must_be_changed || false;
+      setPasswordMustBeChanged(mustChangePassword);
+
+      // Return the flag immediately (don't wait for state update)
+      return { passwordMustBeChanged: mustChangePassword };
     } catch (error) {
       // Re-throw error for component to handle
       throw error;

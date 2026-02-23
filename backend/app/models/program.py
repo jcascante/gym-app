@@ -241,6 +241,14 @@ class Program(BaseModel):
         doc="Creator's revenue share percentage"
     )
 
+    # Client program lifecycle status (None = template, "draft" = pending review, "published" = visible to client)
+    status = Column(
+        String(20),
+        nullable=True,
+        index=True,
+        doc="Program status: None (template), 'draft' (pending coach review), 'published' (visible to client)"
+    )
+
     # Soft delete
     archived_at = Column(
         String(50),
@@ -533,23 +541,43 @@ class ProgramDayExercise(BaseModel):
     exercise_id = Column(
         GUID,
         ForeignKey('exercises_library.id', ondelete='RESTRICT'),
-        nullable=False,
+        nullable=True,  # Nullable until exercise library is connected
         index=True,
         doc="Foreign key to exercise in library"
+    )
+
+    # Flat columns used by the program builder wizard (used when exercise_id is null)
+    exercise_name = Column(
+        String(255),
+        nullable=True,
+        doc="Exercise name as free text (used by program builder wizard)"
     )
 
     subscription_id = Column(
         GUID,
         ForeignKey('subscriptions.id', ondelete='CASCADE'),
-        nullable=False,
+        nullable=True,
         index=True,
         doc="Foreign key to subscription (multi-tenant isolation)"
     )
 
     exercise_order = Column(
         Integer,
-        nullable=False,
+        nullable=True,
         doc="Display order within day (1-based)"
+    )
+
+    # Flat rep/weight columns used by program builder wizard
+    reps = Column(
+        Integer,
+        nullable=True,
+        doc="Target reps as prescribed by program builder wizard"
+    )
+
+    weight_lbs = Column(
+        Float,
+        nullable=True,
+        doc="Prescribed weight in lbs (used by program builder wizard)"
     )
 
     # Exercise prescription

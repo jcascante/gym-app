@@ -29,6 +29,16 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
+    # Email Configuration
+    EMAIL_USE_MOCK: bool = True  # Set to False for production SMTP
+    EMAIL_FROM: str = "noreply@gymapp.com"
+    EMAIL_SMTP_HOST: str = "localhost"
+    EMAIL_SMTP_PORT: int = 587
+    EMAIL_SMTP_USER: str = ""
+    EMAIL_SMTP_PASSWORD: str = ""
+    EMAIL_SMTP_TLS: bool = True
+    FRONTEND_URL: str = "http://localhost:5173"
+
     class Config:
         env_file = ".env"
         case_sensitive = True

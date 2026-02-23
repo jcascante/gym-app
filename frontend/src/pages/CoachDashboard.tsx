@@ -92,13 +92,9 @@ export default function CoachDashboard() {
             <span className="button-icon">👤</span>
             View Clients
           </button>
-          <button className="action-button secondary">
+          <button className="action-button secondary" onClick={() => navigate('/programs')}>
             <span className="button-icon">📋</span>
             My Programs
-          </button>
-          <button className="action-button secondary">
-            <span className="button-icon">📅</span>
-            Schedule
           </button>
         </div>
       </div>

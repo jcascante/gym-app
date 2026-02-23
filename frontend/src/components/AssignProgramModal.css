@@ -1,0 +1,176 @@
+/* Inherits modal-overlay, modal-content, modal-header, modal-body, modal-footer,
+   form-hint, form-group, btn-primary, btn-secondary, spinner, result-state
+   from AddClientModal.css (loaded globally via components) */
+
+.assign-modal-content {
+  max-width: 540px;
+}
+
+/* Search */
+.assign-search-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+.assign-search-input:focus {
+  outline: none;
+  border-color: var(--primary-color, #007bff);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Loading / empty */
+.assign-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  gap: 0.75rem;
+  color: #666;
+}
+
+.assign-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: #666;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+/* Program list */
+.assign-program-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 320px;
+  overflow-y: auto;
+  margin-bottom: 0.5rem;
+}
+
+.assign-program-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.assign-program-item:hover {
+  background: #e9ecef;
+  border-color: var(--primary-color, #007bff);
+}
+
+.assign-program-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+}
+
+.assign-program-name {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 0.95rem;
+}
+
+.assign-program-meta {
+  color: #666;
+  font-size: 0.82rem;
+}
+
+.assign-arrow {
+  font-size: 1.25rem;
+  color: #aaa;
+  margin-left: 0.5rem;
+}
+
+/* Confirm banner */
+.confirm-program-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: #e8f4fd;
+  border: 1px solid #bee3f8;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.confirm-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #0077b6;
+  font-weight: 600;
+}
+
+.confirm-program-banner strong {
+  font-size: 1.1rem;
+  color: #1a1a1a;
+}
+
+.confirm-meta {
+  font-size: 0.875rem;
+  color: #555;
+}
+
+/* Form groups for confirm step */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.form-group input[type="date"],
+.form-group textarea {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.form-group input[type="date"]:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color, #007bff);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Spinner (reuse from AddClientModal.css pattern) */
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid var(--primary-color, #007bff);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

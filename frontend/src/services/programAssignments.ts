@@ -21,6 +21,7 @@ export interface ProgramAssignmentSummary {
   end_date?: string;   // ISO date
   actual_completion_date?: string;  // ISO date
   status: 'assigned' | 'in_progress' | 'completed' | 'paused' | 'cancelled';
+  program_status: string | null;  // null = old template-linked, 'draft', 'published'
   current_week: number;
   current_day: number;
   progress_percentage: number;
@@ -81,6 +82,27 @@ export async function getClientPrograms(
 
   const queryString = queryParams.toString();
   const endpoint = `/coaches/me/clients/${clientId}/programs${queryString ? `?${queryString}` : ''}`;
+
+  return apiFetch<ClientProgramsListResponse>(endpoint);
+}
+
+
+/**
+ * Get programs assigned to the authenticated client (self)
+ *
+ * @param statusFilter - Optional status filter
+ */
+export async function getMyPrograms(
+  statusFilter?: 'assigned' | 'in_progress' | 'completed' | 'paused' | 'cancelled'
+): Promise<ClientProgramsListResponse> {
+  const queryParams = new URLSearchParams();
+
+  if (statusFilter) {
+    queryParams.append('status_filter', statusFilter);
+  }
+
+  const queryString = queryParams.toString();
+  const endpoint = `/users/me/programs${queryString ? `?${queryString}` : ''}`;
 
   return apiFetch<ClientProgramsListResponse>(endpoint);
 }

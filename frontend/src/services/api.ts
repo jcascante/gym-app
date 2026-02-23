@@ -19,7 +19,10 @@ export class ApiError extends Error {
  * Get stored JWT token from localStorage
  */
 export function getToken(): string | null {
-  return localStorage.getItem('gym-app-token');
+  const token = localStorage.getItem('gym-app-token');
+  // Normalize invalid stored values (string "null" or "undefined") to actual null
+  if (!token || token === 'null' || token === 'undefined') return null;
+  return token;
 }
 
 /**

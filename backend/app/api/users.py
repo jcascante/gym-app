@@ -19,6 +19,10 @@ from app.core.deps import (
 from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserUpdate, UserResponse, UserListResponse
 from app.schemas.auth import MessageResponse
+from app.schemas.program_assignment import (
+    ClientProgramsListResponse,
+    ProgramAssignmentSummary,
+)
 
 router = APIRouter()
 
@@ -370,4 +374,108 @@ async def delete_user(
     return MessageResponse(
         message="User deleted successfully",
         detail=f"User {user.email} has been deactivated"
+    )
+
+
+@router.get(
+    "/me/programs",
+    response_model=ClientProgramsListResponse,
+    summary="Get programs assigned to current client",
+    tags=["Users"],
+)
+async def get_my_programs(
+    status_filter: Optional[str] = Query(None, description="Filter by assignment status"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get all programs assigned to the authenticated client.
+
+    Only users with role CLIENT may call this endpoint. Returns the same
+    structure as the coach-facing client programs endpoint but scoped to the
+    current user.
+    """
+    if current_user.role != UserRole.CLIENT:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only clients can view their own program assignments",
+        )
+
+    from app.models.client_program_assignment import ClientProgramAssignment
+    from app.models.program import Program
+
+    # Build query for this client's assignments
+    query = select(ClientProgramAssignment).where(
+        ClientProgramAssignment.client_id == current_user.id
+    )
+
+    if status_filter:
+        query = query.where(ClientProgramAssignment.status == status_filter)
+
+    result = await db.execute(query.order_by(ClientProgramAssignment.created_at.desc()))
+    assignments = result.scalars().all()
+
+    program_summaries: list[ProgramAssignmentSummary] = []
+    active_count = 0
+    completed_count = 0
+
+    for assignment in assignments:
+        # Get program details
+        program_result = await db.execute(
+            select(Program).where(Program.id == assignment.program_id)
+        )
+        program = program_result.scalar_one_or_none()
+        if not program:
+            continue
+        # Skip draft programs — clients can only see published programs
+        if program.status == "draft":
+            continue
+
+        # Get coach name
+        coach_result = await db.execute(
+            select(User).where(User.id == assignment.coach_id)
+        )
+        coach = coach_result.scalar_one_or_none()
+        coach_profile = coach.profile or {} if coach else {}
+        coach_basic_info = coach_profile.get("basic_info", {})
+        coach_name = f"{coach_basic_info.get('first_name', 'Unknown')} {coach_basic_info.get('last_name', 'Coach')}"
+
+        progress_percentage = ((assignment.current_week - 1) / program.duration_weeks * 100) if program.duration_weeks > 0 else 0.0
+
+        if assignment.is_active and assignment.status in ["assigned", "in_progress"]:
+            active_count += 1
+        elif assignment.status == "completed":
+            completed_count += 1
+
+        program_summaries.append(ProgramAssignmentSummary(
+            assignment_id=assignment.id,
+            program_id=program.id,
+            program_name=program.name,
+            assignment_name=assignment.assignment_name,
+            duration_weeks=program.duration_weeks,
+            days_per_week=program.days_per_week,
+            start_date=assignment.start_date,
+            end_date=assignment.end_date,
+            actual_completion_date=assignment.actual_completion_date,
+            status=assignment.status,
+            program_status=program.status,
+            current_week=assignment.current_week,
+            current_day=assignment.current_day,
+            progress_percentage=progress_percentage,
+            is_active=assignment.is_active,
+            assigned_at=assignment.created_at,
+            assigned_by_name=coach_name,
+        ))
+
+    client_profile = current_user.profile or {}
+    basic_info = client_profile.get('basic_info', {})
+    client_name = f"{basic_info.get('first_name', 'Unknown')} {basic_info.get('last_name', 'Client')}"
+
+    return ClientProgramsListResponse(
+        client_id=current_user.id,
+        client_name=client_name,
+        programs=program_summaries,
+        total=len(program_summaries),
+        active_count=active_count,
+        completed_count=completed_count,
     )

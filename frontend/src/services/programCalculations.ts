@@ -41,6 +41,8 @@ export interface Movement {
 // State
 // ============================================================================
 
+import { getToken } from './api';
+
 let cachedConstants: CalculationConstants | null = null;
 
 // ============================================================================
@@ -55,13 +57,13 @@ export async function fetchCalculationConstants(
   builderType: string = 'strength_linear_5x5'
 ): Promise<CalculationConstants> {
   try {
+    const token = getToken();
+    const headers: HeadersInit = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const response = await fetch(
       `/api/v1/programs/algorithms/${builderType}/constants`,
-      {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('gym-app-token')}`,
-        },
-      }
+      { headers }
     );
 
     if (!response.ok) {
@@ -243,12 +245,15 @@ export async function validateCalculations(
     };
 
     // Call backend preview endpoint
+    const token = getToken();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const response = await fetch('/api/v1/programs/preview', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('gym-app-token')}`,
-      },
+      headers,
       body: JSON.stringify(inputData)
     });
 

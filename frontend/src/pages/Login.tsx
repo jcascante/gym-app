@@ -10,7 +10,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, passwordMustBeChanged } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,10 +19,11 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      // Get the result from login, which includes passwordMustBeChanged
+      const result = await login(email, password);
 
       // Check if password must be changed
-      if (passwordMustBeChanged) {
+      if (result.passwordMustBeChanged) {
         navigate('/change-password', {
           state: { passwordMustBeChanged: true }
         });

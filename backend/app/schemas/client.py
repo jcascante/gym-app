@@ -78,6 +78,10 @@ class CreateClientResponse(BaseModel):
         default=False,
         description="Whether this coach is already assigned to this client"
     )
+    temporary_password: str | None = Field(
+        default=None,
+        description="Temporary password for newly created clients (only shown once)"
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -87,7 +91,8 @@ class CreateClientResponse(BaseModel):
                 "name": "John Doe",
                 "is_new": True,
                 "profile_complete": False,
-                "already_assigned": False
+                "already_assigned": False,
+                "temporary_password": "aB3$dEfGhI9!"
             }
         }
     )

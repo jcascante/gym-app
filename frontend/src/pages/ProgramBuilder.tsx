@@ -9,8 +9,9 @@ import {
   calculate80Percent
 } from '../services/programCalculations';
 import { apiFetch } from '../services/api';
-import { getClientDetail } from '../services/clients';
-import { assignProgramToClient } from '../services/programAssignments';
+import { getClientDetail, listMyClients, type ClientDetailResponse, type OneRepMax, type ClientSummary } from '../services/clients';
+
+// ─── Types ──────────────────────────────────────────────────────────────────
 
 interface Movement {
   id: string;
@@ -23,9 +24,101 @@ interface Movement {
   rampUpPercent: number;
   rampUpBaseLbs: number;
   targetWeight: number;
+  fromProfile?: boolean;
 }
 
-type Step = 'movements' | 'oneRM' | 'eightyPercentTest' | 'fiveRMTest' | 'program';
+type Step = 'selectClient' | 'clientContext' | 'templateSelect' | 'movements' | 'oneRM' | 'eightyPercentTest' | 'fiveRMTest' | 'program';
+
+// ─── Template catalogue ──────────────────────────────────────────────────────
+
+interface TemplateOption {
+  id: string;
+  name: string;
+  tag: string;
+  tagColor: string;
+  description: string;
+  duration_weeks: number;
+  days_per_week: number;
+  available: boolean;
+  goals: string[];
+}
+
+const TEMPLATES: TemplateOption[] = [
+  {
+    id: 'strength_linear_5x5',
+    name: 'Strength Linear 5×5',
+    tag: 'Strength',
+    tagColor: '#1565c0',
+    description: 'Linear progression with barbell compound movements. Builds raw strength through systematic weekly overload.',
+    duration_weeks: 8,
+    days_per_week: 4,
+    available: true,
+    goals: ['strength'],
+  },
+  {
+    id: 'hypertrophy_block',
+    name: 'Hypertrophy Block (PPL)',
+    tag: 'Hypertrophy',
+    tagColor: '#6a1b9a',
+    description: 'Push / Pull / Legs split with moderate intensity and high volume focused on muscle growth.',
+    duration_weeks: 12,
+    days_per_week: 6,
+    available: false,
+    goals: ['hypertrophy'],
+  },
+  {
+    id: 'general_fitness',
+    name: 'General Fitness Foundation',
+    tag: 'General',
+    tagColor: '#2e7d32',
+    description: 'Balanced program combining strength, cardio, and mobility for overall fitness improvement.',
+    duration_weeks: 8,
+    days_per_week: 3,
+    available: false,
+    goals: ['general_fitness', 'rehabilitation'],
+  },
+  {
+    id: 'athletic_performance',
+    name: 'Athletic Performance',
+    tag: 'Athletic',
+    tagColor: '#b71c1c',
+    description: 'Power, speed, and agility training for sport-specific performance enhancement.',
+    duration_weeks: 10,
+    days_per_week: 4,
+    available: false,
+    goals: ['athletic_performance'],
+  },
+  {
+    id: 'fat_loss_circuit',
+    name: 'Fat Loss Circuit',
+    tag: 'Fat Loss',
+    tagColor: '#e65100',
+    description: 'High-intensity circuit training combining resistance and metabolic conditioning for fat loss.',
+    duration_weeks: 8,
+    days_per_week: 4,
+    available: false,
+    goals: ['fat_loss'],
+  },
+];
+
+const GOAL_LABELS: Record<string, string> = {
+  strength: 'Strength',
+  hypertrophy: 'Hypertrophy / Muscle Building',
+  fat_loss: 'Fat Loss',
+  athletic_performance: 'Athletic Performance',
+  general_fitness: 'General Fitness',
+  rehabilitation: 'Rehabilitation',
+};
+
+const EXPERIENCE_LABELS: Record<string, string> = {
+  beginner: 'Beginner (0–1 yr)',
+  novice: 'Novice (1–2 yrs)',
+  intermediate: 'Intermediate (2–5 yrs)',
+  advanced: 'Advanced (5–10 yrs)',
+  elite: 'Elite (10+ yrs)',
+};
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function ProgramBuilder() {
   const { t } = useTranslation();
@@ -33,7 +126,8 @@ export default function ProgramBuilder() {
   const [searchParams] = useSearchParams();
   const clientId = searchParams.get('clientId');
 
-  const [currentStep, setCurrentStep] = useState<Step>('movements');
+  // ─── Existing state ────────────────────────────────────────────────────────
+  const [currentStep, setCurrentStep] = useState<Step>(clientId ? 'clientContext' : 'selectClient');
   const [movements, setMovements] = useState<Movement[]>([]);
   const [selectedMovement, setSelectedMovement] = useState<Movement | null>(null);
   const [newMovementName, setNewMovementName] = useState('');
@@ -44,46 +138,72 @@ export default function ProgramBuilder() {
   const [clientName, setClientName] = useState<string>('');
   const [loadingClient, setLoadingClient] = useState(false);
 
-  // Fetch calculation constants from backend on mount
+  // ─── New state ─────────────────────────────────────────────────────────────
+  const [clientData, setClientData] = useState<ClientDetailResponse | null>(null);
+  const [prefilledMovements, setPrefilledMovements] = useState<Movement[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('strength_linear_5x5');
+  const [editingMovement, setEditingMovement] = useState<string | null>(null);
+  const [editTarget, setEditTarget] = useState<string>('');
+  const [editJump, setEditJump] = useState<string>('');
+  // Client selection state (when wizard is opened without a clientId in URL)
+  const [clients, setClients] = useState<ClientSummary[]>([]);
+  const [clientSearch, setClientSearch] = useState('');
+  const [loadingClients, setLoadingClients] = useState(false);
+
+  // ─── Effects ──────────────────────────────────────────────────────────────
+
   useEffect(() => {
     fetchCalculationConstants()
-      .then(() => {
-        console.log('✅ Calculation constants loaded from backend');
-        setConstantsLoaded(true);
-      })
-      .catch(err => {
-        console.error('Failed to load constants:', err);
-        // Will use fallback constants - app still works
-        setConstantsLoaded(true);
-      });
+      .then(() => setConstantsLoaded(true))
+      .catch(() => setConstantsLoaded(true));
   }, []);
 
-  // Load client details if building for a specific client
+  useEffect(() => {
+    if (currentStep === 'selectClient' && clients.length === 0) {
+      setLoadingClients(true);
+      listMyClients()
+        .then(res => setClients(res.clients))
+        .catch(() => {})
+        .finally(() => setLoadingClients(false));
+    }
+  }, [currentStep]);
+
   useEffect(() => {
     if (clientId) {
       setLoadingClient(true);
       getClientDetail(clientId)
         .then(client => {
-          const profile = client.profile || {};
-          const basicInfo = profile.basic_info || {};
-          const name = `${basicInfo.first_name || 'Unknown'} ${basicInfo.last_name || 'Client'}`;
-          setClientName(name);
+          setClientData(client);
+          const basicInfo = client.profile?.basic_info ?? {};
+          setClientName(`${basicInfo.first_name ?? 'Unknown'} ${basicInfo.last_name ?? 'Client'}`);
+
+          // Build pre-filled movements from stored 1RMs
+          const oneRepMaxes = (client.profile?.training_experience?.one_rep_maxes ?? {}) as Record<string, OneRepMax>;
+          const prefilled: Movement[] = Object.entries(oneRepMaxes).map(([movName, data]) => ({
+            id: movName,
+            name: movName,
+            oneRM: data.weight,
+            eightyPercentRM: calculate80Percent(data.weight),
+            maxRepsAt80: 0,
+            weeklyJumpPercent: 0,
+            weeklyJumpLbs: 0,
+            rampUpPercent: 0,
+            rampUpBaseLbs: 0,
+            targetWeight: 0,
+            fromProfile: true,
+          }));
+          setPrefilledMovements(prefilled);
         })
-        .catch(err => {
-          console.error('Failed to load client details:', err);
-        })
-        .finally(() => {
-          setLoadingClient(false);
-        });
+        .catch(err => console.error('Failed to load client details:', err))
+        .finally(() => setLoadingClient(false));
     }
   }, [clientId]);
 
-  // Save program to backend
+  // ─── Program save ─────────────────────────────────────────────────────────
+
   const handleSaveProgram = async () => {
     setIsSaving(true);
-
     try {
-      // Prepare input data for backend
       const programName = clientName
         ? `${clientName} - ${movements.map(m => m.name).join(', ')}`
         : `${movements.map(m => m.name).join(', ')} - 8 Week Program`;
@@ -98,170 +218,331 @@ export default function ProgramBuilder() {
           name: m.name,
           one_rm: m.oneRM,
           max_reps_at_80_percent: m.maxRepsAt80,
-          target_weight: m.targetWeight
+          target_weight: m.targetWeight,
         })),
         duration_weeks: 8,
         days_per_week: 4,
-        is_template: !clientId  // If building for client, not a template
+        is_template: false,
+        client_id: clientId,
       };
 
-      // Save program using apiFetch
-      const savedProgram = await apiFetch<any>('/programs', {
+      const savedProgram = await apiFetch<{ id: string; assignment_id?: string }>('/programs/', {
         method: 'POST',
-        body: JSON.stringify(programInputs)
+        body: JSON.stringify(programInputs),
       });
 
-      console.log('✅ Program saved successfully:', savedProgram);
-
-      // If building for a client, assign the program
-      if (clientId && savedProgram.id) {
-        try {
-          const assignment = await assignProgramToClient(savedProgram.id, {
-            client_id: clientId,
-            assignment_name: undefined,  // Use program name
-            start_date: new Date().toISOString().split('T')[0],  // Today
-            notes: 'Program created and assigned via Program Builder'
-          });
-
-          console.log('✅ Program assigned to client:', assignment);
-          alert(`Program created and assigned to ${clientName} successfully!`);
-
-          // Navigate back to client detail page
-          navigate(`/clients/${clientId}`);
-        } catch (assignError) {
-          console.error('Failed to assign program:', assignError);
-          const errorMsg = assignError instanceof Error
-            ? assignError.message
-            : JSON.stringify(assignError);
-          alert(`Program created but failed to assign to client: ${errorMsg}`);
-        }
-      } else {
-        // Program saved as template
-        alert(t('programBuilder.step5.saveSuccess'));
-        // Could navigate to templates page
-      }
+      navigate(`/programs/draft/${savedProgram.id}?clientId=${clientId}`);
     } catch (error) {
-      console.error('❌ Failed to save program:', error);
-      alert(t('programBuilder.step5.saveError', {
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }));
-    } finally {
       setIsSaving(false);
+      alert(t('programBuilder.step5.saveError', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }));
     }
   };
+
+  // ─── Movement helpers ─────────────────────────────────────────────────────
 
   const addMovement = (name: string) => {
-    if (movements.length >= 4) {
-      alert(t('programBuilder.step1.maxMovements'));
-      return;
-    }
-    const newMovement: Movement = {
-      id: Date.now().toString(),
-      name,
-      oneRM: 0,
-      eightyPercentRM: 0,
-      maxRepsAt80: 0,
-      weeklyJumpPercent: 0,
-      weeklyJumpLbs: 0,
-      rampUpPercent: 0,
-      rampUpBaseLbs: 0,
-      targetWeight: 0
-    };
-    setMovements([...movements, newMovement]);
+    if (movements.length >= 4) { alert(t('programBuilder.step1.maxMovements')); return; }
+    setMovements([...movements, {
+      id: Date.now().toString(), name, oneRM: 0, eightyPercentRM: 0,
+      maxRepsAt80: 0, weeklyJumpPercent: 0, weeklyJumpLbs: 0,
+      rampUpPercent: 0, rampUpBaseLbs: 0, targetWeight: 0,
+    }]);
   };
 
-  const removeMovement = (id: string) => {
-    setMovements(movements.filter(m => m.id !== id));
-  };
+  const removeMovement = (id: string) => setMovements(movements.filter(m => m.id !== id));
 
-  const updateMovement = (id: string, updates: Partial<Movement>) => {
+  const updateMovement = (id: string, updates: Partial<Movement>) =>
     setMovements(movements.map(m => m.id === id ? { ...m, ...updates } : m));
-  };
 
-  const renderStepIndicator = () => {
-    const steps = [
-      { key: 'movements', label: t('programBuilder.steps.movements') },
-      { key: 'oneRM', label: t('programBuilder.steps.oneRM') },
-      { key: 'eightyPercentTest', label: t('programBuilder.steps.eightyPercent') },
-      { key: 'fiveRMTest', label: t('programBuilder.steps.fiveRM') },
-      { key: 'program', label: t('programBuilder.steps.program') }
-    ];
+  // ─── Step: selectClient ───────────────────────────────────────────────────
+
+  const renderSelectClientStep = () => {
+    if (loadingClients) {
+      return (
+        <div className="step-content">
+          <div className="client-loading"><div className="spinner-sm" /><p>Loading clients…</p></div>
+        </div>
+      );
+    }
+
+    const filtered = clientSearch.trim()
+      ? clients.filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase()) || c.email.toLowerCase().includes(clientSearch.toLowerCase()))
+      : clients;
 
     return (
-      <div className="step-indicator">
-        {steps.map((step, index) => (
-          <div
-            key={step.key}
-            className={`step ${currentStep === step.key ? 'active' : ''}`}
-          >
-            <div className="step-number">{index + 1}</div>
-            <div className="step-label">{step.label}</div>
+      <div className="step-content">
+        <h2>Select a Client</h2>
+        <p className="step-description">Choose the client this program is being built for.</p>
+
+        <input
+          type="search"
+          className="search-input"
+          placeholder="Search clients…"
+          value={clientSearch}
+          onChange={e => setClientSearch(e.target.value)}
+          autoFocus
+          style={{ marginBottom: '1rem', maxWidth: '400px' }}
+        />
+
+        {filtered.length === 0 ? (
+          <p style={{ color: '#888' }}>
+            {clients.length === 0 ? 'No clients found. Add clients first.' : `No clients match "${clientSearch}".`}
+          </p>
+        ) : (
+          <div className="client-select-list">
+            {filtered.map(c => (
+              <button
+                key={c.id}
+                className="client-select-item"
+                onClick={() => navigate(`/program-builder?clientId=${c.id}`)}
+              >
+                <span className="client-select-name">{c.name}</span>
+                <span className="client-select-email">{c.email}</span>
+                <span className="client-select-arrow">›</span>
+              </button>
+            ))}
           </div>
-        ))}
+        )}
       </div>
     );
   };
 
-  const renderMovementsStep = () => {
+  // ─── Step: clientContext ──────────────────────────────────────────────────
+
+  const renderClientContextStep = () => {
+    if (loadingClient || !clientData) {
+      return (
+        <div className="step-content">
+          <div className="client-loading"><div className="spinner-sm" /><p>Loading client data…</p></div>
+        </div>
+      );
+    }
+
+    const profile = clientData.profile ?? {};
+    const goal = profile.fitness_goals?.primary_goal ?? '';
+    const experience = profile.training_experience?.overall_experience_level ?? '';
+    const daysPerWeek = profile.training_preferences?.available_days_per_week;
+    const oneRepMaxes = (profile.training_experience?.one_rep_maxes ?? {}) as Record<string, OneRepMax>;
+    const has1RMs = Object.keys(oneRepMaxes).length > 0;
+
     return (
       <div className="step-content">
-        <h2>{t('programBuilder.step1.title')}</h2>
+        <h2>Client Profile</h2>
         <p className="step-description">
-          {t('programBuilder.step1.description')}
+          Review {clientName}'s profile before building their program.
+          Existing 1RM data will be pre-filled in the following steps.
         </p>
 
-        <div className="movement-input">
-          <input
-            type="text"
-            placeholder={t('programBuilder.step1.placeholder')}
-            value={newMovementName}
-            onChange={(e) => setNewMovementName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && newMovementName.trim()) {
-                addMovement(newMovementName.trim());
-                setNewMovementName('');
-              }
-            }}
-          />
-          <button
-            onClick={() => {
-              if (newMovementName.trim()) {
-                addMovement(newMovementName.trim());
-                setNewMovementName('');
-              }
-            }}
-            disabled={movements.length >= 4}
-          >
-            {t('programBuilder.step1.addButton')}
-          </button>
+        <div className="client-context-panel">
+          <div className="client-context-grid">
+            <div className="context-item">
+              <span className="context-label">Client</span>
+              <span className="context-value">{clientName}</span>
+            </div>
+            {goal && (
+              <div className="context-item">
+                <span className="context-label">Primary Goal</span>
+                <span className="context-value">
+                  <span className="goal-badge">{GOAL_LABELS[goal] ?? goal}</span>
+                </span>
+              </div>
+            )}
+            {experience && (
+              <div className="context-item">
+                <span className="context-label">Experience</span>
+                <span className="context-value">{EXPERIENCE_LABELS[experience] ?? experience}</span>
+              </div>
+            )}
+            {daysPerWeek != null && (
+              <div className="context-item">
+                <span className="context-label">Available Days / Week</span>
+                <span className="context-value">{daysPerWeek} days</span>
+              </div>
+            )}
+          </div>
+
+          {daysPerWeek != null && daysPerWeek < 4 && (
+            <div className="days-warning">
+              The Strength Linear 5×5 template requires 4 days/week.
+              This client has {daysPerWeek} day{daysPerWeek === 1 ? '' : 's'} available.
+              Consider discussing with the client or choosing a different template.
+            </div>
+          )}
+
+          {has1RMs ? (
+            <div className="one-rep-max-section">
+              <h4>Recorded 1RMs — will be pre-filled</h4>
+              <table className="one-rep-max-table">
+                <thead>
+                  <tr><th>Exercise</th><th>Weight</th><th>Unit</th><th>Date</th></tr>
+                </thead>
+                <tbody>
+                  {Object.entries(oneRepMaxes).map(([name, data]) => (
+                    <tr key={name}>
+                      <td>{name}</td>
+                      <td>{(data as OneRepMax).weight}</td>
+                      <td>{(data as OneRepMax).unit}</td>
+                      <td>{(data as OneRepMax).tested_date ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="no-1rm-note">No 1RM records on file. You'll enter them manually in the next steps.</p>
+          )}
         </div>
 
-        <div className="movements-list">
-          {movements.map((movement) => (
-            <div key={movement.id} className="movement-card">
-              <span>{movement.name}</span>
-              <button
-                className="remove-btn"
-                onClick={() => removeMovement(movement.id)}
+        <div className="step-actions context-actions">
+          <button
+            className="secondary-btn"
+            onClick={() => {
+              setPrefilledMovements([]);
+              setMovements([]);
+              setCurrentStep('templateSelect');
+            }}
+          >
+            Start Fresh (ignore profile data)
+          </button>
+          <button
+            className="primary-btn"
+            onClick={() => {
+              setMovements(prefilledMovements);
+              setCurrentStep('templateSelect');
+            }}
+          >
+            {has1RMs ? `Build Program (pre-fill ${Object.keys(oneRepMaxes).length} movements)` : 'Build Program'}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // ─── Step: templateSelect ─────────────────────────────────────────────────
+
+  const renderTemplateSelectStep = () => {
+    const clientGoal = clientData?.profile?.fitness_goals?.primary_goal ?? '';
+    const suggestedId = TEMPLATES.find(t => t.available && t.goals.includes(clientGoal))?.id
+      ?? TEMPLATES.find(t => t.available)?.id
+      ?? 'strength_linear_5x5';
+
+    return (
+      <div className="step-content">
+        <h2>Select a Program Template</h2>
+        <p className="step-description">
+          {clientGoal
+            ? `Based on ${clientName || "the client"}'s goal (${GOAL_LABELS[clientGoal] ?? clientGoal}), we recommend a template below.`
+            : 'Choose a template to generate the training program.'}
+        </p>
+
+        <div className="template-grid">
+          {TEMPLATES.map(tmpl => {
+            const isSuggested = tmpl.id === suggestedId;
+            const isSelected = selectedTemplate === tmpl.id;
+            return (
+              <div
+                key={tmpl.id}
+                className={[
+                  'template-card',
+                  tmpl.available ? 'available' : 'disabled',
+                  isSuggested ? 'suggested' : '',
+                  isSelected ? 'selected' : '',
+                ].filter(Boolean).join(' ')}
+                onClick={() => tmpl.available && setSelectedTemplate(tmpl.id)}
               >
-                ✕
-              </button>
-            </div>
-          ))}
+                {isSuggested && <div className="suggested-ribbon">Suggested</div>}
+                {!tmpl.available && <div className="coming-soon-badge">Coming Soon</div>}
+                <div className="template-card-header">
+                  <span className="template-tag" style={{ background: tmpl.tagColor }}>{tmpl.tag}</span>
+                  <h3>{tmpl.name}</h3>
+                </div>
+                <p className="template-description">{tmpl.description}</p>
+                <div className="template-meta">
+                  <span>{tmpl.duration_weeks} weeks</span>
+                  <span>·</span>
+                  <span>{tmpl.days_per_week} days/wk</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         <div className="step-actions">
+          {clientId && (
+            <button className="secondary-btn" onClick={() => setCurrentStep('clientContext')}>
+              Back
+            </button>
+          )}
           <button
             className="primary-btn"
-            onClick={() => setCurrentStep('oneRM')}
-            disabled={movements.length === 0}
+            onClick={() => setCurrentStep('movements')}
+            disabled={!selectedTemplate}
           >
-            {t('programBuilder.step1.nextButton')}
+            Use this template →
           </button>
         </div>
       </div>
     );
   };
+
+  // ─── Step: movements ──────────────────────────────────────────────────────
+
+  const renderMovementsStep = () => (
+    <div className="step-content">
+      <h2>{t('programBuilder.step1.title')}</h2>
+      <p className="step-description">{t('programBuilder.step1.description')}</p>
+
+      <div className="movement-input">
+        <input
+          type="text"
+          placeholder={t('programBuilder.step1.placeholder')}
+          value={newMovementName}
+          onChange={e => setNewMovementName(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && newMovementName.trim()) {
+              addMovement(newMovementName.trim());
+              setNewMovementName('');
+            }
+          }}
+        />
+        <button
+          onClick={() => {
+            if (newMovementName.trim()) { addMovement(newMovementName.trim()); setNewMovementName(''); }
+          }}
+          disabled={movements.length >= 4}
+        >
+          {t('programBuilder.step1.addButton')}
+        </button>
+      </div>
+
+      <div className="movements-list">
+        {movements.map(movement => (
+          <div key={movement.id} className="movement-card">
+            <span>{movement.name}</span>
+            {movement.fromProfile && <span className="from-profile-badge">From profile</span>}
+            <button className="remove-btn" onClick={() => removeMovement(movement.id)}>✕</button>
+          </div>
+        ))}
+      </div>
+
+      <div className="step-actions">
+        <button className="secondary-btn" onClick={() => setCurrentStep('templateSelect')}>
+          {t('programBuilder.step1.backButton') ?? 'Back'}
+        </button>
+        <button
+          className="primary-btn"
+          onClick={() => setCurrentStep('oneRM')}
+          disabled={movements.length === 0}
+        >
+          {t('programBuilder.step1.nextButton')}
+        </button>
+      </div>
+    </div>
+  );
+
+  // ─── Step: oneRM ──────────────────────────────────────────────────────────
 
   const renderOneRMStep = () => {
     const completedTests = movements.filter(m => m.oneRM > 0).length;
@@ -272,9 +553,7 @@ export default function ProgramBuilder() {
         <div className="step-header-with-progress">
           <div>
             <h2>{t('programBuilder.step2.title')}</h2>
-            <p className="step-description">
-              {t('programBuilder.step2.description')}
-            </p>
+            <p className="step-description">{t('programBuilder.step2.description')}</p>
           </div>
           <div className="progress-badge">
             <span className="progress-count">{completedTests}/{totalTests}</span>
@@ -282,16 +561,12 @@ export default function ProgramBuilder() {
           </div>
         </div>
 
-        {/* Instructions Section */}
         <div className="instructions-box">
           <div className="instruction-header">
             <span className="instruction-icon">📋</span>
             <h3>{t('programBuilder.step2.whatIs1RM')}</h3>
           </div>
-          <p>
-            {t('programBuilder.step2.oneRMDefinition')}
-          </p>
-
+          <p>{t('programBuilder.step2.oneRMDefinition')}</p>
           <div className="instruction-tips">
             <h4>{t('programBuilder.step2.safetyTips')}</h4>
             <ul>
@@ -303,7 +578,6 @@ export default function ProgramBuilder() {
               <li>{t('programBuilder.step2.tip6')}</li>
             </ul>
           </div>
-
           <div className="instruction-example">
             <strong>{t('programBuilder.step2.exampleProgression')}</strong>
             <div className="example-progression">
@@ -316,15 +590,11 @@ export default function ProgramBuilder() {
           </div>
         </div>
 
-        {/* Test Inputs */}
         <div className="test-section">
           <h3 className="section-title">{t('programBuilder.step2.enterResults')}</h3>
           <div className="movements-grid">
             {movements.map((movement, index) => (
-              <div
-                key={movement.id}
-                className={`movement-test-card ${movement.oneRM > 0 ? 'completed' : ''}`}
-              >
+              <div key={movement.id} className={`movement-test-card ${movement.oneRM > 0 ? 'completed' : ''}`}>
                 <div className="card-header">
                   <div className="card-number">{index + 1}</div>
                   <h3>{movement.name}</h3>
@@ -337,12 +607,11 @@ export default function ProgramBuilder() {
                     <input
                       type="number"
                       value={movement.oneRM || ''}
-                      onChange={(e) => {
+                      onChange={e => {
                         const value = e.target.value === '' ? 0 : Number(e.target.value);
-                        const eightyPercent = calculate80Percent(value);
                         updateMovement(movement.id, {
                           oneRM: value,
-                          eightyPercentRM: eightyPercent
+                          eightyPercentRM: calculate80Percent(value),
                         });
                       }}
                       placeholder={t('programBuilder.step2.placeholder')}
@@ -351,6 +620,9 @@ export default function ProgramBuilder() {
                     />
                     <span className="unit-label">lbs</span>
                   </div>
+                  {movement.fromProfile && movement.oneRM > 0 && (
+                    <p className="profile-source-note">Loaded from client profile</p>
+                  )}
                 </div>
 
                 {movement.oneRM > 0 && (
@@ -359,9 +631,7 @@ export default function ProgramBuilder() {
                       <span className="result-label">{t('programBuilder.step2.eightyPercentOf1RM')}</span>
                       <strong className="result-value">{movement.eightyPercentRM} lbs</strong>
                     </div>
-                    <p className="result-note">
-                      {t('programBuilder.step2.nextTestNote')}
-                    </p>
+                    <p className="result-note">{t('programBuilder.step2.nextTestNote')}</p>
                   </div>
                 )}
 
@@ -376,7 +646,6 @@ export default function ProgramBuilder() {
           </div>
         </div>
 
-        {/* Progress Summary */}
         {completedTests > 0 && (
           <div className="progress-summary">
             {completedTests === totalTests ? (
@@ -387,9 +656,7 @@ export default function ProgramBuilder() {
             ) : (
               <div className="info-message">
                 <span className="info-icon">ℹ️</span>
-                <span>
-                  {t('programBuilder.step2.progress', { completed: completedTests, total: totalTests })}
-                </span>
+                <span>{t('programBuilder.step2.progress', { completed: completedTests, total: totalTests })}</span>
               </div>
             )}
           </div>
@@ -411,208 +678,186 @@ export default function ProgramBuilder() {
     );
   };
 
-  const renderEightyPercentStep = () => {
-    return (
-      <div className="step-content">
-        <h2>{t('programBuilder.step3.title')}</h2>
-        <p className="step-description">
-          {t('programBuilder.step3.description')}
-        </p>
+  // ─── Step: eightyPercentTest ──────────────────────────────────────────────
 
-        <div className="movements-grid">
-          {movements.map((movement) => (
-            <div key={movement.id} className="movement-input-card">
-              <h3>{movement.name}</h3>
-              <div className="info-row">
-                <span>80% 1RM:</span>
-                <strong>{movement.eightyPercentRM} lbs</strong>
-              </div>
-              <div className="input-group">
-                <label>{t('programBuilder.step3.maxRepsPerformed')}</label>
-                <input
-                  type="number"
-                  value={movement.maxRepsAt80 || ''}
-                  onChange={async (e) => {
-                    const value = e.target.value === '' ? 0 : Number(e.target.value);
+  const renderEightyPercentStep = () => (
+    <div className="step-content">
+      <h2>{t('programBuilder.step3.title')}</h2>
+      <p className="step-description">{t('programBuilder.step3.description')}</p>
 
-                    // Calculate jump and ramp up using backend constants
-                    if (value > 0 && value <= 20) {
-                      // Use backend calculation service
-                      const jumpData = await calculateWeeklyJump(value, movement.oneRM);
-                      const rampUpData = await calculateRampUp(value, movement.oneRM);
-
-                      updateMovement(movement.id, {
-                        maxRepsAt80: value,
-                        weeklyJumpPercent: jumpData.percent,
-                        weeklyJumpLbs: jumpData.lbs,
-                        rampUpPercent: rampUpData.percent,
-                        rampUpBaseLbs: rampUpData.baseLbs
-                      });
-                    } else {
-                      updateMovement(movement.id, { maxRepsAt80: value });
-                    }
-                  }}
-                  placeholder={t('programBuilder.step3.placeholder')}
-                  min="1"
-                  max="20"
-                />
-              </div>
-              {movement.maxRepsAt80 > 0 && (
-                <div className="calculations">
-                  <div className="calc-item">
-                    <span>{t('programBuilder.step3.weeklyJump')}</span>
-                    <strong>{movement.weeklyJumpPercent}% ({movement.weeklyJumpLbs} lbs)</strong>
-                  </div>
-                  <div className="calc-item">
-                    <span>{t('programBuilder.step3.rampUpBase')}</span>
-                    <strong>{movement.rampUpPercent}% ({movement.rampUpBaseLbs} lbs)</strong>
-                  </div>
+      <div className="movements-grid">
+        {movements.map(movement => (
+          <div key={movement.id} className="movement-input-card">
+            <h3>{movement.name}</h3>
+            <div className="info-row">
+              <span>80% 1RM:</span>
+              <strong>{movement.eightyPercentRM} lbs</strong>
+            </div>
+            <div className="input-group">
+              <label>{t('programBuilder.step3.maxRepsPerformed')}</label>
+              <input
+                type="number"
+                value={movement.maxRepsAt80 || ''}
+                onChange={async e => {
+                  const value = e.target.value === '' ? 0 : Number(e.target.value);
+                  if (value > 0 && value <= 20) {
+                    const jumpData = await calculateWeeklyJump(value, movement.oneRM);
+                    const rampUpData = await calculateRampUp(value, movement.oneRM);
+                    updateMovement(movement.id, {
+                      maxRepsAt80: value,
+                      weeklyJumpPercent: jumpData.percent,
+                      weeklyJumpLbs: jumpData.lbs,
+                      rampUpPercent: rampUpData.percent,
+                      rampUpBaseLbs: rampUpData.baseLbs,
+                    });
+                  } else {
+                    updateMovement(movement.id, { maxRepsAt80: value });
+                  }
+                }}
+                placeholder={t('programBuilder.step3.placeholder')}
+                min="1"
+                max="20"
+              />
+            </div>
+            {movement.maxRepsAt80 > 0 && (
+              <div className="calculations">
+                <div className="calc-item">
+                  <span>{t('programBuilder.step3.weeklyJump')}</span>
+                  <strong>{movement.weeklyJumpPercent}% ({movement.weeklyJumpLbs} lbs)</strong>
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <div className="step-actions">
-          <button className="secondary-btn" onClick={() => setCurrentStep('oneRM')}>
-            {t('programBuilder.step3.backButton')}
-          </button>
-          <button
-            className="primary-btn"
-            onClick={() => setCurrentStep('fiveRMTest')}
-            disabled={movements.some(m => m.maxRepsAt80 === 0)}
-          >
-            {t('programBuilder.step3.nextButton')}
-          </button>
-        </div>
+                <div className="calc-item">
+                  <span>{t('programBuilder.step3.rampUpBase')}</span>
+                  <strong>{movement.rampUpPercent}% ({movement.rampUpBaseLbs} lbs)</strong>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
-    );
-  };
 
-  const renderFiveRMTest = () => {
-    return (
-      <div className="step-content">
-        <h2>{t('programBuilder.step4.title')}</h2>
-        <p className="step-description">
-          {t('programBuilder.step4.description')}
-        </p>
+      <div className="step-actions">
+        <button className="secondary-btn" onClick={() => setCurrentStep('oneRM')}>
+          {t('programBuilder.step3.backButton')}
+        </button>
+        <button
+          className="primary-btn"
+          onClick={() => setCurrentStep('fiveRMTest')}
+          disabled={movements.some(m => m.maxRepsAt80 === 0)}
+        >
+          {t('programBuilder.step3.nextButton')}
+        </button>
+      </div>
+    </div>
+  );
 
-        <div className="movements-selection">
-          {movements.map((movement) => (
-            <button
-              key={movement.id}
-              className={`movement-select-btn ${selectedMovement?.id === movement.id ? 'selected' : ''}`}
-              onClick={() => setSelectedMovement(movement)}
-            >
-              {movement.name}
-            </button>
-          ))}
-        </div>
+  // ─── Step: fiveRMTest ─────────────────────────────────────────────────────
 
-        {selectedMovement && (
-          <div className="test-protocol">
-            <h3>{t('programBuilder.step4.testProtocol')} - {selectedMovement.name}</h3>
+  const renderFiveRMTest = () => (
+    <div className="step-content">
+      <h2>{t('programBuilder.step4.title')}</h2>
+      <p className="step-description">{t('programBuilder.step4.description')}</p>
 
-            <div className="test-info">
-              <div className="info-card">
-                <label>{t('programBuilder.step4.baseWeight')}</label>
-                <strong>{selectedMovement.rampUpBaseLbs} lbs</strong>
-              </div>
-              <div className="info-card">
-                <label>{t('programBuilder.step4.incrementPerSet')}</label>
-                <strong>{selectedMovement.weeklyJumpLbs} lbs</strong>
-              </div>
+      <div className="movements-selection">
+        {movements.map(movement => (
+          <button
+            key={movement.id}
+            className={`movement-select-btn ${selectedMovement?.id === movement.id ? 'selected' : ''}`}
+            onClick={() => setSelectedMovement(movement)}
+          >
+            {movement.name}
+          </button>
+        ))}
+      </div>
+
+      {selectedMovement && (
+        <div className="test-protocol">
+          <h3>{t('programBuilder.step4.testProtocol')} - {selectedMovement.name}</h3>
+          <div className="test-info">
+            <div className="info-card">
+              <label>{t('programBuilder.step4.baseWeight')}</label>
+              <strong>{selectedMovement.rampUpBaseLbs} lbs</strong>
             </div>
-
-            <div className="test-instructions">
-              <h4>{t('programBuilder.step4.instructions')}</h4>
-              <ol>
-                <li>{t('programBuilder.step4.instruction1', { weight: selectedMovement.rampUpBaseLbs })}</li>
-                <li>{t('programBuilder.step4.instruction2')}</li>
-                <li>{t('programBuilder.step4.instruction3', { weight: selectedMovement.weeklyJumpLbs })}</li>
-                <li>{t('programBuilder.step4.instruction4')}</li>
-                <li>{t('programBuilder.step4.instruction5')}</li>
-              </ol>
-              <p className="note">
-                <strong>{t('programBuilder.step4.note')}</strong> {t('programBuilder.step4.noteText')}
-              </p>
-            </div>
-
-            <div className="test-progression">
-              <h4>{t('programBuilder.step4.suggestedProgression')}</h4>
-              <div className="progression-list">
-                {Array.from({ length: 8 }, (_, i) => {
-                  const weight = selectedMovement.rampUpBaseLbs + (i * selectedMovement.weeklyJumpLbs);
-                  return (
-                    <div key={i} className="progression-item">
-                      <span className="set-number">{t('programBuilder.step4.set')} {i + 1}</span>
-                      <span className="weight">{weight} lbs x 5</span>
-                      {i < 7 && <span className="rest">{t('programBuilder.step4.rest')}</span>}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="target-input">
-              <label>{t('programBuilder.step4.targetAchieved')}</label>
-              <div className="target-input-group">
-                <input
-                  type="number"
-                  value={movements.find(m => m.id === selectedMovement.id)?.targetWeight || ''}
-                  onChange={(e) => {
-                    const value = e.target.value === '' ? 0 : Number(e.target.value);
-                    updateMovement(selectedMovement.id, { targetWeight: value });
-                    // Update selectedMovement to keep it in sync
-                    setSelectedMovement({ ...selectedMovement, targetWeight: value });
-                  }}
-                  placeholder={t('programBuilder.step4.placeholder')}
-                  min="0"
-                  step="5"
-                />
-                <span>lbs</span>
-              </div>
+            <div className="info-card">
+              <label>{t('programBuilder.step4.incrementPerSet')}</label>
+              <strong>{selectedMovement.weeklyJumpLbs} lbs</strong>
             </div>
           </div>
-        )}
-
-        <div className="step-actions">
-          <button className="secondary-btn" onClick={() => setCurrentStep('eightyPercentTest')}>
-            {t('programBuilder.step4.backButton')}
-          </button>
-          <button
-            className="primary-btn"
-            onClick={() => setCurrentStep('program')}
-            disabled={movements.some(m => m.targetWeight === 0)}
-          >
-            {t('programBuilder.step4.nextButton')}
-          </button>
+          <div className="test-instructions">
+            <h4>{t('programBuilder.step4.instructions')}</h4>
+            <ol>
+              <li>{t('programBuilder.step4.instruction1', { weight: selectedMovement.rampUpBaseLbs })}</li>
+              <li>{t('programBuilder.step4.instruction2')}</li>
+              <li>{t('programBuilder.step4.instruction3', { weight: selectedMovement.weeklyJumpLbs })}</li>
+              <li>{t('programBuilder.step4.instruction4')}</li>
+              <li>{t('programBuilder.step4.instruction5')}</li>
+            </ol>
+            <p className="note">
+              <strong>{t('programBuilder.step4.note')}</strong> {t('programBuilder.step4.noteText')}
+            </p>
+          </div>
+          <div className="test-progression">
+            <h4>{t('programBuilder.step4.suggestedProgression')}</h4>
+            <div className="progression-list">
+              {Array.from({ length: 8 }, (_, i) => {
+                const weight = selectedMovement.rampUpBaseLbs + (i * selectedMovement.weeklyJumpLbs);
+                return (
+                  <div key={i} className="progression-item">
+                    <span className="set-number">{t('programBuilder.step4.set')} {i + 1}</span>
+                    <span className="weight">{weight} lbs x 5</span>
+                    {i < 7 && <span className="rest">{t('programBuilder.step4.rest')}</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="target-input">
+            <label>{t('programBuilder.step4.targetAchieved')}</label>
+            <div className="target-input-group">
+              <input
+                type="number"
+                value={movements.find(m => m.id === selectedMovement.id)?.targetWeight || ''}
+                onChange={e => {
+                  const value = e.target.value === '' ? 0 : Number(e.target.value);
+                  updateMovement(selectedMovement.id, { targetWeight: value });
+                  setSelectedMovement({ ...selectedMovement, targetWeight: value });
+                }}
+                placeholder={t('programBuilder.step4.placeholder')}
+                min="0"
+                step="5"
+              />
+              <span>lbs</span>
+            </div>
+          </div>
         </div>
+      )}
+
+      <div className="step-actions">
+        <button className="secondary-btn" onClick={() => setCurrentStep('eightyPercentTest')}>
+          {t('programBuilder.step4.backButton')}
+        </button>
+        <button
+          className="primary-btn"
+          onClick={() => setCurrentStep('program')}
+          disabled={movements.some(m => m.targetWeight === 0)}
+        >
+          {t('programBuilder.step4.nextButton')}
+        </button>
       </div>
-    );
-  };
+    </div>
+  );
+
+  // ─── Week tabs ────────────────────────────────────────────────────────────
 
   const renderWeekTabs = () => {
-    const handleWeekClick = (week: number) => {
-      setLastSingleWeek(week);
-      setSelectedWeek(week);
-    };
-
+    const handleWeekClick = (week: number) => { setLastSingleWeek(week); setSelectedWeek(week); };
     const handleViewAllToggle = () => {
-      if (selectedWeek === 'all') {
-        // Go back to the last single week viewed
-        setSelectedWeek(lastSingleWeek);
-      } else {
-        // Save current week and switch to all
-        setLastSingleWeek(selectedWeek as number);
-        setSelectedWeek('all');
-      }
+      if (selectedWeek === 'all') { setSelectedWeek(lastSingleWeek); }
+      else { setLastSingleWeek(selectedWeek as number); setSelectedWeek('all'); }
     };
-
     return (
       <div className="week-tabs-container">
         <div className="week-tabs">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((week) => (
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(week => (
             <button
               key={week}
               className={`week-tab ${selectedWeek === week ? 'active' : ''}`}
@@ -625,31 +870,28 @@ export default function ProgramBuilder() {
             className={`week-tab view-all ${selectedWeek === 'all' ? 'active' : ''}`}
             onClick={handleViewAllToggle}
           >
-            {selectedWeek === 'all'
-              ? `← ${t('programBuilder.step5.week')} ${lastSingleWeek}`
-              : 'View All'}
+            {selectedWeek === 'all' ? `← ${t('programBuilder.step5.week')} ${lastSingleWeek}` : 'View All'}
           </button>
         </div>
       </div>
     );
   };
 
+  // ─── Step: program ────────────────────────────────────────────────────────
+
   const renderProgramStep = () => {
-    // Helper to calculate light day weight (80% of heavy day)
     const getLightWeight = (heavyWeight: number) => Math.round(heavyWeight * 0.8);
 
     return (
       <div className="step-content">
         <h2>{t('programBuilder.step5.title')}</h2>
-        <p className="step-description">
-          {t('programBuilder.step5.description')}
-        </p>
+        <p className="step-description">{t('programBuilder.step5.description')}</p>
 
         {renderWeekTabs()}
 
         <div className="program-info-box">
           <h3>Session Structure</h3>
-          <p>Each exercise is performed 4 times per week, alternating between <strong>HEAVY</strong> (uppercase) and <strong>LIGHT</strong> (lowercase) days</p>
+          <p>Each exercise is performed 4 times per week, alternating between <strong>HEAVY</strong> and <strong>LIGHT</strong> days</p>
           <ul>
             <li><strong>Session 1:</strong> All exercises HEAVY</li>
             <li><strong>Session 2:</strong> All exercises light (80% of heavy weight)</li>
@@ -659,31 +901,90 @@ export default function ProgramBuilder() {
           <p className="note">Pattern for each exercise: HEAVY - light - HEAVY - light</p>
         </div>
 
-        {/* Movement Summaries */}
+        {/* Movement summaries with inline editing */}
         <div className="movements-summary">
           <h3>{t('programBuilder.step5.programSummary')}</h3>
-          {movements.map((movement) => (
+          {movements.map(movement => (
             <div key={movement.id} className="program-card">
-              <h4>{movement.name}</h4>
-              <div className="summary-grid">
-                <div className="summary-detail-item">
-                  <span className="summary-label">{t('programBuilder.step5.oneRM')}</span>
-                  <span className="summary-value">{movement.oneRM} lbs</span>
-                </div>
-                <div className="summary-detail-item">
-                  <span className="summary-label">{t('programBuilder.step5.weeklyJump')}</span>
-                  <span className="summary-value">{movement.weeklyJumpLbs} lbs</span>
-                </div>
-                <div className="summary-detail-item highlight">
-                  <span className="summary-label">{t('programBuilder.step5.target5x5')}</span>
-                  <span className="summary-value">{movement.targetWeight} lbs</span>
-                </div>
+              <div className="program-card-header">
+                <h4>{movement.name}</h4>
+                {editingMovement !== movement.id && (
+                  <button
+                    className="edit-program-btn"
+                    title="Adjust target weight and weekly jump"
+                    onClick={() => {
+                      setEditingMovement(movement.id);
+                      setEditTarget(String(movement.targetWeight));
+                      setEditJump(String(movement.weeklyJumpLbs));
+                    }}
+                  >
+                    ✏️ Edit
+                  </button>
+                )}
               </div>
+
+              {editingMovement === movement.id ? (
+                <div className="movement-edit-form">
+                  <div className="edit-field">
+                    <label>5×5 Target Weight (lbs)</label>
+                    <input
+                      type="number"
+                      value={editTarget}
+                      onChange={e => setEditTarget(e.target.value)}
+                      step="5"
+                      min="0"
+                      autoFocus
+                    />
+                  </div>
+                  <div className="edit-field">
+                    <label>Weekly Jump (lbs)</label>
+                    <input
+                      type="number"
+                      value={editJump}
+                      onChange={e => setEditJump(e.target.value)}
+                      step="5"
+                      min="0"
+                    />
+                  </div>
+                  <div className="edit-actions">
+                    <button
+                      className="edit-confirm-btn"
+                      onClick={() => {
+                        updateMovement(movement.id, {
+                          targetWeight: Number(editTarget) || movement.targetWeight,
+                          weeklyJumpLbs: Number(editJump) || movement.weeklyJumpLbs,
+                        });
+                        setEditingMovement(null);
+                      }}
+                    >
+                      Apply
+                    </button>
+                    <button className="edit-cancel-btn" onClick={() => setEditingMovement(null)}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="summary-grid">
+                  <div className="summary-detail-item">
+                    <span className="summary-label">{t('programBuilder.step5.oneRM')}</span>
+                    <span className="summary-value">{movement.oneRM} lbs</span>
+                  </div>
+                  <div className="summary-detail-item">
+                    <span className="summary-label">{t('programBuilder.step5.weeklyJump')}</span>
+                    <span className="summary-value">{movement.weeklyJumpLbs} lbs</span>
+                  </div>
+                  <div className="summary-detail-item highlight">
+                    <span className="summary-label">{t('programBuilder.step5.target5x5')}</span>
+                    <span className="summary-value">{movement.targetWeight} lbs</span>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
 
-        {/* Quick Reference Table */}
+        {/* 8-week reference table */}
         <div className="quick-reference">
           <h3>8-Week Progression Overview</h3>
           <div className="reference-table-container">
@@ -691,37 +992,26 @@ export default function ProgramBuilder() {
               <thead>
                 <tr>
                   <th>Movement</th>
-                  <th>{t('programBuilder.step5.week')} 1</th>
-                  <th>{t('programBuilder.step5.week')} 2</th>
-                  <th>{t('programBuilder.step5.week')} 3</th>
-                  <th>{t('programBuilder.step5.week')} 4</th>
-                  <th>{t('programBuilder.step5.week')} 5</th>
-                  <th>{t('programBuilder.step5.week')} 6</th>
-                  <th>{t('programBuilder.step5.week')} 7</th>
-                  <th>{t('programBuilder.step5.week')} 8</th>
+                  {[1,2,3,4,5,6,7,8].map(w => <th key={w}>{t('programBuilder.step5.week')} {w}</th>)}
                 </tr>
               </thead>
               <tbody>
-                {movements.map((movement) => {
+                {movements.map(movement => {
                   const weights = [
-                    movement.targetWeight - (4 * movement.weeklyJumpLbs), // Week 1
-                    movement.targetWeight - (3 * movement.weeklyJumpLbs), // Week 2
-                    movement.targetWeight - (2 * movement.weeklyJumpLbs), // Week 3
-                    movement.targetWeight - movement.weeklyJumpLbs,       // Week 4
-                    movement.targetWeight,                                 // Week 5
-                    movement.targetWeight + movement.weeklyJumpLbs,       // Week 6
-                    movement.targetWeight + (2 * movement.weeklyJumpLbs), // Week 7
+                    movement.targetWeight - (4 * movement.weeklyJumpLbs),
+                    movement.targetWeight - (3 * movement.weeklyJumpLbs),
+                    movement.targetWeight - (2 * movement.weeklyJumpLbs),
+                    movement.targetWeight - movement.weeklyJumpLbs,
+                    movement.targetWeight,
+                    movement.targetWeight + movement.weeklyJumpLbs,
+                    movement.targetWeight + (2 * movement.weeklyJumpLbs),
                   ];
                   return (
                     <tr key={movement.id}>
                       <td className="movement-name-cell">{movement.name}</td>
-                      <td className="weight-cell">{weights[0]} lbs</td>
-                      <td className="weight-cell">{weights[1]} lbs</td>
-                      <td className="weight-cell">{weights[2]} lbs</td>
-                      <td className="weight-cell">{weights[3]} lbs</td>
-                      <td className="weight-cell highlight-cell">{weights[4]} lbs</td>
-                      <td className="weight-cell">{weights[5]} lbs</td>
-                      <td className="weight-cell">{weights[6]} lbs</td>
+                      {weights.map((w, i) => (
+                        <td key={i} className={`weight-cell ${i === 4 ? 'highlight-cell' : ''}`}>{w} lbs</td>
+                      ))}
                       <td className="test-cell">{t('programBuilder.step5.test1RM')}</td>
                     </tr>
                   );
@@ -730,332 +1020,149 @@ export default function ProgramBuilder() {
             </table>
           </div>
           <p className="reference-note">
-            <strong>Note:</strong> Weeks 1-5 use 5x5 protocol, Week 6 uses 3x3, Week 7 uses 2x2, Week 8 is testing week
+            <strong>Note:</strong> Weeks 1–5 use 5×5, Week 6 uses 3×3, Week 7 uses 2×2, Week 8 is testing week
           </p>
         </div>
 
-        {/* Weekly Program by Sessions */}
+        {/* Weekly schedule */}
         <div className="sessions-program">
           <h3>Weekly Training Schedule</h3>
 
-          {/* Weeks 1-5 with 5x5 */}
-          {[1, 2, 3, 4, 5].filter(week => selectedWeek === 'all' || selectedWeek === week).map((week) => (
+          {[1, 2, 3, 4, 5].filter(week => selectedWeek === 'all' || selectedWeek === week).map(week => (
             <div key={week} className="week-block">
               <h4>{t('programBuilder.step5.week')} {week}</h4>
               <div className="sessions-grid">
-                {/* Session 1 - All Heavy */}
-                <div className="session-card">
-                  <div className="session-header">
-                    <span className="session-title">Session 1 - Heavy Day</span>
-                    <span className="session-day">Monday</span>
+                {[
+                  { label: 'Session 1 - Heavy Day', day: 'Monday', isHeavy: true },
+                  { label: 'Session 2 - Light Day', day: 'Wednesday', isHeavy: false },
+                  { label: 'Session 3 - Heavy Day', day: 'Friday', isHeavy: true },
+                  { label: 'Session 4 - Light Day', day: 'Saturday', isHeavy: false },
+                ].map(session => (
+                  <div key={session.label} className="session-card">
+                    <div className="session-header">
+                      <span className="session-title">{session.label}</span>
+                      <span className="session-day">{session.day}</span>
+                    </div>
+                    <div className="session-exercises">
+                      {movements.map(movement => {
+                        const heavyWeight = movement.targetWeight - ((5 - week) * movement.weeklyJumpLbs);
+                        const displayWeight = session.isHeavy ? heavyWeight : getLightWeight(heavyWeight);
+                        const percentage = Math.round((displayWeight / movement.oneRM) * 100);
+                        return (
+                          <div key={movement.id} className={`exercise ${session.isHeavy ? 'heavy-exercise' : 'light-exercise'}`}>
+                            <span className="exercise-name">{session.isHeavy ? movement.name.toUpperCase() : movement.name.toLowerCase()}</span>
+                            <span className="exercise-protocol">5x5</span>
+                            <span className="exercise-weight">{displayWeight} lbs <span className="percentage">({percentage}%)</span></span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="session-exercises">
-                    {movements.map((movement) => {
-                      const heavyWeight = movement.targetWeight - ((5 - week) * movement.weeklyJumpLbs);
-                      const percentage = Math.round((heavyWeight / movement.oneRM) * 100);
-                      return (
-                        <div key={movement.id} className="exercise heavy-exercise">
-                          <span className="exercise-name">{movement.name.toUpperCase()}</span>
-                          <span className="exercise-protocol">5x5</span>
-                          <span className="exercise-weight">{heavyWeight} lbs <span className="percentage">({percentage}%)</span></span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Session 2 - All Light */}
-                <div className="session-card">
-                  <div className="session-header">
-                    <span className="session-title">Session 2 - Light Day</span>
-                    <span className="session-day">Wednesday</span>
-                  </div>
-                  <div className="session-exercises">
-                    {movements.map((movement) => {
-                      const heavyWeight = movement.targetWeight - ((5 - week) * movement.weeklyJumpLbs);
-                      const lightWeight = getLightWeight(heavyWeight);
-                      const percentage = Math.round((lightWeight / movement.oneRM) * 100);
-                      return (
-                        <div key={movement.id} className="exercise light-exercise">
-                          <span className="exercise-name">{movement.name.toLowerCase()}</span>
-                          <span className="exercise-protocol">5x5</span>
-                          <span className="exercise-weight">{lightWeight} lbs <span className="percentage">({percentage}%)</span></span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Session 3 - All Heavy */}
-                <div className="session-card">
-                  <div className="session-header">
-                    <span className="session-title">Session 3 - Heavy Day</span>
-                    <span className="session-day">Friday</span>
-                  </div>
-                  <div className="session-exercises">
-                    {movements.map((movement) => {
-                      const heavyWeight = movement.targetWeight - ((5 - week) * movement.weeklyJumpLbs);
-                      const percentage = Math.round((heavyWeight / movement.oneRM) * 100);
-                      return (
-                        <div key={movement.id} className="exercise heavy-exercise">
-                          <span className="exercise-name">{movement.name.toUpperCase()}</span>
-                          <span className="exercise-protocol">5x5</span>
-                          <span className="exercise-weight">{heavyWeight} lbs <span className="percentage">({percentage}%)</span></span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Session 4 - All Light */}
-                <div className="session-card">
-                  <div className="session-header">
-                    <span className="session-title">Session 4 - Light Day</span>
-                    <span className="session-day">Saturday</span>
-                  </div>
-                  <div className="session-exercises">
-                    {movements.map((movement) => {
-                      const heavyWeight = movement.targetWeight - ((5 - week) * movement.weeklyJumpLbs);
-                      const lightWeight = getLightWeight(heavyWeight);
-                      const percentage = Math.round((lightWeight / movement.oneRM) * 100);
-                      return (
-                        <div key={movement.id} className="exercise light-exercise">
-                          <span className="exercise-name">{movement.name.toLowerCase()}</span>
-                          <span className="exercise-protocol">5x5</span>
-                          <span className="exercise-weight">{lightWeight} lbs <span className="percentage">({percentage}%)</span></span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           ))}
 
-          {/* Week 6 - 3x3 */}
           {(selectedWeek === 'all' || selectedWeek === 6) && (
-          <div className="week-block">
-            <h4>{t('programBuilder.step5.week')} 6</h4>
-            <div className="sessions-grid">
-              {/* Session 1 - All Heavy */}
-              <div className="session-card">
-                <div className="session-header">
-                  <span className="session-title">Session 1 - Heavy Day</span>
-                  <span className="session-day">Monday</span>
-                </div>
-                <div className="session-exercises">
-                  {movements.map((movement) => {
-                    const heavyWeight = movement.targetWeight + movement.weeklyJumpLbs;
-                    const percentage = Math.round((heavyWeight / movement.oneRM) * 100);
-                    return (
-                      <div key={movement.id} className="exercise heavy-exercise">
-                        <span className="exercise-name">{movement.name.toUpperCase()}</span>
-                        <span className="exercise-protocol">3x3</span>
-                        <span className="exercise-weight">{heavyWeight} lbs <span className="percentage">({percentage}%)</span></span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Session 2 - All Light */}
-              <div className="session-card">
-                <div className="session-header">
-                  <span className="session-title">Session 2 - Light Day</span>
-                  <span className="session-day">Wednesday</span>
-                </div>
-                <div className="session-exercises">
-                  {movements.map((movement) => {
-                    const heavyWeight = movement.targetWeight + movement.weeklyJumpLbs;
-                    const lightWeight = getLightWeight(heavyWeight);
-                    const percentage = Math.round((lightWeight / movement.oneRM) * 100);
-                    return (
-                      <div key={movement.id} className="exercise light-exercise">
-                        <span className="exercise-name">{movement.name.toLowerCase()}</span>
-                        <span className="exercise-protocol">3x3</span>
-                        <span className="exercise-weight">{lightWeight} lbs <span className="percentage">({percentage}%)</span></span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Session 3 - All Heavy */}
-              <div className="session-card">
-                <div className="session-header">
-                  <span className="session-title">Session 3 - Heavy Day</span>
-                  <span className="session-day">Friday</span>
-                </div>
-                <div className="session-exercises">
-                  {movements.map((movement) => {
-                    const heavyWeight = movement.targetWeight + movement.weeklyJumpLbs;
-                    const percentage = Math.round((heavyWeight / movement.oneRM) * 100);
-                    return (
-                      <div key={movement.id} className="exercise heavy-exercise">
-                        <span className="exercise-name">{movement.name.toUpperCase()}</span>
-                        <span className="exercise-protocol">3x3</span>
-                        <span className="exercise-weight">{heavyWeight} lbs <span className="percentage">({percentage}%)</span></span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Session 4 - All Light */}
-              <div className="session-card">
-                <div className="session-header">
-                  <span className="session-title">Session 4 - Light Day</span>
-                  <span className="session-day">Saturday</span>
-                </div>
-                <div className="session-exercises">
-                  {movements.map((movement) => {
-                    const heavyWeight = movement.targetWeight + movement.weeklyJumpLbs;
-                    const lightWeight = getLightWeight(heavyWeight);
-                    const percentage = Math.round((lightWeight / movement.oneRM) * 100);
-                    return (
-                      <div key={movement.id} className="exercise light-exercise">
-                        <span className="exercise-name">{movement.name.toLowerCase()}</span>
-                        <span className="exercise-protocol">3x3</span>
-                        <span className="exercise-weight">{lightWeight} lbs <span className="percentage">({percentage}%)</span></span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-          )}
-
-          {/* Week 7 - 2x2 */}
-          {(selectedWeek === 'all' || selectedWeek === 7) && (
-          <div className="week-block">
-            <h4>{t('programBuilder.step5.week')} 7</h4>
-            <div className="sessions-grid">
-              {/* Session 1 - All Heavy */}
-              <div className="session-card">
-                <div className="session-header">
-                  <span className="session-title">Session 1 - Heavy Day</span>
-                  <span className="session-day">Monday</span>
-                </div>
-                <div className="session-exercises">
-                  {movements.map((movement) => {
-                    const heavyWeight = movement.targetWeight + (movement.weeklyJumpLbs * 2);
-                    const percentage = Math.round((heavyWeight / movement.oneRM) * 100);
-                    return (
-                      <div key={movement.id} className="exercise heavy-exercise">
-                        <span className="exercise-name">{movement.name.toUpperCase()}</span>
-                        <span className="exercise-protocol">2x2</span>
-                        <span className="exercise-weight">{heavyWeight} lbs <span className="percentage">({percentage}%)</span></span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Session 2 - All Light */}
-              <div className="session-card">
-                <div className="session-header">
-                  <span className="session-title">Session 2 - Light Day</span>
-                  <span className="session-day">Wednesday</span>
-                </div>
-                <div className="session-exercises">
-                  {movements.map((movement) => {
-                    const heavyWeight = movement.targetWeight + (movement.weeklyJumpLbs * 2);
-                    const lightWeight = getLightWeight(heavyWeight);
-                    const percentage = Math.round((lightWeight / movement.oneRM) * 100);
-                    return (
-                      <div key={movement.id} className="exercise light-exercise">
-                        <span className="exercise-name">{movement.name.toLowerCase()}</span>
-                        <span className="exercise-protocol">2x2</span>
-                        <span className="exercise-weight">{lightWeight} lbs <span className="percentage">({percentage}%)</span></span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Session 3 - All Heavy */}
-              <div className="session-card">
-                <div className="session-header">
-                  <span className="session-title">Session 3 - Heavy Day</span>
-                  <span className="session-day">Friday</span>
-                </div>
-                <div className="session-exercises">
-                  {movements.map((movement) => {
-                    const heavyWeight = movement.targetWeight + (movement.weeklyJumpLbs * 2);
-                    const percentage = Math.round((heavyWeight / movement.oneRM) * 100);
-                    return (
-                      <div key={movement.id} className="exercise heavy-exercise">
-                        <span className="exercise-name">{movement.name.toUpperCase()}</span>
-                        <span className="exercise-protocol">2x2</span>
-                        <span className="exercise-weight">{heavyWeight} lbs <span className="percentage">({percentage}%)</span></span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Session 4 - All Light */}
-              <div className="session-card">
-                <div className="session-header">
-                  <span className="session-title">Session 4 - Light Day</span>
-                  <span className="session-day">Saturday</span>
-                </div>
-                <div className="session-exercises">
-                  {movements.map((movement) => {
-                    const heavyWeight = movement.targetWeight + (movement.weeklyJumpLbs * 2);
-                    const lightWeight = getLightWeight(heavyWeight);
-                    const percentage = Math.round((lightWeight / movement.oneRM) * 100);
-                    return (
-                      <div key={movement.id} className="exercise light-exercise">
-                        <span className="exercise-name">{movement.name.toLowerCase()}</span>
-                        <span className="exercise-protocol">2x2</span>
-                        <span className="exercise-weight">{lightWeight} lbs <span className="percentage">({percentage}%)</span></span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-          )}
-
-          {/* Week 8 - Test Week */}
-          {(selectedWeek === 'all' || selectedWeek === 8) && (
-          <div className="week-block test-week">
-            <h4>{t('programBuilder.step5.week')} 8 - {t('programBuilder.step5.testWeek')}</h4>
-
-            <div className="test-week-content">
-              <div className="test-day-card">
-                <div className="test-day-header">
-                  <span className="test-icon">🎯</span>
-                  <h5>1RM Test Day</h5>
-                </div>
-                <div className="test-movements">
-                  {movements.map((movement) => (
-                    <div key={movement.id} className="test-movement-item">
-                      <span className="test-movement-name">{movement.name.toUpperCase()}</span>
-                      <span className="test-movement-action">Test New 1RM</span>
-                      <span className="test-movement-previous">Previous: {movement.oneRM} lbs</span>
+            <div className="week-block">
+              <h4>{t('programBuilder.step5.week')} 6</h4>
+              <div className="sessions-grid">
+                {[
+                  { label: 'Session 1 - Heavy Day', day: 'Monday', isHeavy: true },
+                  { label: 'Session 2 - Light Day', day: 'Wednesday', isHeavy: false },
+                  { label: 'Session 3 - Heavy Day', day: 'Friday', isHeavy: true },
+                  { label: 'Session 4 - Light Day', day: 'Saturday', isHeavy: false },
+                ].map(session => (
+                  <div key={session.label} className="session-card">
+                    <div className="session-header">
+                      <span className="session-title">{session.label}</span>
+                      <span className="session-day">{session.day}</span>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="test-week-instructions">
-                <h5>Testing Week Protocol</h5>
-                <ul>
-                  <li><strong>Rest 2-3 days</strong> before your test day to ensure full recovery</li>
-                  <li><strong>Test 1RM</strong> for all movements using proper warm-up protocol</li>
-                  <li><strong>Rest for the remainder</strong> of the week after testing</li>
-                  <li>Record your new 1RM values to track progress</li>
-                </ul>
-                <p className="test-week-note">
-                  <strong>Note:</strong> This is a deload and testing week. Focus on recovery and establishing new personal records safely.
-                </p>
+                    <div className="session-exercises">
+                      {movements.map(movement => {
+                        const heavyWeight = movement.targetWeight + movement.weeklyJumpLbs;
+                        const displayWeight = session.isHeavy ? heavyWeight : getLightWeight(heavyWeight);
+                        const percentage = Math.round((displayWeight / movement.oneRM) * 100);
+                        return (
+                          <div key={movement.id} className={`exercise ${session.isHeavy ? 'heavy-exercise' : 'light-exercise'}`}>
+                            <span className="exercise-name">{session.isHeavy ? movement.name.toUpperCase() : movement.name.toLowerCase()}</span>
+                            <span className="exercise-protocol">3x3</span>
+                            <span className="exercise-weight">{displayWeight} lbs <span className="percentage">({percentage}%)</span></span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
+          )}
+
+          {(selectedWeek === 'all' || selectedWeek === 7) && (
+            <div className="week-block">
+              <h4>{t('programBuilder.step5.week')} 7</h4>
+              <div className="sessions-grid">
+                {[
+                  { label: 'Session 1 - Heavy Day', day: 'Monday', isHeavy: true },
+                  { label: 'Session 2 - Light Day', day: 'Wednesday', isHeavy: false },
+                  { label: 'Session 3 - Heavy Day', day: 'Friday', isHeavy: true },
+                  { label: 'Session 4 - Light Day', day: 'Saturday', isHeavy: false },
+                ].map(session => (
+                  <div key={session.label} className="session-card">
+                    <div className="session-header">
+                      <span className="session-title">{session.label}</span>
+                      <span className="session-day">{session.day}</span>
+                    </div>
+                    <div className="session-exercises">
+                      {movements.map(movement => {
+                        const heavyWeight = movement.targetWeight + (movement.weeklyJumpLbs * 2);
+                        const displayWeight = session.isHeavy ? heavyWeight : getLightWeight(heavyWeight);
+                        const percentage = Math.round((displayWeight / movement.oneRM) * 100);
+                        return (
+                          <div key={movement.id} className={`exercise ${session.isHeavy ? 'heavy-exercise' : 'light-exercise'}`}>
+                            <span className="exercise-name">{session.isHeavy ? movement.name.toUpperCase() : movement.name.toLowerCase()}</span>
+                            <span className="exercise-protocol">2x2</span>
+                            <span className="exercise-weight">{displayWeight} lbs <span className="percentage">({percentage}%)</span></span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {(selectedWeek === 'all' || selectedWeek === 8) && (
+            <div className="week-block test-week">
+              <h4>{t('programBuilder.step5.week')} 8 - {t('programBuilder.step5.testWeek')}</h4>
+              <div className="test-week-content">
+                <div className="test-day-card">
+                  <div className="test-day-header">
+                    <span className="test-icon">🎯</span>
+                    <h5>1RM Test Day</h5>
+                  </div>
+                  <div className="test-movements">
+                    {movements.map(movement => (
+                      <div key={movement.id} className="test-movement-item">
+                        <span className="test-movement-name">{movement.name.toUpperCase()}</span>
+                        <span className="test-movement-action">Test New 1RM</span>
+                        <span className="test-movement-previous">Previous: {movement.oneRM} lbs</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="test-week-instructions">
+                  <h5>Testing Week Protocol</h5>
+                  <ul>
+                    <li><strong>Rest 2–3 days</strong> before your test day to ensure full recovery</li>
+                    <li><strong>Test 1RM</strong> for all movements using proper warm-up protocol</li>
+                    <li><strong>Rest for the remainder</strong> of the week after testing</li>
+                    <li>Record your new 1RM values to track progress</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
@@ -1063,11 +1170,7 @@ export default function ProgramBuilder() {
           <button className="secondary-btn" onClick={() => setCurrentStep('fiveRMTest')}>
             {t('programBuilder.step5.backButton')}
           </button>
-          <button
-            className="primary-btn"
-            onClick={handleSaveProgram}
-            disabled={isSaving}
-          >
+          <button className="primary-btn" onClick={handleSaveProgram} disabled={isSaving}>
             {isSaving ? t('programBuilder.step5.saving') : t('programBuilder.step5.saveButton')}
           </button>
         </div>
@@ -1075,22 +1178,56 @@ export default function ProgramBuilder() {
     );
   };
 
+  // ─── Step indicator ───────────────────────────────────────────────────────
+
+  const renderStepIndicator = () => {
+    const steps = [
+      { key: 'templateSelect', label: 'Template' },
+      { key: 'movements', label: t('programBuilder.steps.movements') },
+      { key: 'oneRM', label: t('programBuilder.steps.oneRM') },
+      { key: 'eightyPercentTest', label: t('programBuilder.steps.eightyPercent') },
+      { key: 'fiveRMTest', label: t('programBuilder.steps.fiveRM') },
+      { key: 'program', label: t('programBuilder.steps.program') },
+    ];
+
+    // Determine step order for progress highlight
+    const stepOrder: Step[] = ['clientContext', 'templateSelect', 'movements', 'oneRM', 'eightyPercentTest', 'fiveRMTest', 'program'];
+    const currentIdx = stepOrder.indexOf(currentStep);
+
+    return (
+      <div className="step-indicator">
+        {steps.map((step, index) => {
+          const stepIdx = stepOrder.indexOf(step.key as Step);
+          const isActive = currentStep === step.key;
+          const isCompleted = stepIdx < currentIdx;
+          return (
+            <div key={step.key} className={`step ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}>
+              <div className="step-number">{isCompleted ? '✓' : index + 1}</div>
+              <div className="step-label">{step.label}</div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // ─── Router ───────────────────────────────────────────────────────────────
+
   const renderCurrentStep = () => {
     switch (currentStep) {
-      case 'movements':
-        return renderMovementsStep();
-      case 'oneRM':
-        return renderOneRMStep();
-      case 'eightyPercentTest':
-        return renderEightyPercentStep();
-      case 'fiveRMTest':
-        return renderFiveRMTest();
-      case 'program':
-        return renderProgramStep();
-      default:
-        return renderMovementsStep();
+      case 'selectClient':    return renderSelectClientStep();
+      case 'clientContext':    return renderClientContextStep();
+      case 'templateSelect':  return renderTemplateSelectStep();
+      case 'movements':       return renderMovementsStep();
+      case 'oneRM':           return renderOneRMStep();
+      case 'eightyPercentTest': return renderEightyPercentStep();
+      case 'fiveRMTest':      return renderFiveRMTest();
+      case 'program':         return renderProgramStep();
+      default:                return renderTemplateSelectStep();
     }
   };
+
+  // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
     <div className="program-builder">
@@ -1101,24 +1238,25 @@ export default function ProgramBuilder() {
           <div className="client-indicator">
             <span className="client-label">Building for:</span>
             <span className="client-name">{clientName}</span>
-            <button
-              className="btn-link"
-              onClick={() => navigate(`/clients/${clientId}`)}
-              style={{ marginLeft: '1rem' }}
-            >
+            <button className="btn-link" onClick={() => navigate(`/clients/${clientId}`)} style={{ marginLeft: '1rem' }}>
               View Client →
             </button>
           </div>
         )}
         {clientId && loadingClient && (
           <div className="client-indicator">
-            <span className="client-label">Loading client...</span>
+            <span className="client-label">Loading client…</span>
           </div>
         )}
       </div>
 
-      {renderStepIndicator()}
-      {renderCurrentStep()}
+      {currentStep !== 'clientContext' && currentStep !== 'selectClient' && renderStepIndicator()}
+      {constantsLoaded ? renderCurrentStep() : (
+        <div className="step-content">
+          <div className="client-loading"><div className="spinner-sm" /><p>Loading…</p></div>
+        </div>
+      )}
+
     </div>
   );
 }

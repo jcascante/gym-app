@@ -1,0 +1,14 @@
+Program builder module (PBM)
+
+1. PBM aims to help building cleint's programs from templates and from client parameters
+2. Templates are base programs with input parameter that will decide base on the program paramters and client parameter how to build the proposed program for the client
+3. The flow for program builder should be someting like this
+
+- The cocah creates or selects a client
+- Client parameter are added or adjusted
+- Base on client paramters, the app should provide the suggested template to use, or selected a different one if required
+- Once template is selected, the app should ask for the template parameters
+- Once client parameters are added, the template is selected and the template parameters, the app should compute and create a proposed training program
+- the proposed training program should be editable so the coach can adjunst if required
+- once this is done, the program should be assiged to the client, and the client should be able to see and start adding progress to the program
+

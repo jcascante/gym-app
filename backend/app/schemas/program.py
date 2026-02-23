@@ -55,6 +55,10 @@ class ProgramInputs(BaseModel):
         default=True,
         description="Save as reusable template"
     )
+    client_id: Optional[str] = Field(
+        None,
+        description="When provided, creates a client-specific draft program and assignment instead of a template"
+    )
 
     class Config:
         json_schema_extra = {
@@ -95,6 +99,7 @@ class MovementCalculations(BaseModel):
 
 class ExerciseDetail(BaseModel):
     """Single exercise within a workout day."""
+    id: Optional[str] = None  # DB UUID, present on saved programs
     exercise_name: str
     sets: int
     reps: int
@@ -140,17 +145,26 @@ class ProgramResponse(BaseModel):
     created_by_user_id: Optional[str]
     name: str
     description: Optional[str]
-    builder_type: str
-    algorithm_version: str
+    builder_type: Optional[str]
+    algorithm_version: Optional[str]
     duration_weeks: int
     days_per_week: int
     is_template: bool
     is_public: bool
+    times_assigned: int = 0
+    status: Optional[str] = None
+    assignment_id: Optional[str] = None
     created_at: str
     updated_at: str
 
     class Config:
         from_attributes = True
+
+
+class ProgramListResponse(BaseModel):
+    """Response for listing programs."""
+    programs: List[ProgramResponse]
+    total: int
 
 
 class ProgramDetailResponse(ProgramResponse):
@@ -384,3 +398,60 @@ class ExerciseListResponse(BaseModel):
     total: int
     page: int = 1
     page_size: int = 50
+
+
+# ============================================================================
+# Generate-for-Client Flow Schemas
+# ============================================================================
+
+class MovementParam(BaseModel):
+    """Client-specific parameters for a single movement."""
+    name: str = Field(..., description="Movement name matching template (e.g., 'Squat')")
+    one_rm: float = Field(..., gt=0, description="Client 1RM in lbs")
+    max_reps_at_80_percent: int = Field(..., ge=1, le=20, description="Max reps at 80% 1RM")
+    target_weight: float = Field(..., gt=0, description="Target 5x5 starting weight in lbs")
+
+
+class GenerateForClientRequest(BaseModel):
+    """Request to generate a client-specific program from a template."""
+    client_id: str = Field(..., description="Client user UUID")
+    movements: List[MovementParam] = Field(..., min_items=1, max_items=4)
+    start_date: Optional[date] = Field(None, description="Program start date (defaults to today)")
+    notes: Optional[str] = Field(None, description="Coach notes for this assignment")
+
+
+class GenerateForClientResponse(BaseModel):
+    """Response after generating a client program draft."""
+    program_id: str
+    assignment_id: str
+    client_id: str
+    status: str  # "draft"
+
+
+class UpdateExerciseRequest(BaseModel):
+    """Partial update for a single exercise in a draft program."""
+    sets: Optional[int] = None
+    reps: Optional[int] = None
+    reps_target: Optional[int] = None
+    weight_lbs: Optional[float] = None
+    load_value: Optional[float] = None
+    notes: Optional[str] = None
+
+
+class UpdateExerciseResponse(BaseModel):
+    """Response after updating an exercise."""
+    exercise_id: str
+    sets: int
+    reps: Optional[int]
+    reps_target: Optional[int]
+    weight_lbs: Optional[float]
+    load_value: Optional[float]
+    notes: Optional[str]
+    updated_at: str
+
+
+class PublishProgramResponse(BaseModel):
+    """Response after publishing a draft program."""
+    program_id: str
+    status: str  # "published"
+    published_at: str

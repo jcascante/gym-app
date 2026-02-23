@@ -106,6 +106,13 @@
   font-weight: 600;
 }
 
+.step.completed .step-number {
+  background: #4caf50;
+  border-color: #4caf50;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
 /* Step Content */
 .step-content {
   background: #ffffff;
@@ -1982,4 +1989,399 @@
   .program-card h4 {
     font-size: 1.1rem;
   }
+}
+
+/* ─── Client Context Step ─────────────────────────────────────────────────── */
+
+.client-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #666;
+  padding: 2rem 0;
+}
+
+.spinner-sm {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #eee;
+  border-top: 2px solid #1a1a1a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.client-context-panel {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.client-context-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.context-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.context-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #888;
+  font-weight: 600;
+}
+
+.context-value {
+  font-size: 1rem;
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+.goal-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  background: #e3f2fd;
+  color: #1565c0;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.days-warning {
+  background: #fff8e1;
+  border: 1px solid #ffca28;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  color: #5d4037;
+  margin-bottom: 1rem;
+}
+
+.one-rep-max-section {
+  margin-top: 1rem;
+}
+
+.one-rep-max-section h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #444;
+  font-weight: 600;
+}
+
+.one-rep-max-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.one-rep-max-table th,
+.one-rep-max-table td {
+  padding: 0.4rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.one-rep-max-table th {
+  color: #666;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.no-1rm-note {
+  margin-top: 0.75rem;
+  color: #888;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.context-actions {
+  justify-content: space-between !important;
+}
+
+/* ─── Template Select Step ────────────────────────────────────────────────── */
+
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.template-card {
+  position: relative;
+  background: #fff;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: all 0.2s;
+  overflow: hidden;
+}
+
+.template-card.available {
+  cursor: pointer;
+}
+
+.template-card.available:hover {
+  border-color: #aaa;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.template-card.selected {
+  border-color: #1a1a1a;
+  box-shadow: 0 0 0 3px rgba(26,26,26,0.15);
+}
+
+.template-card.disabled {
+  opacity: 0.55;
+  cursor: default;
+  background: #f8f9fa;
+}
+
+.suggested-ribbon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #1565c0;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem 0.2rem 1rem;
+  clip-path: polygon(10% 0, 100% 0, 100% 100%, 0 100%);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.coming-soon-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: #e9ecef;
+  color: #666;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.template-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.template-tag {
+  display: inline-block;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  width: fit-content;
+}
+
+.template-card h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.3;
+}
+
+.template-description {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+.template-meta {
+  display: flex;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+/* ─── Movement "from profile" badge ──────────────────────────────────────── */
+
+.movement-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.from-profile-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #2e7d32;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  padding: 0.1rem 0.45rem;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.profile-source-note {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.8rem;
+  color: #2e7d32;
+  font-style: italic;
+}
+
+/* ─── Inline program editing ─────────────────────────────────────────────── */
+
+.program-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.program-card-header h4 {
+  margin: 0;
+}
+
+.edit-program-btn {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: #555;
+  transition: all 0.15s;
+}
+
+.edit-program-btn:hover {
+  background: #f5f5f5;
+  border-color: #aaa;
+}
+
+.movement-edit-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  padding: 1rem;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+}
+
+.edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 160px;
+}
+
+.edit-field label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #444;
+}
+
+.edit-field input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.edit-field input:focus {
+  outline: none;
+  border-color: #1a1a1a;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.edit-confirm-btn {
+  padding: 0.5rem 1rem;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.edit-confirm-btn:hover {
+  background: #333;
+}
+
+.edit-cancel-btn {
+  padding: 0.5rem 1rem;
+  background: #fff;
+  color: #555;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.edit-cancel-btn:hover {
+  background: #f5f5f5;
+}
+
+/* ── Select Client step ─────────────────────────────────────────────────── */
+.client-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 480px;
+}
+
+.client-select-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.client-select-item:hover {
+  border-color: var(--primary, #1976d2);
+  box-shadow: 0 0 0 2px rgba(25,118,210,0.1);
+}
+
+.client-select-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+  flex: 1;
+}
+
+.client-select-email {
+  font-size: 0.82rem;
+  color: #888;
+}
+
+.client-select-arrow {
+  font-size: 1.2rem;
+  color: #bbb;
 }

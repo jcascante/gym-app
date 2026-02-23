@@ -2,6 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { getUserDisplayName, isSupport } from '../types/user';
+import { useEffect, useState } from 'react';
+import { getAdminStats } from '../services/admin';
+import type { AdminStats } from '../services/admin';
 import './Dashboard.css';
 
 export default function AdminDashboard() {
@@ -10,6 +13,29 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const displayName = getUserDisplayName(user);
   const isSupportUser = isSupport(user);
+
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch admin statistics on mount
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        setLoading(true);
+        const data = await getAdminStats();
+        setStats(data);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to load admin stats:', err);
+        setError('Failed to load statistics');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStats();
+  }, []);
 
   return (
     <div className="dashboard">
@@ -22,28 +48,36 @@ export default function AdminDashboard() {
         <div className="dashboard-card">
           <div className="card-icon">👥</div>
           <h3>Total Users</h3>
-          <p className="card-value">--</p>
+          <p className="card-value">
+            {loading ? '--' : error ? '--' : stats?.total_users ?? 0}
+          </p>
           <p className="card-label">Across all roles</p>
         </div>
 
         <div className="dashboard-card">
           <div className="card-icon">🏋️</div>
           <h3>Active Coaches</h3>
-          <p className="card-value">--</p>
+          <p className="card-value">
+            {loading ? '--' : error ? '--' : stats?.active_coaches ?? 0}
+          </p>
           <p className="card-label">Currently active</p>
         </div>
 
         <div className="dashboard-card">
           <div className="card-icon">🎯</div>
           <h3>Active Clients</h3>
-          <p className="card-value">--</p>
+          <p className="card-value">
+            {loading ? '--' : error ? '--' : stats?.active_clients ?? 0}
+          </p>
           <p className="card-label">Currently enrolled</p>
         </div>
 
         <div className="dashboard-card">
           <div className="card-icon">📊</div>
           <h3>Total Programs</h3>
-          <p className="card-value">--</p>
+          <p className="card-value">
+            {loading ? '--' : error ? '--' : stats?.total_programs ?? 0}
+          </p>
           <p className="card-label">Active programs</p>
         </div>
       </div>

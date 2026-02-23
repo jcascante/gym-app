@@ -1,0 +1,296 @@
+/* ============================================================
+   ProgramDetails page
+   ============================================================ */
+
+.pd-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+/* ── Header ── */
+.pd-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.pd-back-btn {
+  background: none;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 6px;
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-muted, #555);
+  white-space: nowrap;
+  margin-top: 2px;
+}
+.pd-back-btn:hover { background: var(--surface-hover, #f5f5f5); }
+
+.pd-header-info {
+  flex: 1;
+  min-width: 0;
+}
+.pd-header-info h1 {
+  margin: 0 0 0.2rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pd-assignment-name {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted, #666);
+}
+
+.pd-log-btn { white-space: nowrap; }
+
+/* ── Loading / Error ── */
+.pd-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem;
+  justify-content: center;
+  color: var(--text-muted, #666);
+}
+.pd-error {
+  background: #fff3f3;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  color: #d32f2f;
+}
+
+/* ── Stats bar ── */
+.pd-stats-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+.pd-stat {
+  flex: 1;
+  min-width: 80px;
+  background: var(--surface, #f8f9fa);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 10px;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+.pd-stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0.2rem;
+}
+.pd-stat-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted, #777);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ── Progress bar ── */
+.pd-progress-wrap {
+  height: 6px;
+  background: var(--border-color, #e0e0e0);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+.pd-progress-bar {
+  height: 100%;
+  background: var(--primary, #1976d2);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+  min-width: 4px;
+}
+
+/* ── Sections ── */
+.pd-section {
+  margin-bottom: 2.5rem;
+}
+.pd-section-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 0.85rem;
+  color: var(--text, #1a1a1a);
+}
+
+/* ── Exercise table ── */
+.pd-exercises-table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  margin-bottom: 1rem;
+}
+.pd-exercises-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+.pd-exercises-table thead tr {
+  background: var(--surface, #f8f9fa);
+}
+.pd-exercises-table th {
+  padding: 0.65rem 0.9rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #666);
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+.pd-exercises-table td {
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid var(--border-color-light, #f0f0f0);
+}
+.pd-exercises-table tbody tr:last-child td { border-bottom: none; }
+.pd-exercises-table tbody tr:hover { background: var(--surface-hover, #fafafa); }
+
+.pd-ex-order { color: var(--text-muted, #999); font-size: 0.85rem; }
+.pd-ex-name  { font-weight: 500; }
+.pd-ex-center { text-align: center; }
+.pd-ex-notes { font-size: 0.85rem; color: var(--text-muted, #777); }
+
+.pd-pct-tag {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 0.72rem;
+  background: var(--primary-light, #e3f2fd);
+  color: var(--primary, #1976d2);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.pd-log-inline-btn { margin-top: 0.5rem; }
+.pd-muted { color: var(--text-muted, #888); font-size: 0.9rem; }
+
+/* ── History list ── */
+.pd-history-list { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.pd-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: var(--surface, #f8f9fa);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  flex-wrap: wrap;
+}
+.pd-history-left {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+.pd-history-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.pd-status-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 5px;
+  padding: 2px 8px;
+}
+.pd-badge-completed { background: #e8f5e9; color: #2e7d32; }
+.pd-badge-skipped   { background: #fff3e0; color: #e65100; }
+.pd-badge-scheduled { background: #e3f2fd; color: #1565c0; }
+
+.pd-history-date     { font-size: 0.88rem; font-weight: 500; }
+.pd-history-duration { font-size: 0.82rem; color: var(--text-muted, #777); }
+.pd-history-notes    { font-size: 0.82rem; color: var(--text-muted, #777); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.pd-edit-btn {
+  background: none;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 5px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--text, #333);
+}
+.pd-edit-btn:hover { background: var(--surface-hover, #f0f0f0); }
+
+.pd-delete-btn {
+  background: none;
+  border: 1px solid #f5c6cb;
+  border-radius: 5px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: #c62828;
+}
+.pd-delete-btn:hover { background: #fff3f3; }
+.pd-delete-btn:disabled { opacity: 0.5; cursor: default; }
+
+.pd-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--text-muted, #888);
+}
+.pd-empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+
+/* ── Log Workout Modal ── */
+.pd-log-modal { max-width: 480px; }
+
+.pd-status-toggle {
+  display: flex;
+  gap: 0.5rem;
+}
+.pd-toggle-btn {
+  flex: 1;
+  padding: 0.55rem;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 7px;
+  background: var(--surface, #f8f9fa);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.pd-toggle-btn.active {
+  background: var(--primary, #1976d2);
+  color: #fff;
+  border-color: var(--primary, #1976d2);
+}
+
+.pd-modal-exercises {
+  margin-top: 1rem;
+  background: var(--surface, #f8f9fa);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+}
+.pd-modal-exercises-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #666);
+}
+.pd-modal-exercise-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
