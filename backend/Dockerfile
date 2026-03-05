@@ -1,11 +1,10 @@
 ## Multi-stage image: build frontend, install backend, run nginx+uvicorn via supervisord
 
 ######## Frontend builder ########
-FROM node:18-alpine AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 WORKDIR /app/frontend
 # Copy package.json and pnpm lock for reproducible installs
-COPY frontend/package.json ./
-COPY frontend/pnpm-lock.yaml ./
+COPY frontend/package.json frontend/package-lock.json ./
 COPY frontend/ ./
 
 ## Use npm to install & build frontend (more deterministic in CI without corepack config)
