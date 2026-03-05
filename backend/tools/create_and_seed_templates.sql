@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS program_templates (id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT, builder_type TEXT NOT NULL, algorithm_version TEXT, metadata JSON, main_movements JSON, accessories JSON, rules JSON, is_active INTEGER DEFAULT 1, is_default INTEGER DEFAULT 0, created_at DATETIME, updated_at DATETIME);
+BEGIN TRANSACTION;
+INSERT INTO program_templates (id,name,description,builder_type,algorithm_version,metadata,main_movements,accessories,rules,is_active,is_default,created_at,updated_at) VALUES (pt-1111-1111-1111-111111111111,Seed Template 5x5,Seeded 5x5 template,strength_linear_5x5,v1.0.0,{},[{"name":"Squat","one_rm":300}],[],{},1,0,datetime("now"),datetime("now"));
+INSERT INTO program_templates (id,name,description,builder_type,algorithm_version,metadata,main_movements,accessories,rules,is_active,is_default,created_at,updated_at) VALUES (pt-2222-2222-2222-222222222222,Seed Template 2,Seeded rule template,template_v2,v1.0.0,{},[{"name":"Squat","one_rm":300}],[{"name":"Leg Curl"}],{"Squat":{"weekly_jump_percent":5,"weekly_jump_lbs":10}},1,0,datetime("now"),datetime("now"));
+COMMIT;
