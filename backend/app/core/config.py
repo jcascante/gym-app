@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     EMAIL_SMTP_TLS: bool = True
     FRONTEND_URL: str = "http://localhost:5173"
 
+    # TrainGen Engine
+    ENGINE_URL: str = "http://localhost:8000"
+
     class Config:
         env_file = ".env"
         case_sensitive = True

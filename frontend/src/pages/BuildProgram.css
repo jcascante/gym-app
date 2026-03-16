@@ -1,0 +1,242 @@
+.bp-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+}
+
+.bp-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 16px;
+  text-align: center;
+  color: #555;
+}
+
+.bp-header {
+  margin-bottom: 28px;
+}
+
+.bp-header h1 {
+  margin: 0 0 6px;
+  font-size: 1.75rem;
+}
+
+.bp-header p {
+  margin: 0;
+  color: #666;
+}
+
+.bp-back {
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  color: #2563eb;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 10px;
+  display: inline-block;
+}
+
+.bp-error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-bottom: 20px;
+}
+
+.bp-loading {
+  text-align: center;
+  color: #666;
+  padding: 40px 0;
+}
+
+/* Program selection grid */
+.bp-program-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.bp-program-card {
+  text-align: left;
+  background: #fff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.bp-program-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.12);
+}
+
+.bp-program-card h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.bp-program-card p {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+.bp-program-id {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-family: monospace;
+}
+
+/* Configure layout */
+.bp-configure-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .bp-configure-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bp-schedule-section,
+.bp-params-section {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.bp-schedule-section h3,
+.bp-params-section h3 {
+  margin: 0 0 16px;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.bp-slider-field {
+  margin-bottom: 16px;
+}
+
+.bp-slider-field label {
+  display: block;
+  font-size: 0.875rem;
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+.bp-slider-field input[type=range] {
+  width: 100%;
+}
+
+.bp-range-hint {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Save section */
+.bp-save-section {
+  margin-top: 28px;
+  padding: 20px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bp-save-section h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.bp-save-input {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.bp-save-input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+/* Actions */
+.bp-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.bp-btn-primary {
+  padding: 10px 24px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.bp-btn-primary:hover { background: #1d4ed8; }
+
+.bp-btn-secondary {
+  padding: 10px 20px;
+  background: #fff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.bp-btn-secondary:hover { background: #f9fafb; }
+
+/* Loading spinner */
+.bp-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: bp-spin 0.7s linear infinite;
+}
+
+@keyframes bp-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Success */
+.bp-success-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  font-size: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

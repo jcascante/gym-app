@@ -59,6 +59,7 @@ async def init_db():
         ProgramDayExercise,
         Exercise,
         ProgramAssignment,
+        GeneratedPlan,  # noqa: F401
     )
 
     async with engine.begin() as conn:

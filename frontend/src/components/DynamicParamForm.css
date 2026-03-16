@@ -1,0 +1,72 @@
+.dpf-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.dpf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dpf-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.dpf-required {
+  color: #dc2626;
+  margin-left: 4px;
+}
+
+.dpf-input,
+.dpf-select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s;
+  background: #fff;
+}
+
+.dpf-input:focus,
+.dpf-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.dpf-checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dpf-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.dpf-checkbox-label:has(input:checked) {
+  background: #dbeafe;
+  border-color: #2563eb;
+  color: #1d4ed8;
+}
+
+.dpf-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}

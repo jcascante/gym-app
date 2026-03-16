@@ -145,6 +145,13 @@ export default function ClientDashboard() {
             <span className="button-icon">📈</span>
             Track Progress
           </button>
+          <button
+            className="action-button secondary"
+            onClick={() => navigate('/build-program')}
+          >
+            <span className="button-icon">⚡</span>
+            Build My Program
+          </button>
           <button className="action-button secondary">
             <span className="button-icon">👤</span>
             My Profile

@@ -1,0 +1,161 @@
+.gpv-root {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Week tabs */
+.gpv-week-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.gpv-week-tab {
+  padding: 6px 16px;
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #555;
+}
+
+.gpv-week-tab.active,
+.gpv-week-tab:hover {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #fff;
+}
+
+/* Sessions */
+.gpv-sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gpv-session {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.gpv-session-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+}
+
+.gpv-day {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #1e293b;
+  min-width: 36px;
+}
+
+.gpv-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.gpv-tag {
+  font-size: 0.75rem;
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: capitalize;
+}
+
+.gpv-fatigue {
+  font-size: 0.8rem;
+  color: #b45309;
+  margin-left: auto;
+}
+
+/* Blocks */
+.gpv-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.gpv-block {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gpv-block:last-child { border-bottom: none; }
+
+.gpv-block-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.gpv-block-type {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.type-main_lift { background: #fef3c7; color: #92400e; }
+.type-secondary_lift { background: #e0e7ff; color: #3730a3; }
+.type-accessory { background: #f0fdf4; color: #166534; }
+.type-conditioning_steady,
+.type-conditioning_intervals { background: #fce7f3; color: #9d174d; }
+.type-warmup, .type-cooldown { background: #f3f4f6; color: #374151; }
+.type-mobility { background: #ecfdf5; color: #065f46; }
+
+.gpv-exercise-name {
+  font-weight: 600;
+  font-size: 0.925rem;
+  flex: 1;
+}
+
+.gpv-swap-btn {
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #374151;
+  transition: all 0.15s;
+  margin-left: auto;
+}
+
+.gpv-swap-btn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+/* Warnings */
+.gpv-warnings {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  color: #92400e;
+}
+
+.gpv-warnings p { margin: 0 0 4px; }
+.gpv-warnings p:last-child { margin: 0; }

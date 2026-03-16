@@ -14,6 +14,7 @@ from app.models.program import Program, ProgramWeek, ProgramDay, ProgramDayExerc
 from app.models.exercise import Exercise
 from app.models.program_assignment import ProgramAssignment
 from app.models.workout_log import WorkoutLog, WorkoutStatus
+from app.models.generated_plan import GeneratedPlan
 
 __all__ = [
     "BaseModel",
@@ -38,4 +39,5 @@ __all__ = [
     "ProgramAssignment",
     "WorkoutLog",
     "WorkoutStatus",
+    "GeneratedPlan",
 ]

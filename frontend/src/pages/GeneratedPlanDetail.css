@@ -1,0 +1,63 @@
+.gpd-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+}
+
+.gpd-loading,
+.gpd-error {
+  text-align: center;
+  padding: 40px 0;
+  color: #666;
+}
+
+.gpd-error { color: #dc2626; }
+
+.gpd-header {
+  margin-bottom: 28px;
+}
+
+.gpd-back-btn {
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  color: #2563eb;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 12px;
+  display: inline-block;
+}
+
+.gpd-title h1 { margin: 0 0 6px; font-size: 1.6rem; }
+.gpd-notes { margin: 0 0 8px; color: #666; font-size: 0.9rem; }
+
+.gpd-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.gpd-program-id {
+  font-size: 0.75rem;
+  font-family: monospace;
+  background: #f3f4f6;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #374151;
+}
+
+.gpd-date {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.gpd-status {
+  margin-top: 8px;
+  min-height: 20px;
+}
+
+.gpd-saving { font-size: 0.85rem; color: #9ca3af; }
+.gpd-save-msg { font-size: 0.85rem; }
+.gpd-save-msg.ok { color: #16a34a; }
+.gpd-save-msg.error { color: #dc2626; }

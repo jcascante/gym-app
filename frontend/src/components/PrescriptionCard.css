@@ -1,0 +1,52 @@
+.rx-card {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rx-label {
+  font-weight: 600;
+  color: #555;
+  min-width: 72px;
+  display: inline-block;
+}
+
+.rx-detail {
+  color: #222;
+}
+
+.rx-note {
+  color: #777;
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
+.rx-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.rx-top-set {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.rx-backoff {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 6px;
+  margin-top: 4px;
+}
+
+.rx-strength { border-left: 3px solid #2563eb; }
+.rx-hypertrophy { border-left: 3px solid #7c3aed; }
+.rx-intervals { border-left: 3px solid #dc2626; }
+.rx-steady { border-left: 3px solid #059669; }

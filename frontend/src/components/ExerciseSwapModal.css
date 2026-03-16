@@ -1,0 +1,108 @@
+.swap-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.swap-modal {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.swap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 20px 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.swap-header h3 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+}
+
+.swap-original {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.swap-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #999;
+  line-height: 1;
+  padding: 0;
+}
+
+.swap-error { color: #dc2626; padding: 12px 20px; font-size: 0.875rem; }
+.swap-loading { padding: 20px; text-align: center; color: #666; }
+.swap-empty { padding: 20px; text-align: center; color: #666; }
+
+.swap-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  overflow-y: auto;
+}
+
+.swap-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.swap-item:last-child { border-bottom: none; }
+
+.swap-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.swap-name {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.swap-badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  width: fit-content;
+}
+
+.badge-direct { background: #dcfce7; color: #166534; }
+.badge-similar { background: #dbeafe; color: #1e40af; }
+
+.swap-btn {
+  padding: 6px 14px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.swap-btn:hover:not(:disabled) { background: #1d4ed8; }
+.swap-btn:disabled { background: #93c5fd; cursor: not-allowed; }

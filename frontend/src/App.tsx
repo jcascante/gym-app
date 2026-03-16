@@ -13,6 +13,9 @@ import MyPrograms from './pages/MyPrograms';
 import ProgramDetails from './pages/ProgramDetails';
 import ProgramTemplateView from './pages/ProgramTemplateView';
 import ProgramDraftReview from './pages/ProgramDraftReview';
+import BuildProgram from './pages/BuildProgram';
+import MyGeneratedPlans from './pages/MyGeneratedPlans';
+import GeneratedPlanDetail from './pages/GeneratedPlanDetail';
 
 function App() {
   return (
@@ -114,6 +117,36 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <ProgramDetails />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/build-program"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <BuildProgram />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-generated-plans"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <MyGeneratedPlans />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-generated-plans/:planId"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <GeneratedPlanDetail />
                 </Layout>
               </ProtectedRoute>
             }

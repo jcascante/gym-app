@@ -21,6 +21,7 @@ async def lifespan(app: FastAPI):
     from app.models.location import Location  # noqa: F401
     from app.models.workout_log import WorkoutLog  # noqa: F401
     from app.models.exercise import Exercise  # noqa: F401
+    from app.models.generated_plan import GeneratedPlan  # noqa: F401
 
     # Startup
     await init_db()
@@ -113,7 +114,7 @@ async def health_check():
 
 
 # Include API routers
-from app.api import auth, users, subscriptions, locations, programs, clients, coaches, workouts, exercises
+from app.api import auth, users, subscriptions, locations, programs, clients, coaches, workouts, exercises, engine_proxy, me_plans
 
 app.include_router(
     auth.router,
@@ -167,6 +168,18 @@ app.include_router(
     exercises.router,
     prefix=f"{settings.API_V1_STR}/exercises",
     tags=["Exercise Library"]
+)
+
+app.include_router(
+    engine_proxy.router,
+    prefix=f"{settings.API_V1_STR}",
+    tags=["TrainGen Engine"]
+)
+
+app.include_router(
+    me_plans.router,
+    prefix=f"{settings.API_V1_STR}",
+    tags=["My Generated Plans"]
 )
 
 # Additional routers will be added here as features are implemented

@@ -1,0 +1,120 @@
+.mgp-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+}
+
+.mgp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.mgp-header h1 { margin: 0 0 4px; font-size: 1.75rem; }
+.mgp-header p  { margin: 0; color: #666; }
+
+.mgp-build-btn {
+  padding: 10px 20px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.mgp-build-btn:hover { background: #1d4ed8; }
+
+.mgp-error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-bottom: 20px;
+}
+
+.mgp-loading,
+.mgp-empty {
+  text-align: center;
+  color: #666;
+  padding: 40px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.mgp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mgp-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  gap: 12px;
+}
+
+.mgp-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+}
+
+.mgp-card-body { flex: 1; }
+
+.mgp-card-body h3 { margin: 0 0 4px; font-size: 1rem; }
+
+.mgp-notes {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.mgp-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.mgp-program-id {
+  font-size: 0.75rem;
+  font-family: monospace;
+  background: #f3f4f6;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #374151;
+}
+
+.mgp-date {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.mgp-delete-btn {
+  padding: 6px 14px;
+  background: #fff;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.mgp-delete-btn:hover:not(:disabled) { background: #fef2f2; }
+.mgp-delete-btn:disabled { opacity: 0.5; cursor: not-allowed; }
