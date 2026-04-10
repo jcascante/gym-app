@@ -47,6 +47,9 @@ backend/.ruff_cache/
 # Logs
 *.log
 
+# Claude Code
+.claude/settings.local.json
+
 # Terraform
 *.tfvars          # Variable files may contain secrets
 *.tfstate         # State files may contain sensitive data

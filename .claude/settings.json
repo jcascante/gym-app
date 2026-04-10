@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv run pytest*)",
+      "Bash(uv run ruff*)",
+      "Bash(uv run uvicorn*)",
+      "Bash(uv run alembic*)",
+      "Bash(uv run python*)",
+      "Bash(uv sync*)",
+      "Bash(uv add*)",
+      "Bash(npm run*)",
+      "Bash(npm install*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git status*)",
+      "Bash(git show*)",
+      "Bash(git stash*)",
+      "Bash(docker compose*)"
+    ],
+    "deny": [
+      "Bash(rm -rf*)",
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/ruff-check.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
