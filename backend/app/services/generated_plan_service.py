@@ -1,8 +1,9 @@
 """Business logic for saving and retrieving GeneratedPlan records."""
 from uuid import UUID
-from typing import Optional
+
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
+
 from app.models.generated_plan import GeneratedPlan
 
 
@@ -17,9 +18,9 @@ class GeneratedPlanService:
         engine_program_id: str,
         engine_program_version: str,
         plan_data: dict,
-        inputs_echo: Optional[dict] = None,
-        notes: Optional[str] = None,
-        created_by: Optional[UUID] = None,
+        inputs_echo: dict | None = None,
+        notes: str | None = None,
+        created_by: UUID | None = None,
     ) -> GeneratedPlan:
         plan = GeneratedPlan(
             client_id=client_id,
@@ -41,10 +42,13 @@ class GeneratedPlanService:
         db: AsyncSession,
         client_id: UUID,
         include_inactive: bool = False,
+        unstarted_only: bool = False,
     ) -> list[GeneratedPlan]:
         filters = [GeneratedPlan.client_id == client_id]
         if not include_inactive:
             filters.append(GeneratedPlan.is_active == True)  # noqa: E712
+        if unstarted_only:
+            filters.append(GeneratedPlan.assignment_id.is_(None))
         result = await db.execute(
             select(GeneratedPlan)
             .where(and_(*filters))
@@ -57,7 +61,7 @@ class GeneratedPlanService:
         db: AsyncSession,
         plan_id: UUID,
         client_id: UUID,
-    ) -> Optional[GeneratedPlan]:
+    ) -> GeneratedPlan | None:
         result = await db.execute(
             select(GeneratedPlan).where(
                 and_(
@@ -74,9 +78,9 @@ class GeneratedPlanService:
         db: AsyncSession,
         plan: GeneratedPlan,
         updated_by: UUID,
-        name: Optional[str] = None,
-        notes: Optional[str] = None,
-        plan_data: Optional[dict] = None,
+        name: str | None = None,
+        notes: str | None = None,
+        plan_data: dict | None = None,
     ) -> GeneratedPlan:
         if name is not None:
             plan.name = name

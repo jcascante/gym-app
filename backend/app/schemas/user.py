@@ -4,10 +4,12 @@ User Pydantic schemas for request/response validation.
 These schemas define the structure of user data in API requests and responses,
 providing automatic validation, serialization, and OpenAPI documentation.
 """
-from typing import Optional, Dict, Any
 from datetime import datetime
+from typing import Any
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
 from app.models.user import UserRole
 
 
@@ -25,7 +27,7 @@ class UserBase(BaseModel):
         description="User role (APPLICATION_SUPPORT, SUBSCRIPTION_ADMIN, COACH, CLIENT)",
         examples=[UserRole.CLIENT]
     )
-    profile: Optional[Dict[str, Any]] = Field(
+    profile: dict[str, Any] | None = Field(
         None,
         description="User profile data (name, avatar, bio, phone, etc.)",
         examples=[{"name": "John Doe", "phone": "+1234567890"}]
@@ -45,12 +47,12 @@ class UserCreate(UserBase):
         description="Password (minimum 8 characters)",
         examples=["SecurePassword123!"]
     )
-    subscription_id: Optional[UUID] = Field(
+    subscription_id: UUID | None = Field(
         None,
         description="Subscription ID (null for APPLICATION_SUPPORT)",
         examples=["550e8400-e29b-41d4-a716-446655440000"]
     )
-    location_id: Optional[UUID] = Field(
+    location_id: UUID | None = Field(
         None,
         description="Location ID (ENTERPRISE only)",
         examples=["660e8400-e29b-41d4-a716-446655440000"]
@@ -79,27 +81,27 @@ class UserUpdate(BaseModel):
 
     All fields are optional to allow partial updates.
     """
-    email: Optional[EmailStr] = Field(
+    email: EmailStr | None = Field(
         None,
         description="New email address (must be unique)",
         examples=["newemail@example.com"]
     )
-    role: Optional[UserRole] = Field(
+    role: UserRole | None = Field(
         None,
         description="New role (admin only)",
         examples=[UserRole.COACH]
     )
-    profile: Optional[Dict[str, Any]] = Field(
+    profile: dict[str, Any] | None = Field(
         None,
         description="Updated profile data",
         examples=[{"name": "Jane Doe", "phone": "+9876543210"}]
     )
-    location_id: Optional[UUID] = Field(
+    location_id: UUID | None = Field(
         None,
         description="Updated location ID (ENTERPRISE only)",
         examples=["660e8400-e29b-41d4-a716-446655440000"]
     )
-    is_active: Optional[bool] = Field(
+    is_active: bool | None = Field(
         None,
         description="Account active status (admin only)",
         examples=[True]
@@ -128,12 +130,12 @@ class UserResponse(BaseModel):
         description="Unique user ID",
         examples=["550e8400-e29b-41d4-a716-446655440000"]
     )
-    subscription_id: Optional[UUID] = Field(
+    subscription_id: UUID | None = Field(
         None,
         description="Subscription ID (null for APPLICATION_SUPPORT)",
         examples=["660e8400-e29b-41d4-a716-446655440000"]
     )
-    location_id: Optional[UUID] = Field(
+    location_id: UUID | None = Field(
         None,
         description="Location ID (ENTERPRISE only)",
         examples=["770e8400-e29b-41d4-a716-446655440000"]
@@ -148,7 +150,7 @@ class UserResponse(BaseModel):
         description="Email address",
         examples=["john.doe@example.com"]
     )
-    profile: Optional[Dict[str, Any]] = Field(
+    profile: dict[str, Any] | None = Field(
         None,
         description="User profile data",
         examples=[{"name": "John Doe", "phone": "+1234567890"}]
@@ -158,7 +160,7 @@ class UserResponse(BaseModel):
         description="Whether the account is active",
         examples=[True]
     )
-    last_login_at: Optional[datetime] = Field(
+    last_login_at: datetime | None = Field(
         None,
         description="Last login timestamp",
         examples=["2025-01-15T10:30:00"]

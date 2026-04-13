@@ -4,12 +4,14 @@ Security utilities for authentication and authorization.
 This module provides functions for password hashing, JWT token creation/validation,
 and OAuth2 authentication scheme configuration.
 """
-from datetime import datetime, timedelta, timezone
-from typing import Optional, Dict, Any
+from datetime import UTC, datetime, timedelta
+from typing import Any
+
 import bcrypt
-from jose import JWTError, jwt
 from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+
 from app.core.config import settings
 
 # OAuth2 scheme for token extraction from requests
@@ -95,8 +97,8 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(
-    data: Dict[str, Any],
-    expires_delta: Optional[timedelta] = None
+    data: dict[str, Any],
+    expires_delta: timedelta | None = None
 ) -> str:
     """
     Create a JWT access token with optional expiration time.
@@ -122,7 +124,7 @@ def create_access_token(
     to_encode = data.copy()
 
     # Get current UTC time (timezone-aware)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     # Set expiration time
     if expires_delta:
@@ -148,7 +150,7 @@ def create_access_token(
     return encoded_jwt
 
 
-def decode_access_token(token: str) -> Dict[str, Any]:
+def decode_access_token(token: str) -> dict[str, Any]:
     """
     Decode and validate a JWT access token.
 
@@ -191,7 +193,7 @@ def decode_access_token(token: str) -> Dict[str, Any]:
         raise credentials_exception from e
 
 
-def verify_token_expiration(payload: Dict[str, Any]) -> bool:
+def verify_token_expiration(payload: dict[str, Any]) -> bool:
     """
     Check if a decoded token payload has expired.
 
@@ -212,6 +214,6 @@ def verify_token_expiration(payload: Dict[str, Any]) -> bool:
         return False
 
     # Get current UTC time and compare with token expiration
-    now = datetime.now(timezone.utc)
-    exp_datetime = datetime.fromtimestamp(exp, tz=timezone.utc)
+    now = datetime.now(UTC)
+    exp_datetime = datetime.fromtimestamp(exp, tz=UTC)
     return now < exp_datetime

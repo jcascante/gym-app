@@ -1,15 +1,17 @@
-from datetime import datetime, timezone
-from uuid import uuid4
-from sqlalchemy import Column, DateTime, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.types import TypeDecorator, CHAR
 import uuid as uuid_pkg
+from datetime import UTC, datetime
+from uuid import uuid4
+
+from sqlalchemy import Column, DateTime
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.types import CHAR, TypeDecorator
+
 from app.core.database import Base
 
 
 def get_utc_now():
     """Get current UTC time (timezone-aware)."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class GUID(TypeDecorator):

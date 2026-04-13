@@ -138,10 +138,6 @@ export default function ClientDashboard() {
             className="action-button secondary"
             onClick={() => navigate('/my-programs')}
           >
-            <span className="button-icon">📊</span>
-            View My Programs
-          </button>
-          <button className="action-button secondary">
             <span className="button-icon">📈</span>
             Track Progress
           </button>

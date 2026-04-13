@@ -4,25 +4,24 @@ Users API routes with role-based access control.
 Provides CRUD operations for user management with proper authorization.
 """
 from uuid import UUID
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, or_
+
 from app.core.database import get_db
-from app.core.security import get_password_hash
 from app.core.deps import (
     get_current_user,
     get_subscription_admin_user,
-    get_application_support_user,
-    check_subscription_access
 )
+from app.core.security import get_password_hash
 from app.models.user import User, UserRole
-from app.schemas.user import UserCreate, UserUpdate, UserResponse, UserListResponse
 from app.schemas.auth import MessageResponse
 from app.schemas.program_assignment import (
     ClientProgramsListResponse,
     ProgramAssignmentSummary,
 )
+from app.schemas.user import UserCreate, UserListResponse, UserResponse, UserUpdate
 
 router = APIRouter()
 
@@ -50,9 +49,9 @@ router = APIRouter()
 async def list_users(
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(100, ge=1, le=500, description="Maximum number of records to return"),
-    role: Optional[UserRole] = Query(None, description="Filter by user role"),
-    location_id: Optional[UUID] = Query(None, description="Filter by location (ENTERPRISE only)"),
-    search: Optional[str] = Query(None, description="Search by email or name"),
+    role: UserRole | None = Query(None, description="Filter by user role"),
+    location_id: UUID | None = Query(None, description="Filter by location (ENTERPRISE only)"),
+    search: str | None = Query(None, description="Search by email or name"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -384,7 +383,7 @@ async def delete_user(
     tags=["Users"],
 )
 async def get_my_programs(
-    status_filter: Optional[str] = Query(None, description="Filter by assignment status"),
+    status_filter: str | None = Query(None, description="Filter by assignment status"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):

@@ -131,6 +131,7 @@ export interface SavedPlanSummary {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  assignment_id: string | null;
 }
 
 export interface SavedPlanDetail extends SavedPlanSummary {

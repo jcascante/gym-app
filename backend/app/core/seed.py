@@ -6,12 +6,14 @@ Run this after migrations to populate the database with test data.
 """
 import asyncio
 from uuid import uuid4
+
 from sqlalchemy import select, text
 from sqlalchemy.exc import OperationalError
-from app.core.database import AsyncSessionLocal, init_db, engine
+
+from app.core.database import AsyncSessionLocal, engine, init_db
 from app.core.security import get_password_hash
+from app.models.subscription import Subscription, SubscriptionStatus, SubscriptionType
 from app.models.user import User, UserRole
-from app.models.subscription import Subscription, SubscriptionType, SubscriptionStatus
 
 
 async def seed_support_user():
@@ -53,7 +55,7 @@ async def seed_support_user():
 
             print("✓ APPLICATION_SUPPORT user created successfully!")
             print(f"  Email: {support.email}")
-            print(f"  Password: Support123!")
+            print("  Password: Support123!")
             print(f"  Role: {support.role.value}")
             print("\n⚠️  IMPORTANT: Change the support password in production!")
 
@@ -172,17 +174,17 @@ async def seed_test_subscription():
 
             print("\n✓ Test users created successfully!")
             print("  Admin:")
-            print(f"    Email: admin@testgym.com")
-            print(f"    Password: Admin123!")
-            print(f"    Role: SUBSCRIPTION_ADMIN")
+            print("    Email: admin@testgym.com")
+            print("    Password: Admin123!")
+            print("    Role: SUBSCRIPTION_ADMIN")
             print("  Coach:")
-            print(f"    Email: coach@testgym.com")
-            print(f"    Password: Coach123!")
-            print(f"    Role: COACH")
+            print("    Email: coach@testgym.com")
+            print("    Password: Coach123!")
+            print("    Role: COACH")
             print("  Client:")
-            print(f"    Email: client@testgym.com")
-            print(f"    Password: Client123!")
-            print(f"    Role: CLIENT")
+            print("    Email: client@testgym.com")
+            print("    Password: Client123!")
+            print("    Role: CLIENT")
 
         except Exception as e:
             print(f"✗ Error creating test subscription: {e}")

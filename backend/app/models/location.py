@@ -4,8 +4,9 @@ Location database model.
 Defines the Location table structure for ENTERPRISE subscriptions.
 Represents physical locations within a multi-location subscription.
 """
-from sqlalchemy import Column, String, Boolean, ForeignKey, Index
-from app.models.base import BaseModel, GUID
+from sqlalchemy import Boolean, Column, ForeignKey, Index, String
+
+from app.models.base import GUID, BaseModel
 from app.models.subscription import JSONBType
 
 

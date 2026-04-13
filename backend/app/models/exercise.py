@@ -3,8 +3,9 @@ Exercise database model.
 
 Defines the Exercise Library for storing exercises (global and subscription-specific).
 """
-from sqlalchemy import Column, String, Boolean, Integer, ForeignKey, Index, Text
-from app.models.base import BaseModel, GUID
+from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer, String, Text
+
+from app.models.base import GUID, BaseModel
 from app.models.subscription import JSONBType
 
 

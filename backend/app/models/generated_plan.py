@@ -1,6 +1,8 @@
 """GeneratedPlan — stores a TrainGen Engine plan blob linked to a client."""
-from sqlalchemy import Column, String, Boolean, Text, ForeignKey, Index
-from app.models.base import BaseModel, GUID
+from sqlalchemy import Boolean, Column, ForeignKey, Index, String, Text
+from sqlalchemy.orm import relationship
+
+from app.models.base import GUID, BaseModel
 from app.models.subscription import JSONBType
 
 
@@ -30,6 +32,15 @@ class GeneratedPlan(BaseModel):
     plan_data = Column(JSONBType, nullable=False)
 
     is_active = Column(Boolean, nullable=False, default=True, index=True)
+
+    # Set when the client starts this plan — links to the active assignment
+    assignment_id = Column(
+        GUID,
+        ForeignKey('client_program_assignments.id', ondelete='SET NULL'),
+        nullable=True,
+        index=True,
+    )
+    assignment = relationship("ClientProgramAssignment", foreign_keys=[assignment_id], lazy="select")
 
     __table_args__ = (
         Index('ix_generated_plans_client_active', 'client_id', 'is_active'),

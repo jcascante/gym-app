@@ -35,8 +35,8 @@ export default function MyGeneratedPlans() {
     <div className="mgp-page">
       <div className="mgp-header">
         <div>
-          <h1>My Generated Plans</h1>
-          <p>Plans you've built with the training engine.</p>
+          <h1>My Plans</h1>
+          <p>Plans you've built but haven't started yet. Start one when you're ready.</p>
         </div>
         <button className="mgp-build-btn" onClick={() => navigate('/build-program')}>
           + Build new plan
@@ -49,9 +49,9 @@ export default function MyGeneratedPlans() {
         <p className="mgp-loading">Loading…</p>
       ) : plans.length === 0 ? (
         <div className="mgp-empty">
-          <p>You haven't built any plans yet.</p>
+          <p>No unstarted plans. Build a new one or check <button className="mgp-link-btn" onClick={() => navigate('/my-programs')}>My Programs</button> for active programs.</p>
           <button className="mgp-build-btn" onClick={() => navigate('/build-program')}>
-            Build my first plan
+            Build a plan
           </button>
         </div>
       ) : (
@@ -59,7 +59,7 @@ export default function MyGeneratedPlans() {
           {plans.map(plan => (
             <div key={plan.id} className="mgp-card" onClick={() => navigate(`/my-generated-plans/${plan.id}`)}>
               <div className="mgp-card-body">
-                <h3>{plan.name}</h3>
+                <h3 style={{ margin: '0 0 0.25rem' }}>{plan.name}</h3>
                 {plan.notes && <p className="mgp-notes">{plan.notes}</p>}
                 <div className="mgp-meta">
                   <span className="mgp-program-id">{plan.engine_program_id}</span>

@@ -4,11 +4,13 @@ Workout Log database model.
 Tracks individual workout sessions for clients, including completion status,
 exercise performance data, and session notes for progress tracking.
 """
-from sqlalchemy import Column, String, DateTime, ForeignKey, Index, Text, Enum as SQLEnum
-from sqlalchemy.orm import relationship
-from app.models.base import BaseModel, GUID
-from datetime import datetime
 import enum
+
+from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy.orm import relationship
+
+from app.models.base import GUID, BaseModel
 
 
 class WorkoutStatus(str, enum.Enum):
@@ -86,6 +88,14 @@ class WorkoutLog(BaseModel):
         index=True,
     )
 
+    # Link to the specific program day this session covers
+    program_day_id = Column(
+        GUID,
+        ForeignKey("program_days.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
     # Workout session data
     workout_date = Column(
         DateTime,
@@ -102,6 +112,21 @@ class WorkoutLog(BaseModel):
         String,  # Store as string to preserve flexibility (null if skipped, number if completed)
         nullable=True,
     )
+
+    # Explicit day status — more precise than overloading WorkoutStatus
+    day_status = Column(
+        String(20),
+        nullable=True,
+        index=True,
+        doc="completed | skipped | partial",
+    )
+
+    session_rating = Column(
+        Integer,
+        nullable=True,
+        doc="Client self-rating of the session (1–5)",
+    )
+
     notes = Column(
         Text,
         nullable=True,
@@ -134,6 +159,12 @@ class WorkoutLog(BaseModel):
         "Subscription",
         backref="workout_logs",
         lazy="joined",
+    )
+    exercise_logs = relationship(
+        "WorkoutExerciseLog",
+        back_populates="workout_log",
+        cascade="all, delete-orphan",
+        lazy="select",
     )
 
     # Indexes for common queries

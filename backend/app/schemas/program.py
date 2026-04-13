@@ -1,10 +1,10 @@
 """
 Program-related Pydantic schemas for request/response validation.
 """
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
 from datetime import date
+from typing import Any
 
+from pydantic import BaseModel, Field
 
 # ============================================================================
 # Input Schemas (What frontend sends)
@@ -29,15 +29,15 @@ class ProgramInputs(BaseModel):
         default="strength_linear_5x5",
         description="Type of program builder used"
     )
-    name: Optional[str] = Field(
+    name: str | None = Field(
         None,
         description="Custom program name (auto-generated if not provided)"
     )
-    description: Optional[str] = Field(
+    description: str | None = Field(
         None,
         description="Program description"
     )
-    movements: List[MovementInput] = Field(
+    movements: list[MovementInput] = Field(
         ...,
         min_items=1,
         max_items=4,
@@ -55,7 +55,7 @@ class ProgramInputs(BaseModel):
         default=True,
         description="Save as reusable template"
     )
-    client_id: Optional[str] = Field(
+    client_id: str | None = Field(
         None,
         description="When provided, creates a client-specific draft program and assignment instead of a template"
     )
@@ -99,28 +99,29 @@ class MovementCalculations(BaseModel):
 
 class ExerciseDetail(BaseModel):
     """Single exercise within a workout day."""
-    id: Optional[str] = None  # DB UUID, present on saved programs
+    id: str | None = None  # DB UUID, present on saved programs
     exercise_name: str
     sets: int
     reps: int
-    weight_lbs: Optional[float] = None  # None for test weeks
-    percentage_1rm: Optional[int] = None
+    weight_lbs: float | None = None  # None for test weeks
+    percentage_1rm: int | None = None
     notes: str = ""
 
 
 class DayDetail(BaseModel):
     """Single training day."""
+    id: str | None = None
     day_number: int
     name: str
-    suggested_day_of_week: Optional[str] = None
-    exercises: List[ExerciseDetail]
+    suggested_day_of_week: str | None = None
+    exercises: list[ExerciseDetail]
 
 
 class WeekDetail(BaseModel):
     """Single training week."""
     week_number: int
     name: str
-    days: List[DayDetail]
+    days: list[DayDetail]
 
 
 class ProgramPreview(BaseModel):
@@ -129,9 +130,9 @@ class ProgramPreview(BaseModel):
     This is what the backend returns for validation against frontend preview.
     """
     algorithm_version: str
-    input_data: Dict[str, Any]
-    calculated_data: Dict[str, MovementCalculations]
-    weeks: List[WeekDetail]
+    input_data: dict[str, Any]
+    calculated_data: dict[str, MovementCalculations]
+    weeks: list[WeekDetail]
 
 
 # ============================================================================
@@ -141,19 +142,19 @@ class ProgramPreview(BaseModel):
 class ProgramResponse(BaseModel):
     """Program stored in database (simplified for listing)."""
     id: str
-    subscription_id: Optional[str]
-    created_by_user_id: Optional[str]
+    subscription_id: str | None
+    created_by_user_id: str | None
     name: str
-    description: Optional[str]
-    builder_type: Optional[str]
-    algorithm_version: Optional[str]
+    description: str | None
+    builder_type: str | None
+    algorithm_version: str | None
     duration_weeks: int
     days_per_week: int
     is_template: bool
     is_public: bool
     times_assigned: int = 0
-    status: Optional[str] = None
-    assignment_id: Optional[str] = None
+    status: str | None = None
+    assignment_id: str | None = None
     created_at: str
     updated_at: str
 
@@ -163,15 +164,15 @@ class ProgramResponse(BaseModel):
 
 class ProgramListResponse(BaseModel):
     """Response for listing programs."""
-    programs: List[ProgramResponse]
+    programs: list[ProgramResponse]
     total: int
 
 
 class ProgramDetailResponse(ProgramResponse):
     """Full program details including all weeks/days/exercises."""
-    input_data: Dict[str, Any]
-    calculated_data: Dict[str, Any]
-    weeks: List[WeekDetail]
+    input_data: dict[str, Any]
+    calculated_data: dict[str, Any]
+    weeks: list[WeekDetail]
 
     class Config:
         from_attributes = True
@@ -188,15 +189,15 @@ class CalculationConstants(BaseModel):
     """
     version: str = Field(..., description="Algorithm version")
     builder_type: str = Field(..., description="Builder type these constants apply to")
-    weekly_jump_table: Dict[int, int] = Field(
+    weekly_jump_table: dict[int, int] = Field(
         ...,
         description="Maps max reps at 80% to weekly progression percentage"
     )
-    ramp_up_table: Dict[int, int] = Field(
+    ramp_up_table: dict[int, int] = Field(
         ...,
         description="Maps max reps at 80% to starting percentage of 1RM"
     )
-    protocol_by_week: Dict[int, Dict[str, int]] = Field(
+    protocol_by_week: dict[int, dict[str, int]] = Field(
         ...,
         description="Sets and reps for each week"
     )
@@ -236,17 +237,17 @@ class TemplateParameter(BaseModel):
     label: str = Field(..., description="Human-readable label")
     type: str = Field(..., description="Parameter type: text, number, select, multi-select")
     required: bool = Field(True, description="Whether parameter is required")
-    options: Optional[List[str]] = Field(None, description="Options for select types")
-    validation: Optional[Dict[str, Any]] = Field(None, description="Validation rules (min, max, pattern)")
-    help_text: Optional[str] = Field(None, description="Help text for users")
+    options: list[str] | None = Field(None, description="Options for select types")
+    validation: dict[str, Any] | None = Field(None, description="Validation rules (min, max, pattern)")
+    help_text: str | None = Field(None, description="Help text for users")
 
 
 class ProgramTemplateBase(BaseModel):
     """Base schema for program template."""
     name: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
+    description: str | None = None
     program_type: str = Field(..., description="strength, conditioning, hypertrophy, power, sport_specific, general_fitness")
-    difficulty_level: Optional[str] = Field(None, description="beginner, intermediate, advanced, elite")
+    difficulty_level: str | None = Field(None, description="beginner, intermediate, advanced, elite")
     duration_weeks: int = Field(..., gt=0, le=52)
     days_per_week: int = Field(..., gt=0, le=7)
 
@@ -254,16 +255,16 @@ class ProgramTemplateBase(BaseModel):
     is_default: bool = Field(default=False)
     is_public: bool = Field(default=False)
 
-    required_parameters: List[TemplateParameter] = Field(default_factory=list)
-    optional_parameters: List[TemplateParameter] = Field(default_factory=list)
+    required_parameters: list[TemplateParameter] = Field(default_factory=list)
+    optional_parameters: list[TemplateParameter] = Field(default_factory=list)
 
-    tags: List[str] = Field(default_factory=list)
-    goals: Optional[List[str]] = None
-    target_gender: Optional[str] = None
-    equipment_required: Optional[List[str]] = None
+    tags: list[str] = Field(default_factory=list)
+    goals: list[str] | None = None
+    target_gender: str | None = None
+    equipment_required: list[str] | None = None
 
-    thumbnail_url: Optional[str] = None
-    video_url: Optional[str] = None
+    thumbnail_url: str | None = None
+    video_url: str | None = None
 
 
 class ProgramTemplateCreate(ProgramTemplateBase):
@@ -273,35 +274,35 @@ class ProgramTemplateCreate(ProgramTemplateBase):
 
 class ProgramTemplateUpdate(BaseModel):
     """Schema for updating a program template."""
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
-    program_type: Optional[str] = None
-    difficulty_level: Optional[str] = None
-    duration_weeks: Optional[int] = Field(None, gt=0, le=52)
-    days_per_week: Optional[int] = Field(None, gt=0, le=7)
+    name: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = None
+    program_type: str | None = None
+    difficulty_level: str | None = None
+    duration_weeks: int | None = Field(None, gt=0, le=52)
+    days_per_week: int | None = Field(None, gt=0, le=7)
 
-    is_public: Optional[bool] = None
+    is_public: bool | None = None
 
-    required_parameters: Optional[List[TemplateParameter]] = None
-    optional_parameters: Optional[List[TemplateParameter]] = None
+    required_parameters: list[TemplateParameter] | None = None
+    optional_parameters: list[TemplateParameter] | None = None
 
-    tags: Optional[List[str]] = None
-    goals: Optional[List[str]] = None
-    target_gender: Optional[str] = None
-    equipment_required: Optional[List[str]] = None
+    tags: list[str] | None = None
+    goals: list[str] | None = None
+    target_gender: str | None = None
+    equipment_required: list[str] | None = None
 
-    thumbnail_url: Optional[str] = None
-    video_url: Optional[str] = None
+    thumbnail_url: str | None = None
+    video_url: str | None = None
 
 
 class ProgramTemplateResponse(ProgramTemplateBase):
     """Schema for program template response."""
     id: str
-    subscription_id: Optional[str]
+    subscription_id: str | None
     created_by: str
     times_assigned: int = 0
-    average_rating: Optional[float] = None
-    average_completion_rate: Optional[float] = None
+    average_rating: float | None = None
+    average_completion_rate: float | None = None
     created_at: str
     updated_at: str
 
@@ -311,65 +312,28 @@ class ProgramTemplateResponse(ProgramTemplateBase):
 
 class ProgramTemplateListResponse(BaseModel):
     """Schema for list of templates response."""
-    templates: List[ProgramTemplateResponse]
+    templates: list[ProgramTemplateResponse]
     total: int
     page: int = 1
     page_size: int = 20
 
 
-class ProgramAssignmentCreate(BaseModel):
-    """Schema for assigning a template to a client."""
-    template_id: str
-    client_id: str
-    assignment_parameters: Dict[str, Any] = Field(..., description="Parameter values for this assignment")
-    start_date: date
-    coach_notes: Optional[str] = None
-
-
-class ProgramAssignmentResponse(BaseModel):
-    """Schema for program assignment response."""
-    id: str
-    template_id: str
-    client_id: str
-    assigned_by: str
-    program_id: str
-    assignment_parameters: Dict[str, Any]
-    start_date: str
-    end_date: Optional[str]
-    status: str
-    completion_percentage: float
-    workouts_completed: int
-    workouts_total: int
-    current_week: int
-    current_day: int
-    created_at: str
-
-    class Config:
-        from_attributes = True
-
-
-class ProgramAssignmentListResponse(BaseModel):
-    """Schema for list of assignments response."""
-    assignments: List[ProgramAssignmentResponse]
-    total: int
-
-
 class ExerciseBase(BaseModel):
     """Base schema for exercise."""
     name: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
-    category: Optional[str] = Field(None, description="compound, isolation, cardio, mobility")
-    muscle_groups: List[str] = Field(default_factory=list)
-    equipment: List[str] = Field(default_factory=list)
+    description: str | None = None
+    category: str | None = Field(None, description="compound, isolation, cardio, mobility")
+    muscle_groups: list[str] = Field(default_factory=list)
+    equipment: list[str] = Field(default_factory=list)
 
-    video_url: Optional[str] = None
-    thumbnail_url: Optional[str] = None
+    video_url: str | None = None
+    thumbnail_url: str | None = None
 
     is_bilateral: bool = True
     is_timed: bool = False
     default_rest_seconds: int = 90
 
-    difficulty_level: Optional[str] = None
+    difficulty_level: str | None = None
 
 
 class ExerciseCreate(ExerciseBase):
@@ -380,8 +344,8 @@ class ExerciseCreate(ExerciseBase):
 class ExerciseResponse(ExerciseBase):
     """Schema for exercise response."""
     id: str
-    subscription_id: Optional[str]
-    created_by: Optional[str]
+    subscription_id: str | None
+    created_by: str | None
     is_global: bool
     is_verified: bool
     is_active: bool
@@ -394,7 +358,7 @@ class ExerciseResponse(ExerciseBase):
 
 class ExerciseListResponse(BaseModel):
     """Schema for list of exercises response."""
-    exercises: List[ExerciseResponse]
+    exercises: list[ExerciseResponse]
     total: int
     page: int = 1
     page_size: int = 50
@@ -415,9 +379,9 @@ class MovementParam(BaseModel):
 class GenerateForClientRequest(BaseModel):
     """Request to generate a client-specific program from a template."""
     client_id: str = Field(..., description="Client user UUID")
-    movements: List[MovementParam] = Field(..., min_items=1, max_items=4)
-    start_date: Optional[date] = Field(None, description="Program start date (defaults to today)")
-    notes: Optional[str] = Field(None, description="Coach notes for this assignment")
+    movements: list[MovementParam] = Field(..., min_items=1, max_items=4)
+    start_date: date | None = Field(None, description="Program start date (defaults to today)")
+    notes: str | None = Field(None, description="Coach notes for this assignment")
 
 
 class GenerateForClientResponse(BaseModel):
@@ -430,23 +394,23 @@ class GenerateForClientResponse(BaseModel):
 
 class UpdateExerciseRequest(BaseModel):
     """Partial update for a single exercise in a draft program."""
-    sets: Optional[int] = None
-    reps: Optional[int] = None
-    reps_target: Optional[int] = None
-    weight_lbs: Optional[float] = None
-    load_value: Optional[float] = None
-    notes: Optional[str] = None
+    sets: int | None = None
+    reps: int | None = None
+    reps_target: int | None = None
+    weight_lbs: float | None = None
+    load_value: float | None = None
+    notes: str | None = None
 
 
 class UpdateExerciseResponse(BaseModel):
     """Response after updating an exercise."""
     exercise_id: str
     sets: int
-    reps: Optional[int]
-    reps_target: Optional[int]
-    weight_lbs: Optional[float]
-    load_value: Optional[float]
-    notes: Optional[str]
+    reps: int | None
+    reps_target: int | None
+    weight_lbs: float | None
+    load_value: float | None
+    notes: str | None
     updated_at: str
 
 

@@ -53,6 +53,32 @@
   flex-wrap: wrap;
 }
 
+.gpv-session-toggle {
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  font-size: inherit;
+  transition: background 0.12s;
+}
+
+.gpv-session-toggle:hover {
+  background: #f0f2f5;
+}
+
+.gpv-chevron {
+  margin-left: auto;
+  font-size: 1rem;
+  color: #9ca3af;
+  transition: transform 0.18s;
+  flex-shrink: 0;
+}
+
+.gpv-chevron-collapsed {
+  transform: rotate(-90deg);
+}
+
 .gpv-day {
   font-weight: 700;
   font-size: 1rem;
@@ -145,6 +171,63 @@
 .gpv-swap-btn:hover {
   background: #f3f4f6;
   border-color: #9ca3af;
+}
+
+/* Session logged/next states */
+.gpv-session-logged {
+  opacity: 0.72;
+}
+
+.gpv-session-logged .gpv-session-header {
+  background: #f0fdf4;
+  border-bottom-color: #bbf7d0;
+}
+
+.gpv-session-next .gpv-session-header {
+  background: #eff6ff;
+  border-bottom-color: #bfdbfe;
+}
+
+/* No bottom border when collapsed — nothing below the header */
+.gpv-session-toggle[aria-expanded="false"] {
+  border-bottom: none;
+}
+
+.gpv-status-badge {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 2px 9px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.gpv-badge-logged {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.gpv-badge-next {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* Logged week tab */
+.gpv-week-tab.logged:not(.active) {
+  border-color: #bbf7d0;
+  color: #15803d;
+  background: #f0fdf4;
+}
+
+.gpv-week-done-note {
+  font-size: 0.82rem;
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  margin: 0;
 }
 
 /* Warnings */

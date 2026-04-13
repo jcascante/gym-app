@@ -51,6 +51,16 @@
   gap: 16px;
 }
 
+.mgp-link-btn {
+  background: none;
+  border: none;
+  color: #1976d2;
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: underline;
+}
+
 .mgp-list {
   display: flex;
   flex-direction: column;

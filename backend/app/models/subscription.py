@@ -4,11 +4,14 @@ Subscription database model.
 Defines the Subscription table structure representing the top-level tenant entity.
 Each subscription represents an individual coach, gym, or enterprise customer.
 """
-from sqlalchemy import Column, String, Enum as SQLEnum
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.types import TypeDecorator, Text
 import enum
 import json
+
+from sqlalchemy import Column, String
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.types import Text, TypeDecorator
+
 from app.models.base import BaseModel
 
 

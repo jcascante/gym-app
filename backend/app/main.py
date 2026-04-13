@@ -1,9 +1,16 @@
+import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
+from fastapi.responses import JSONResponse
+
 from app.core.config import settings
-from app.core.database import init_db, close_db
+from app.core.database import close_db, init_db
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -13,18 +20,30 @@ async def lifespan(app: FastAPI):
     Initializes database on startup and closes connections on shutdown.
     """
     # Import models here to ensure they're registered with SQLAlchemy
-    from app.models.user import User  # noqa: F401
-    from app.models.program import Program, ProgramWeek, ProgramDay, ProgramDayExercise  # noqa: F401
-    from app.models.coach_client_assignment import CoachClientAssignment  # noqa: F401
     from app.models.client_program_assignment import ClientProgramAssignment  # noqa: F401
-    from app.models.subscription import Subscription  # noqa: F401
-    from app.models.location import Location  # noqa: F401
-    from app.models.workout_log import WorkoutLog  # noqa: F401
+    from app.models.coach_client_assignment import CoachClientAssignment  # noqa: F401
     from app.models.exercise import Exercise  # noqa: F401
     from app.models.generated_plan import GeneratedPlan  # noqa: F401
+    from app.models.location import Location  # noqa: F401
+    from app.models.program import (  # noqa: F401
+        Program,
+        ProgramDay,
+        ProgramDayExercise,
+        ProgramWeek,
+    )
+    from app.models.subscription import Subscription  # noqa: F401
+    from app.models.user import User  # noqa: F401
+    from app.models.workout_exercise_log import WorkoutExerciseLog  # noqa: F401
+    from app.models.workout_log import WorkoutLog  # noqa: F401
 
     # Startup
     await init_db()
+
+    # Auto-seed in development so the app is usable out of the box
+    if settings.ENVIRONMENT == "development":
+        from app.core.seed import seed_all
+        await seed_all()
+
     yield
     # Shutdown
     await close_db()
@@ -87,6 +106,21 @@ app = FastAPI(
     }
 )
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    errors = exc.errors()
+    logger.error("422 Validation error on %s %s: %s", request.method, request.url.path, errors)
+    # Build human-readable messages
+    messages = []
+    for err in errors:
+        loc = " → ".join(str(x) for x in err.get("loc", []))
+        messages.append(f"{loc}: {err.get('msg', 'invalid value')}")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": errors, "messages": messages},
+    )
+
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -114,7 +148,21 @@ async def health_check():
 
 
 # Include API routers
-from app.api import auth, users, subscriptions, locations, programs, clients, coaches, workouts, exercises, engine_proxy, me_plans
+from app.api import (
+    assignments,
+    auth,
+    clients,
+    coaches,
+    engine_proxy,
+    exercises,
+    locations,
+    me_plans,
+    programs,
+    subscriptions,
+    templates,
+    users,
+    workouts,
+)
 
 app.include_router(
     auth.router,
@@ -182,9 +230,17 @@ app.include_router(
     tags=["My Generated Plans"]
 )
 
-# Additional routers will be added here as features are implemented
-# from app.api import assignments
-# app.include_router(assignments.router, prefix=f"{settings.API_V1_STR}/assignments", tags=["Coach-Client Assignments"])
+app.include_router(
+    templates.router,
+    prefix=f"{settings.API_V1_STR}/programs/templates",
+    tags=["Program Templates"],
+)
+
+app.include_router(
+    assignments.router,
+    prefix=f"{settings.API_V1_STR}/workouts/assignments",
+    tags=["Assignment Management"],
+)
 
 
 # Customize OpenAPI schema to add both OAuth2 and Bearer token authentication

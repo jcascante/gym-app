@@ -4,16 +4,16 @@ Strength Program Generator Service
 This is the SINGLE SOURCE OF TRUTH for program calculations.
 Frontend mirrors these calculations for preview, but backend regenerates on save.
 """
-from typing import Dict, Tuple
+
 from app.schemas.program import (
-    ProgramInputs,
-    MovementInput,
-    MovementCalculations,
-    ExerciseDetail,
+    CalculationConstants,
     DayDetail,
-    WeekDetail,
+    ExerciseDetail,
+    MovementCalculations,
+    MovementInput,
+    ProgramInputs,
     ProgramPreview,
-    CalculationConstants
+    WeekDetail,
 )
 
 
@@ -36,7 +36,7 @@ class StrengthProgramGenerator:
 
     # Maps max reps at 80% of 1RM → weekly progression percentage
     # Lower reps at 80% = less capacity = need bigger jumps to reach target
-    WEEKLY_JUMP_TABLE: Dict[int, int] = {
+    WEEKLY_JUMP_TABLE: dict[int, int] = {
         20: 2, 19: 2, 18: 2, 17: 2, 16: 2,
         15: 3, 14: 3, 13: 3, 12: 3, 11: 3,
         10: 4, 9: 4, 8: 4, 7: 4, 6: 4,
@@ -45,7 +45,7 @@ class StrengthProgramGenerator:
 
     # Maps max reps at 80% of 1RM → starting percentage for ramp-up test
     # Lower reps at 80% = less capacity = start heavier for 5RM test
-    RAMP_UP_TABLE: Dict[int, int] = {
+    RAMP_UP_TABLE: dict[int, int] = {
         20: 70, 19: 69, 18: 68, 17: 67, 16: 66,
         15: 65, 14: 64, 13: 63, 12: 62, 11: 61,
         10: 60, 9: 59, 8: 58, 7: 57, 6: 56,
@@ -53,7 +53,7 @@ class StrengthProgramGenerator:
     }
 
     # Sets and reps by week
-    PROTOCOL_BY_WEEK: Dict[int, Tuple[int, int]] = {
+    PROTOCOL_BY_WEEK: dict[int, tuple[int, int]] = {
         1: (5, 5), 2: (5, 5), 3: (5, 5), 4: (5, 5), 5: (5, 5),
         6: (3, 3),
         7: (2, 2),
@@ -107,7 +107,7 @@ class StrengthProgramGenerator:
     def _calculate_movement_data(
         cls,
         movements: list[MovementInput]
-    ) -> Dict[str, MovementCalculations]:
+    ) -> dict[str, MovementCalculations]:
         """
         Calculate progression parameters for each movement.
         Returns dict keyed by movement name.
@@ -143,7 +143,7 @@ class StrengthProgramGenerator:
     def _generate_weeks(
         cls,
         inputs: ProgramInputs,
-        calculated_data: Dict[str, MovementCalculations]
+        calculated_data: dict[str, MovementCalculations]
     ) -> list[WeekDetail]:
         """Generate all 8 weeks of training."""
         weeks = []
@@ -159,7 +159,7 @@ class StrengthProgramGenerator:
         cls,
         week_num: int,
         inputs: ProgramInputs,
-        calculated_data: Dict[str, MovementCalculations]
+        calculated_data: dict[str, MovementCalculations]
     ) -> WeekDetail:
         """Generate a single week of training."""
         week_name = cls._get_week_name(week_num)
@@ -197,7 +197,7 @@ class StrengthProgramGenerator:
         day_num: int,
         week_num: int,
         inputs: ProgramInputs,
-        calculated_data: Dict[str, MovementCalculations],
+        calculated_data: dict[str, MovementCalculations],
         sets: int,
         reps: int,
         is_heavy: bool

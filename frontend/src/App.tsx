@@ -9,13 +9,15 @@ import ProgramBuilder from './pages/ProgramBuilder';
 import Clients from './pages/Clients';
 import ClientDetail from './pages/ClientDetail';
 import Programs from './pages/Programs';
-import MyPrograms from './pages/MyPrograms';
-import ProgramDetails from './pages/ProgramDetails';
 import ProgramTemplateView from './pages/ProgramTemplateView';
 import ProgramDraftReview from './pages/ProgramDraftReview';
 import BuildProgram from './pages/BuildProgram';
-import MyGeneratedPlans from './pages/MyGeneratedPlans';
 import GeneratedPlanDetail from './pages/GeneratedPlanDetail';
+import { ProgramDayView } from './pages/ProgramDayView';
+import { TemplateLibrary } from './pages/TemplateLibrary';
+import { TemplateDetail } from './pages/TemplateDetail';
+import MyPrograms from './pages/MyPrograms';
+import { MyProgramDetail } from './pages/MyProgramDetail';
 
 function App() {
   return (
@@ -102,6 +104,56 @@ function App() {
             }
           />
           <Route
+            path="/build-program"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <BuildProgram />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-generated-plans/:planId"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <GeneratedPlanDetail />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/log/:assignmentId"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ProgramDayView />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/templates"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TemplateLibrary />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/templates/:source/:templateId"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TemplateDetail />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/my-programs"
             element={
               <ProtectedRoute>
@@ -116,37 +168,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <Layout>
-                  <ProgramDetails />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/build-program"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <BuildProgram />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/my-generated-plans"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <MyGeneratedPlans />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/my-generated-plans/:planId"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <GeneratedPlanDetail />
+                  <MyProgramDetail />
                 </Layout>
               </ProtectedRoute>
             }

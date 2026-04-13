@@ -61,3 +61,145 @@
 .gpd-save-msg { font-size: 0.85rem; }
 .gpd-save-msg.ok { color: #16a34a; }
 .gpd-save-msg.error { color: #dc2626; }
+
+/* ── Progress panel (shown when plan is active) ── */
+.gpd-progress-panel {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.gpd-progress-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.gpd-progress-label {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 0.15rem;
+}
+
+.gpd-progress-status {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.gpd-progress-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.gpd-progress-pct {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.gpd-log-btn {
+  padding: 0.45rem 1rem;
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.gpd-log-btn:hover { background: #1557b0; }
+
+.gpd-progress-bar-wrap { margin-bottom: 0.5rem; }
+
+.gpd-progress-bar {
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.gpd-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.gpd-progress-counts {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+/* ── Start form (shown when plan is not yet started) ── */
+.gpd-start-form {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.gpd-start-form h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.gpd-start-desc {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0 0 1.25rem;
+}
+
+.gpd-start-fields {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.gpd-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  color: #333;
+  flex: 1;
+  min-width: 180px;
+}
+
+.gpd-optional {
+  color: #999;
+  font-size: 0.8rem;
+}
+
+.gpd-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  outline: none;
+}
+
+.gpd-input:focus { border-color: #1a73e8; }
+
+.gpd-start-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: #2e7d32;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.gpd-start-btn:hover:not(:disabled) { background: #1b5e20; }
+
+.gpd-start-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -3,7 +3,9 @@ Engine proxy endpoints — forwards CLIENT requests to TrainGen Engine.
 Adds auth gate; no persistence here.
 """
 from typing import Any
+
 from fastapi import APIRouter, Depends
+
 from app.core.deps import get_client_user
 from app.models.user import User
 from app.services import engine_client

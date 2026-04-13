@@ -5,15 +5,16 @@ These dependency functions are used with FastAPI's Depends() to inject
 authenticated users into route handlers and enforce authorization rules based on
 roles and subscription context.
 """
-from typing import Optional
 from uuid import UUID
+
 from fastapi import Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
-from app.core.security import oauth2_scheme, decode_access_token
-from app.models.user import User, UserRole
+from app.core.security import decode_access_token, oauth2_scheme
 from app.models.subscription import Subscription, SubscriptionStatus
+from app.models.user import User, UserRole
 from app.schemas.auth import TokenPayload
 
 
@@ -46,8 +47,8 @@ async def get_current_user(
         payload = decode_access_token(token)
 
         # Extract user data from token
-        email: Optional[str] = payload.get("sub")
-        user_id: Optional[str] = payload.get("user_id")
+        email: str | None = payload.get("sub")
+        user_id: str | None = payload.get("user_id")
 
         if email is None or user_id is None:
             raise credentials_exception
@@ -272,7 +273,7 @@ def check_subscription_access(user: User, resource_subscription_id: UUID) -> Non
         )
 
 
-def check_location_access(user: User, resource_location_id: Optional[UUID]) -> None:
+def check_location_access(user: User, resource_location_id: UUID | None) -> None:
     """
     Helper function to verify user has access to a resource's location (ENTERPRISE only).
 

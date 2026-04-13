@@ -4,9 +4,12 @@ AuditLog database model.
 Defines the audit_log table for tracking all user actions and data changes.
 Immutable append-only log for compliance and debugging.
 """
-from sqlalchemy import Column, String, DateTime, ForeignKey, Index, Enum as SQLEnum
 import enum
-from app.models.base import BaseModel, GUID, get_utc_now
+
+from sqlalchemy import Column, DateTime, ForeignKey, Index, String
+from sqlalchemy import Enum as SQLEnum
+
+from app.models.base import GUID, BaseModel, get_utc_now
 from app.models.subscription import JSONBType
 
 

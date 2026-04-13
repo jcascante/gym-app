@@ -54,9 +54,7 @@ export default function Header() {
         <>
           <Link to="/dashboard" className="nav-link">{t('nav.dashboard')}</Link>
           <Link to="/my-programs" className="nav-link">My Programs</Link>
-          <Link to="/my-generated-plans" className="nav-link">My Plans</Link>
           <Link to="/build-program" className="nav-link">Build My Program</Link>
-          <Link to="/progress" className="nav-link">Progress</Link>
         </>
       );
     }
@@ -107,14 +105,8 @@ export default function Header() {
           <Link to="/my-programs" className="mobile-nav-link" onClick={closeMobileMenu}>
             My Programs
           </Link>
-          <Link to="/my-generated-plans" className="mobile-nav-link" onClick={closeMobileMenu}>
-            My Plans
-          </Link>
           <Link to="/build-program" className="mobile-nav-link" onClick={closeMobileMenu}>
             Build My Program
-          </Link>
-          <Link to="/progress" className="mobile-nav-link" onClick={closeMobileMenu}>
-            Progress
           </Link>
         </>
       );

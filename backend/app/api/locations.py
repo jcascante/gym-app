@@ -4,21 +4,18 @@ Locations API routes for ENTERPRISE subscriptions.
 Provides CRUD operations for location management.
 """
 from uuid import UUID
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.ext.asyncio import AsyncSession
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
-from app.core.deps import (
-    get_current_user,
-    get_subscription_admin_user,
-    check_subscription_access
-)
-from app.models.user import User, UserRole
+from app.core.deps import check_subscription_access, get_current_user, get_subscription_admin_user
 from app.models.location import Location
 from app.models.subscription import Subscription, SubscriptionType
+from app.models.user import User, UserRole
 from app.schemas.auth import MessageResponse
-from pydantic import BaseModel, Field, ConfigDict
 
 router = APIRouter()
 
@@ -26,9 +23,9 @@ router = APIRouter()
 # Location Schemas (inline for simplicity)
 class LocationBase(BaseModel):
     name: str = Field(..., max_length=255)
-    address: Optional[dict] = None
-    contact_info: Optional[dict] = None
-    settings: Optional[dict] = None
+    address: dict | None = None
+    contact_info: dict | None = None
+    settings: dict | None = None
 
 
 class LocationCreate(LocationBase):
@@ -36,11 +33,11 @@ class LocationCreate(LocationBase):
 
 
 class LocationUpdate(BaseModel):
-    name: Optional[str] = Field(None, max_length=255)
-    address: Optional[dict] = None
-    contact_info: Optional[dict] = None
-    settings: Optional[dict] = None
-    is_active: Optional[bool] = None
+    name: str | None = Field(None, max_length=255)
+    address: dict | None = None
+    contact_info: dict | None = None
+    settings: dict | None = None
+    is_active: bool | None = None
 
 
 class LocationResponse(LocationBase):
@@ -68,8 +65,8 @@ class LocationResponse(LocationBase):
     tags=["Locations"]
 )
 async def list_locations(
-    subscription_id: Optional[UUID] = Query(None, description="Filter by subscription (APPLICATION_SUPPORT only)"),
-    is_active: Optional[bool] = Query(None, description="Filter by active status"),
+    subscription_id: UUID | None = Query(None, description="Filter by subscription (APPLICATION_SUPPORT only)"),
+    is_active: bool | None = Query(None, description="Filter by active status"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -120,7 +117,7 @@ async def list_locations(
 )
 async def create_location(
     location_in: LocationCreate,
-    subscription_id: Optional[UUID] = Query(None, description="Subscription ID (APPLICATION_SUPPORT only)"),
+    subscription_id: UUID | None = Query(None, description="Subscription ID (APPLICATION_SUPPORT only)"),
     current_user: User = Depends(get_subscription_admin_user),
     db: AsyncSession = Depends(get_db)
 ):

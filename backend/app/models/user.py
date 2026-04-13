@@ -4,9 +4,12 @@ User database model.
 Defines the User table structure with authentication, profile, and role fields.
 Includes unique constraints and indexes for optimal query performance.
 """
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Index, Enum as SQLEnum
 import enum
-from app.models.base import BaseModel, GUID
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, String
+from sqlalchemy import Enum as SQLEnum
+
+from app.models.base import GUID, BaseModel
 from app.models.subscription import JSONBType
 
 

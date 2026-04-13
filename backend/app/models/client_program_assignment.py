@@ -4,10 +4,12 @@ Client Program Assignment database model.
 Tracks which programs are assigned to which clients, including assignment status,
 start/end dates, progress tracking, and completion.
 """
-from sqlalchemy import Column, String, Boolean, Integer, Date, ForeignKey, Index, Text
-from sqlalchemy.orm import relationship
-from app.models.base import BaseModel, GUID
 from datetime import date
+
+from sqlalchemy import Boolean, Column, Date, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy.orm import relationship
+
+from app.models.base import GUID, BaseModel
 
 
 class ClientProgramAssignment(BaseModel):
@@ -144,6 +146,34 @@ class ClientProgramAssignment(BaseModel):
         doc="Which day within the week (1-based)"
     )
 
+    # Progress counters (incremented by advance_progress())
+    workouts_completed = Column(
+        Integer,
+        nullable=False,
+        default=0,
+        doc="Number of days logged as completed",
+    )
+
+    workouts_skipped = Column(
+        Integer,
+        nullable=False,
+        default=0,
+        doc="Number of days logged as skipped",
+    )
+
+    # Client feedback
+    client_rating = Column(
+        Float,
+        nullable=True,
+        doc="Client rating of the overall program (1.0–5.0)",
+    )
+
+    client_feedback = Column(
+        Text,
+        nullable=True,
+        doc="Client free-text feedback on the program",
+    )
+
     # Activity flag
     is_active = Column(
         Boolean,
@@ -160,8 +190,8 @@ class ClientProgramAssignment(BaseModel):
         doc="Coach notes about this assignment"
     )
 
-    # Relationships (define these after all models are loaded to avoid circular imports)
-    # These will be added via back_populates in the respective models
+    # Relationships
+    program = relationship("Program", foreign_keys=[program_id], lazy="select")
 
     # Composite indexes for common queries
     __table_args__ = (
@@ -195,8 +225,26 @@ class ClientProgramAssignment(BaseModel):
 
     @property
     def progress_percentage(self) -> float:
-        """Calculate progress percentage based on current week."""
-        # This is a simple calculation - can be enhanced with actual workout completion
-        # Assuming program duration is stored in the related Program model
-        # For now, return 0 as placeholder
-        return 0.0
+        """(completed + skipped) / total_program_days * 100."""
+        total = self.workouts_completed + self.workouts_skipped
+        if total == 0:
+            return 0.0
+        # Derive total days from the related program if loaded; otherwise use counters only
+        try:
+            total_days = self.program.duration_weeks * self.program.days_per_week
+        except Exception:
+            return 0.0
+        return round(total / total_days * 100, 1) if total_days else 0.0
+
+    @property
+    def progress_health(self) -> str:
+        """green | yellow | red based on skip ratio."""
+        total = self.workouts_completed + self.workouts_skipped
+        if total == 0:
+            return "green"
+        skip_ratio = self.workouts_skipped / total
+        if skip_ratio <= 0.1:
+            return "green"
+        if skip_ratio <= 0.3:
+            return "yellow"
+        return "red"

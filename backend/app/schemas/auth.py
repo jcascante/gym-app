@@ -4,11 +4,9 @@ Authentication Pydantic schemas for login and token management.
 These schemas define the structure for authentication-related API requests and responses,
 including login credentials, JWT tokens, and token payloads.
 """
-from typing import Optional, Dict, Any
-from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
-from app.models.user import UserRole
-from app.models.subscription import SubscriptionType
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class LoginRequest(BaseModel):
@@ -56,7 +54,7 @@ class TokenResponse(BaseModel):
         description="Token type (always 'bearer' for JWT)",
         examples=["bearer"]
     )
-    user: Dict[str, Any] = Field(
+    user: dict[str, Any] = Field(
         ...,
         description="User information including role and subscription context",
         examples=[{
@@ -113,11 +111,11 @@ class TokenPayload(BaseModel):
         ...,
         description="User ID from token (UUID string)"
     )
-    subscription_id: Optional[str] = Field(
+    subscription_id: str | None = Field(
         None,
         description="Subscription ID (null for APPLICATION_SUPPORT)"
     )
-    location_id: Optional[str] = Field(
+    location_id: str | None = Field(
         None,
         description="Location ID (ENTERPRISE only)"
     )
@@ -125,23 +123,23 @@ class TokenPayload(BaseModel):
         ...,
         description="User role"
     )
-    subscription_type: Optional[str] = Field(
+    subscription_type: str | None = Field(
         None,
         description="Subscription type (INDIVIDUAL, GYM, ENTERPRISE)"
     )
-    features: Optional[Dict[str, Any]] = Field(
+    features: dict[str, Any] | None = Field(
         None,
         description="Subscription features enabled"
     )
-    limits: Optional[Dict[str, Any]] = Field(
+    limits: dict[str, Any] | None = Field(
         None,
         description="Subscription resource limits"
     )
-    exp: Optional[int] = Field(
+    exp: int | None = Field(
         None,
         description="Token expiration timestamp (Unix epoch)"
     )
-    iat: Optional[int] = Field(
+    iat: int | None = Field(
         None,
         description="Token issued at timestamp (Unix epoch)"
     )
@@ -245,7 +243,7 @@ class MessageResponse(BaseModel):
         description="Response message",
         examples=["Operation completed successfully"]
     )
-    detail: Optional[str] = Field(
+    detail: str | None = Field(
         None,
         description="Additional details about the response",
         examples=["User account has been successfully created"]

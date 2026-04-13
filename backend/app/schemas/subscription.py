@@ -1,11 +1,13 @@
 """
 Subscription Pydantic schemas for request/response validation.
 """
-from typing import Optional, Dict, Any
 from datetime import datetime
+from typing import Any
 from uuid import UUID
-from pydantic import BaseModel, Field, ConfigDict
-from app.models.subscription import SubscriptionType, SubscriptionStatus
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.models.subscription import SubscriptionStatus, SubscriptionType
 
 
 class SubscriptionBase(BaseModel):
@@ -23,12 +25,12 @@ class SubscriptionBase(BaseModel):
         description="Subscription tier (INDIVIDUAL, GYM, ENTERPRISE)",
         examples=[SubscriptionType.GYM]
     )
-    features: Dict[str, Any] = Field(
+    features: dict[str, Any] = Field(
         default_factory=dict,
         description="Feature flags enabled for this subscription",
         examples=[{"multi_location": False, "api_access": False}]
     )
-    limits: Dict[str, Any] = Field(
+    limits: dict[str, Any] = Field(
         default_factory=dict,
         description="Resource limits for this subscription",
         examples=[{"max_coaches": 25, "max_clients": 500, "storage_gb": 50}]
@@ -39,7 +41,7 @@ class SubscriptionCreate(SubscriptionBase):
     """
     Schema for subscription creation requests.
     """
-    billing_info: Optional[Dict[str, Any]] = Field(
+    billing_info: dict[str, Any] | None = Field(
         None,
         description="Billing information (payment method, billing cycle, etc.)",
         examples=[{"payment_method": "card", "billing_cycle": "monthly"}]
@@ -74,33 +76,33 @@ class SubscriptionUpdate(BaseModel):
     """
     Schema for updating subscription.
     """
-    name: Optional[str] = Field(
+    name: str | None = Field(
         None,
         max_length=255,
         description="Updated subscription name",
         examples=["PowerFit Gym - Downtown"]
     )
-    subscription_type: Optional[SubscriptionType] = Field(
+    subscription_type: SubscriptionType | None = Field(
         None,
         description="Updated subscription tier",
         examples=[SubscriptionType.ENTERPRISE]
     )
-    status: Optional[SubscriptionStatus] = Field(
+    status: SubscriptionStatus | None = Field(
         None,
         description="Updated subscription status",
         examples=[SubscriptionStatus.ACTIVE]
     )
-    features: Optional[Dict[str, Any]] = Field(
+    features: dict[str, Any] | None = Field(
         None,
         description="Updated feature flags",
         examples=[{"multi_location": True, "api_access": True}]
     )
-    limits: Optional[Dict[str, Any]] = Field(
+    limits: dict[str, Any] | None = Field(
         None,
         description="Updated resource limits",
         examples=[{"max_coaches": 50, "max_clients": 1000}]
     )
-    billing_info: Optional[Dict[str, Any]] = Field(
+    billing_info: dict[str, Any] | None = Field(
         None,
         description="Updated billing information",
         examples=[{"payment_method": "card", "billing_cycle": "annual"}]
@@ -143,17 +145,17 @@ class SubscriptionResponse(BaseModel):
         description="Subscription status",
         examples=[SubscriptionStatus.ACTIVE]
     )
-    features: Dict[str, Any] = Field(
+    features: dict[str, Any] = Field(
         ...,
         description="Feature flags",
         examples=[{"multi_location": False, "api_access": False}]
     )
-    limits: Dict[str, Any] = Field(
+    limits: dict[str, Any] = Field(
         ...,
         description="Resource limits",
         examples=[{"max_coaches": 25, "max_clients": 500}]
     )
-    billing_info: Optional[Dict[str, Any]] = Field(
+    billing_info: dict[str, Any] | None = Field(
         None,
         description="Billing information",
         examples=[{"payment_method": "card", "billing_cycle": "monthly"}]

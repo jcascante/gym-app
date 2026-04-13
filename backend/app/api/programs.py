@@ -6,27 +6,27 @@ Provides three key endpoints:
 2. POST /preview - Calculate program preview without saving
 3. POST / - Calculate and save program to database
 """
-from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, get_db
 from app.models.user import User
 from app.schemas.program import (
-    ProgramInputs,
-    ProgramPreview,
     CalculationConstants,
-    ProgramResponse,
-    ProgramListResponse,
-    ProgramDetailResponse,
-    WeekDetail,
     DayDetail,
     ExerciseDetail,
     GenerateForClientRequest,
     GenerateForClientResponse,
+    ProgramDetailResponse,
+    ProgramInputs,
+    ProgramListResponse,
+    ProgramPreview,
+    ProgramResponse,
+    PublishProgramResponse,
     UpdateExerciseRequest,
     UpdateExerciseResponse,
-    PublishProgramResponse,
+    WeekDetail,
 )
 from app.schemas.program_assignment import AssignProgramRequest, AssignProgramResponse
 from app.services.strength_program_generator import StrengthProgramGenerator
@@ -170,7 +170,7 @@ async def create_program(
     """
     try:
         # Import models here to avoid circular imports
-        from app.models.program import Program, ProgramWeek, ProgramDay, ProgramDayExercise
+        from app.models.program import Program, ProgramDay, ProgramDayExercise, ProgramWeek
 
         # 1. Generate preview using StrengthProgramGenerator (backend is source of truth)
         preview = StrengthProgramGenerator.generate_preview(inputs)
@@ -250,8 +250,10 @@ async def create_program(
         # 6. If client_id provided, create a client-specific draft + assignment
         assignment_id = None
         if inputs.client_id:
+            from datetime import date as date_type
+            from datetime import timedelta
             from uuid import UUID
-            from datetime import timedelta, date as date_type
+
             from app.models.client_program_assignment import ClientProgramAssignment
 
             program.is_template = False
@@ -346,12 +348,14 @@ async def assign_program_to_client(
     current_user: User = Depends(get_current_user)
 ):
     """Assign a program to a client."""
+    from datetime import date, timedelta
     from uuid import UUID
-    from datetime import timedelta, date
-    from app.models.program import Program
-    from app.models.coach_client_assignment import CoachClientAssignment
+
+    from sqlalchemy import and_, select
+
     from app.models.client_program_assignment import ClientProgramAssignment
-    from sqlalchemy import select, and_
+    from app.models.coach_client_assignment import CoachClientAssignment
+    from app.models.program import Program
 
     # Convert string UUID to UUID object
     try:
@@ -470,13 +474,14 @@ async def assign_program_to_client(
 )
 async def list_programs(
     is_template: bool = True,
-    search: Optional[str] = None,
+    search: str | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """List programs for the coach's subscription."""
+    from sqlalchemy import and_, select
+
     from app.models.program import Program
-    from sqlalchemy import select, and_, func
 
     query = select(Program).where(
         and_(
@@ -538,9 +543,11 @@ async def get_program(
 ):
     """Get full program structure."""
     from uuid import UUID
-    from app.models.program import Program, ProgramWeek, ProgramDay, ProgramDayExercise
-    from sqlalchemy import select, and_
+
+    from sqlalchemy import and_, select
     from sqlalchemy.orm import selectinload
+
+    from app.models.program import Program, ProgramDay, ProgramWeek
 
     try:
         program_uuid = UUID(program_id)
@@ -583,6 +590,7 @@ async def get_program(
                     notes=ex.notes or ""
                 ))
             days.append(DayDetail(
+                id=str(day.id),
                 day_number=day.day_number,
                 name=day.name,
                 suggested_day_of_week=str(day.suggested_day_of_week) if day.suggested_day_of_week else None,
@@ -632,11 +640,13 @@ async def delete_program(
     current_user: User = Depends(get_current_user)
 ):
     """Archive a program (soft delete)."""
-    from uuid import UUID
     from datetime import datetime
-    from app.models.program import Program
+    from uuid import UUID
+
+    from sqlalchemy import and_, select
+
     from app.models.client_program_assignment import ClientProgramAssignment
-    from sqlalchemy import select, and_
+    from app.models.program import Program
 
     try:
         program_uuid = UUID(program_id)
@@ -709,14 +719,17 @@ async def generate_for_client(
     current_user: User = Depends(get_current_user)
 ):
     """Generate a personalized draft program for a client from a template."""
+    from datetime import date as date_type
+    from datetime import timedelta
     from uuid import UUID
-    from datetime import timedelta, date as date_type
-    from app.models.program import Program, ProgramWeek, ProgramDay, ProgramDayExercise
-    from app.models.coach_client_assignment import CoachClientAssignment
+
+    from sqlalchemy import and_, select
+
     from app.models.client_program_assignment import ClientProgramAssignment
+    from app.models.coach_client_assignment import CoachClientAssignment
+    from app.models.program import Program, ProgramDay, ProgramDayExercise, ProgramWeek
     from app.models.user import User as UserModel
-    from app.schemas.program import ProgramInputs, MovementInput
-    from sqlalchemy import select, and_
+    from app.schemas.program import MovementInput, ProgramInputs
 
     try:
         template_uuid = UUID(template_id)
@@ -913,10 +926,10 @@ async def update_program_exercise(
 ):
     """Partially update an exercise in a draft program."""
     from uuid import UUID
-    from datetime import datetime
-    from app.models.program import Program, ProgramDayExercise
-    from app.models.program import ProgramDay, ProgramWeek
-    from sqlalchemy import select, and_
+
+    from sqlalchemy import and_, select
+
+    from app.models.program import Program, ProgramDay, ProgramDayExercise, ProgramWeek
 
     try:
         program_uuid = UUID(program_id)
@@ -1001,10 +1014,12 @@ async def publish_program(
     current_user: User = Depends(get_current_user)
 ):
     """Publish a draft program so the client can see it."""
-    from uuid import UUID
     from datetime import datetime
+    from uuid import UUID
+
+    from sqlalchemy import and_, select
+
     from app.models.program import Program
-    from sqlalchemy import select, and_
 
     try:
         program_uuid = UUID(program_id)

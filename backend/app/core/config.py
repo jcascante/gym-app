@@ -1,5 +1,6 @@
+from typing import Literal
+
 from pydantic_settings import BaseSettings
-from typing import List, Literal
 
 
 class Settings(BaseSettings):
@@ -11,7 +12,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: Literal["development", "production"] = "development"
 
     # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]
+    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
 
     # Database - can be set directly via DATABASE_URL env var, or falls back to environment-based defaults
     DATABASE_URL: str = "sqlite+aiosqlite:///./gym_app.db"

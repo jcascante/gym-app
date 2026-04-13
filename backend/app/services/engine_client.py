@@ -3,9 +3,11 @@ Async HTTP client for the TrainGen Engine.
 All methods are thin wrappers that normalize errors.
 The engine is stateless and requires no auth headers.
 """
-import httpx
 from typing import Any
+
+import httpx
 from fastapi import HTTPException, status
+
 from app.core.config import settings
 
 

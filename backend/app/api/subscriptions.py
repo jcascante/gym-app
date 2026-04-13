@@ -4,20 +4,17 @@ Subscriptions API routes with role-based access control.
 Provides CRUD operations for subscription management.
 """
 from uuid import UUID
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+
 from app.core.database import get_db
-from app.core.deps import (
-    get_current_user,
-    get_application_support_user,
-    check_subscription_access
-)
+from app.core.deps import check_subscription_access, get_application_support_user, get_current_user
+from app.models.subscription import Subscription, SubscriptionStatus, SubscriptionType
 from app.models.user import User, UserRole
-from app.models.subscription import Subscription, SubscriptionType, SubscriptionStatus
-from app.schemas.subscription import SubscriptionCreate, SubscriptionUpdate, SubscriptionResponse
 from app.schemas.auth import MessageResponse
+from app.schemas.subscription import SubscriptionCreate, SubscriptionResponse, SubscriptionUpdate
 
 router = APIRouter()
 
@@ -38,8 +35,8 @@ router = APIRouter()
 async def list_subscriptions(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
-    subscription_type: Optional[SubscriptionType] = Query(None, description="Filter by type"),
-    status: Optional[SubscriptionStatus] = Query(None, description="Filter by status"),
+    subscription_type: SubscriptionType | None = Query(None, description="Filter by type"),
+    status: SubscriptionStatus | None = Query(None, description="Filter by status"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):

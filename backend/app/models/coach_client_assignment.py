@@ -4,8 +4,9 @@ CoachClientAssignment database model.
 Defines the coach-client relationship for GYM and ENTERPRISE subscriptions.
 Tracks which coaches are assigned to which clients.
 """
-from sqlalchemy import Column, Boolean, DateTime, ForeignKey, Index
-from app.models.base import BaseModel, GUID, get_utc_now
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index
+
+from app.models.base import GUID, BaseModel, get_utc_now
 
 
 class CoachClientAssignment(BaseModel):

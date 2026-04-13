@@ -4,11 +4,11 @@ Client management Pydantic schemas for coach workflows.
 These schemas define simplified client creation and management for coaches,
 focusing on the minimal data needed to quickly add clients and start building programs.
 """
-from typing import Optional, Dict, Any
-from datetime import datetime, date
+from datetime import date, datetime
+from typing import Any
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 # ============================================================================
 # Client Creation (Minimal)
@@ -36,7 +36,7 @@ class CreateClientRequest(BaseModel):
         max_length=100,
         description="Client's last name"
     )
-    phone_number: Optional[str] = Field(
+    phone_number: str | None = Field(
         None,
         max_length=20,
         description="Client's phone number (optional)"
@@ -106,19 +106,19 @@ class ClientBasicInfo(BaseModel):
     """Basic client information."""
     first_name: str
     last_name: str
-    date_of_birth: Optional[date] = None
-    gender: Optional[str] = Field(None, pattern="^(male|female|other|prefer_not_to_say)$")
-    phone_number: Optional[str] = None
+    date_of_birth: date | None = None
+    gender: str | None = Field(None, pattern="^(male|female|other|prefer_not_to_say)$")
+    phone_number: str | None = None
 
 
 class ClientAnthropometrics(BaseModel):
     """Client body measurements."""
-    current_weight: Optional[float] = Field(None, gt=0)
-    current_height: Optional[float] = Field(None, gt=0)
+    current_weight: float | None = Field(None, gt=0)
+    current_height: float | None = Field(None, gt=0)
     weight_unit: str = Field(default="lbs", pattern="^(lbs|kg)$")
     height_unit: str = Field(default="inches", pattern="^(inches|cm)$")
-    body_fat_percentage: Optional[float] = Field(None, ge=0, le=100)
-    goal_weight: Optional[float] = Field(None, gt=0)
+    body_fat_percentage: float | None = Field(None, ge=0, le=100)
+    goal_weight: float | None = Field(None, gt=0)
 
 
 class OneRepMax(BaseModel):
@@ -134,23 +134,23 @@ class OneRepMax(BaseModel):
 
 class ClientTrainingExperience(BaseModel):
     """Client's training history and experience."""
-    overall_experience_level: Optional[str] = Field(
+    overall_experience_level: str | None = Field(
         None,
         pattern="^(beginner|novice|intermediate|advanced|elite)$"
     )
-    years_training: Optional[float] = Field(None, ge=0)
-    strength_training_experience: Optional[str] = None
-    one_rep_maxes: Dict[str, OneRepMax] = Field(
+    years_training: float | None = Field(None, ge=0)
+    strength_training_experience: str | None = None
+    one_rep_maxes: dict[str, OneRepMax] = Field(
         default_factory=dict,
         description="Dictionary mapping exercise name to 1RM data"
     )
-    current_training_frequency: Optional[int] = Field(None, ge=0, le=7)
+    current_training_frequency: int | None = Field(None, ge=0, le=7)
 
 
 class ClientInjury(BaseModel):
     """Single injury record."""
     injury: str
-    injury_date: Optional[date] = None
+    injury_date: date | None = None
     recovery_status: str = Field(
         ...,
         pattern="^(fully_recovered|recovering|chronic|requires_modification)$"
@@ -159,7 +159,7 @@ class ClientInjury(BaseModel):
         default_factory=list,
         description="List of exercises that should be modified or avoided"
     )
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 class ClientHealthInfo(BaseModel):
@@ -168,23 +168,23 @@ class ClientHealthInfo(BaseModel):
         default=False,
         description="Whether client has medical clearance to train"
     )
-    clearance_date: Optional[date] = None
+    clearance_date: date | None = None
     injuries: list[ClientInjury] = Field(default_factory=list)
-    medical_conditions: list[Dict[str, Any]] = Field(default_factory=list)
-    medications: list[Dict[str, Any]] = Field(default_factory=list)
+    medical_conditions: list[dict[str, Any]] = Field(default_factory=list)
+    medications: list[dict[str, Any]] = Field(default_factory=list)
     allergies: list[str] = Field(default_factory=list)
 
 
 class ClientTrainingPreferences(BaseModel):
     """Client's training preferences and availability."""
-    available_days_per_week: Optional[int] = Field(None, ge=1, le=7)
+    available_days_per_week: int | None = Field(None, ge=1, le=7)
     preferred_training_days: list[str] = Field(default_factory=list)
-    session_duration: Optional[int] = Field(
+    session_duration: int | None = Field(
         None,
         gt=0,
         description="Preferred session length in minutes"
     )
-    gym_access: Optional[str] = Field(
+    gym_access: str | None = Field(
         None,
         pattern="^(full_gym|home_gym|minimal_equipment|bodyweight_only)$"
     )
@@ -195,14 +195,14 @@ class ClientTrainingPreferences(BaseModel):
 
 class ClientFitnessGoals(BaseModel):
     """Client's fitness goals and motivation."""
-    primary_goal: Optional[str] = Field(
+    primary_goal: str | None = Field(
         None,
         pattern="^(strength|hypertrophy|fat_loss|athletic_performance|general_fitness|rehabilitation)$"
     )
     secondary_goals: list[str] = Field(default_factory=list)
-    specific_goals: Optional[str] = None
-    target_date: Optional[date] = None
-    motivation: Optional[str] = None
+    specific_goals: str | None = None
+    target_date: date | None = None
+    motivation: str | None = None
 
 
 class ClientProfile(BaseModel):
@@ -212,13 +212,13 @@ class ClientProfile(BaseModel):
     This schema defines the structure for the User.profile JSONB field
     when the user role is CLIENT.
     """
-    basic_info: Optional[ClientBasicInfo] = None
-    anthropometrics: Optional[ClientAnthropometrics] = None
-    training_experience: Optional[ClientTrainingExperience] = None
-    fitness_goals: Optional[ClientFitnessGoals] = None
-    health_info: Optional[ClientHealthInfo] = None
-    training_preferences: Optional[ClientTrainingPreferences] = None
-    notes: Optional[Dict[str, str]] = Field(
+    basic_info: ClientBasicInfo | None = None
+    anthropometrics: ClientAnthropometrics | None = None
+    training_experience: ClientTrainingExperience | None = None
+    fitness_goals: ClientFitnessGoals | None = None
+    health_info: ClientHealthInfo | None = None
+    training_preferences: ClientTrainingPreferences | None = None
+    notes: dict[str, str] | None = Field(
         default_factory=dict,
         description="Coach notes and client notes"
     )
@@ -229,13 +229,13 @@ class ClientProfileUpdate(BaseModel):
     Partial update schema for client profile.
     All fields are optional to allow granular updates.
     """
-    basic_info: Optional[ClientBasicInfo] = None
-    anthropometrics: Optional[ClientAnthropometrics] = None
-    training_experience: Optional[ClientTrainingExperience] = None
-    fitness_goals: Optional[ClientFitnessGoals] = None
-    health_info: Optional[ClientHealthInfo] = None
-    training_preferences: Optional[ClientTrainingPreferences] = None
-    notes: Optional[Dict[str, str]] = None
+    basic_info: ClientBasicInfo | None = None
+    anthropometrics: ClientAnthropometrics | None = None
+    training_experience: ClientTrainingExperience | None = None
+    fitness_goals: ClientFitnessGoals | None = None
+    health_info: ClientHealthInfo | None = None
+    training_preferences: ClientTrainingPreferences | None = None
+    notes: dict[str, str] | None = None
 
 
 # ============================================================================
@@ -251,14 +251,14 @@ class ClientSummary(BaseModel):
     first_name: str
     last_name: str
     name: str = Field(..., description="Full name (first + last)")
-    profile_photo: Optional[str] = Field(None, description="URL to profile photo")
+    profile_photo: str | None = Field(None, description="URL to profile photo")
 
     # Quick stats
     active_programs: int = Field(
         default=0,
         description="Number of active programs assigned"
     )
-    last_workout: Optional[datetime] = Field(
+    last_workout: datetime | None = Field(
         None,
         description="When client last logged a workout"
     )
@@ -329,7 +329,7 @@ class ClientDetailResponse(BaseModel):
     """
     id: UUID
     email: EmailStr
-    profile: Optional[ClientProfile] = None
+    profile: ClientProfile | None = None
     is_active: bool
 
     # Assignment info
@@ -340,10 +340,10 @@ class ClientDetailResponse(BaseModel):
     active_programs: int = Field(default=0)
     completed_programs: int = Field(default=0)
     total_workouts: int = Field(default=0)
-    last_workout: Optional[datetime] = None
+    last_workout: datetime | None = None
 
     # Account status
-    last_login_at: Optional[datetime] = None
+    last_login_at: datetime | None = None
     created_at: datetime
 
     model_config = ConfigDict(

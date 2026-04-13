@@ -5,11 +5,12 @@ Provides business logic for logging workouts, retrieving workout history,
 and calculating fitness statistics.
 """
 from datetime import datetime, timedelta
-from typing import Optional, List
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc, func, and_
-from app.models import WorkoutLog, WorkoutStatus, ClientProgramAssignment
 from uuid import UUID
+
+from sqlalchemy import and_, desc, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models import WorkoutLog, WorkoutStatus
 
 
 class WorkoutService:
@@ -22,12 +23,12 @@ class WorkoutService:
         client_id: UUID,
         assignment_id: UUID,
         program_id: UUID,
-        coach_id: Optional[UUID] = None,
+        coach_id: UUID | None = None,
         status: WorkoutStatus = WorkoutStatus.COMPLETED,
-        duration_minutes: Optional[str] = None,
-        notes: Optional[str] = None,
-        workout_date: Optional[datetime] = None,
-        created_by: Optional[UUID] = None,
+        duration_minutes: str | None = None,
+        notes: str | None = None,
+        workout_date: datetime | None = None,
+        created_by: UUID | None = None,
     ) -> WorkoutLog:
         """
         Create a new workout log entry.
@@ -73,7 +74,7 @@ class WorkoutService:
     async def get_workout_log(
         db: AsyncSession,
         workout_id: UUID,
-    ) -> Optional[WorkoutLog]:
+    ) -> WorkoutLog | None:
         """
         Get a specific workout log by ID.
 
@@ -94,8 +95,8 @@ class WorkoutService:
         client_id: UUID,
         limit: int = 20,
         offset: int = 0,
-        status_filter: Optional[WorkoutStatus] = None,
-    ) -> tuple[List[WorkoutLog], int]:
+        status_filter: WorkoutStatus | None = None,
+    ) -> tuple[list[WorkoutLog], int]:
         """
         Get workout history for a client.
 
@@ -137,7 +138,7 @@ class WorkoutService:
         client_id: UUID,
         days: int = 7,
         limit: int = 10,
-    ) -> List[WorkoutLog]:
+    ) -> list[WorkoutLog]:
         """
         Get recent workouts for a client within specified days.
 
@@ -233,11 +234,11 @@ class WorkoutService:
     async def update_workout_log(
         db: AsyncSession,
         workout_id: UUID,
-        status: Optional[WorkoutStatus] = None,
-        duration_minutes: Optional[str] = None,
-        notes: Optional[str] = None,
-        updated_by: Optional[UUID] = None,
-    ) -> Optional[WorkoutLog]:
+        status: WorkoutStatus | None = None,
+        duration_minutes: str | None = None,
+        notes: str | None = None,
+        updated_by: UUID | None = None,
+    ) -> WorkoutLog | None:
         """
         Update a workout log.
 
@@ -296,7 +297,7 @@ class WorkoutService:
         db: AsyncSession,
         assignment_id: UUID,
         limit: int = 50,
-    ) -> List[WorkoutLog]:
+    ) -> list[WorkoutLog]:
         """
         Get all workouts for a program assignment.
 

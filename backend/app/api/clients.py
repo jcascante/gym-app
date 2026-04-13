@@ -4,34 +4,34 @@ Client management API endpoints for coaches.
 These endpoints allow coaches to manage their assigned clients,
 including creating new clients, viewing client lists, and updating client profiles.
 """
-from typing import List, Optional
+import secrets
+import string
 from uuid import UUID
-from datetime import datetime, date
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
-from app.core.database import get_db
+
 from app.core.config import settings
-from app.core.deps import get_current_user, get_coach_or_admin_user
-from app.models.user import User, UserRole
+from app.core.database import get_db
+from app.core.deps import get_coach_or_admin_user
+from app.core.security import get_password_hash
 from app.models.coach_client_assignment import CoachClientAssignment
+from app.models.user import User, UserRole
 from app.schemas.client import (
+    ClientDetailResponse,
+    ClientListResponse,
+    ClientProfileUpdate,
+    ClientSummary,
     CreateClientRequest,
     CreateClientResponse,
-    ClientListResponse,
-    ClientSummary,
-    ClientDetailResponse,
-    ClientProfileUpdate,
-    UpdateOneRepMaxRequest,
     OneRepMaxResponse,
+    UpdateOneRepMaxRequest,
 )
 from app.schemas.program_assignment import (
     ClientProgramsListResponse,
     ProgramAssignmentSummary,
 )
-from app.core.security import get_password_hash
-import secrets
-import string
 
 router = APIRouter(prefix="/coaches/me/clients", tags=["Client Management"])
 
@@ -193,8 +193,8 @@ async def create_or_find_client(
 async def list_my_clients(
     current_user: User = Depends(get_coach_or_admin_user),
     db: AsyncSession = Depends(get_db),
-    status_filter: Optional[str] = Query(None, description="Filter by status: active, inactive, new"),
-    search: Optional[str] = Query(None, description="Search by name or email"),
+    status_filter: str | None = Query(None, description="Filter by status: active, inactive, new"),
+    search: str | None = Query(None, description="Search by name or email"),
 ):
     """
     Get list of all clients assigned to current coach.
@@ -260,7 +260,7 @@ async def list_my_clients(
         # Count active programs for this client
         from app.models.client_program_assignment import ClientProgramAssignment
         from app.services.workout_service import WorkoutService
-        
+
         active_programs_result = await db.execute(
             select(func.count(ClientProgramAssignment.id)).where(
                 and_(
@@ -561,7 +561,7 @@ async def get_client_programs(
     client_id: UUID,
     current_user: User = Depends(get_coach_or_admin_user),
     db: AsyncSession = Depends(get_db),
-    status_filter: Optional[str] = Query(None, description="Filter by status: assigned, in_progress, completed, paused, cancelled"),
+    status_filter: str | None = Query(None, description="Filter by status: assigned, in_progress, completed, paused, cancelled"),
 ):
     """
     Get all programs assigned to a specific client.
@@ -801,10 +801,10 @@ async def get_client_workout_history(
 
     **Required permissions**: COACH (own clients) or SUBSCRIPTION_ADMIN
     """
-    from app.models.workout_log import WorkoutLog
-    from app.models.client_program_assignment import ClientProgramAssignment
+    from sqlalchemy import and_, desc, select
+
     from app.models.program import Program
-    from sqlalchemy import select, and_, desc
+    from app.models.workout_log import WorkoutLog
 
     # Verify coach–client relationship
     result = await db.execute(

@@ -53,9 +53,12 @@ cd backend && uv run alembic revision --autogenerate -m "description"
 # Apply migrations
 cd backend && uv run alembic upgrade head
 
-# Recreate DB after model changes (dev only)
-cd backend && uv run python -c "import asyncio; from app.core.database import init_db; asyncio.run(init_db())"
+# Recreate DB after model changes (dev only — seed runs automatically on next startup)
+cd backend && rm -f gym_app.db && uv run python -c "import asyncio; from app.core.database import init_db; asyncio.run(init_db())"
 cd backend && uv run alembic stamp <revision_id>  # re-sync alembic state after create_all
+
+# Seed manually (normally not needed — auto-seeds on startup in development)
+cd backend && uv run python app/core/seed.py
 ```
 
 ### Docker (full stack)

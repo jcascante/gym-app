@@ -4,25 +4,29 @@ Workout endpoints for logging and tracking workouts.
 Provides REST API for managing workout logs, retrieving workout history,
 and calculating fitness statistics.
 """
-from typing import Optional
 from uuid import UUID
-from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.config import settings
 from app.core.deps import get_current_user
 from app.models import User, UserRole, WorkoutStatus
-from app.services.workout_service import WorkoutService
 from app.schemas.workout import (
-    WorkoutLogCreate,
-    WorkoutLogUpdate,
-    WorkoutLogResponse,
-    WorkoutHistoryResponse,
-    WorkoutStatsResponse,
     RecentWorkoutResponse,
+    WorkoutHistoryResponse,
+    WorkoutLogCreate,
+    WorkoutLogResponse,
+    WorkoutLogUpdate,
+    WorkoutStatsResponse,
 )
+from app.schemas.workout_exercise_log import (
+    ExerciseLogResponse,
+    SetLogResponse,
+    WorkoutLogExtendedRequest,
+    WorkoutLogExtendedResponse,
+)
+from app.services.workout_service import WorkoutService
 
 router = APIRouter()
 
@@ -79,6 +83,7 @@ async def create_workout_log(
     """
     # Get the assignment to validate and extract necessary IDs
     from sqlalchemy import select
+
     from app.models import ClientProgramAssignment
 
     stmt = select(ClientProgramAssignment).where(
@@ -131,6 +136,112 @@ async def create_workout_log(
 
 
 
+@router.post(
+    "/log",
+    status_code=status.HTTP_201_CREATED,
+    summary="Log a full workout session with per-set exercise data",
+    tags=["Workouts"],
+)
+async def create_extended_workout_log(
+    request: WorkoutLogExtendedRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Extended workout log endpoint. Creates:
+    - WorkoutLog with day_status / session_rating / program_day_id
+    - WorkoutExerciseLog rows (one per set)
+    - Calls advance_progress() on the assignment → auto-advances current_week/current_day
+    """
+    from datetime import datetime as dt_type
+
+    from sqlalchemy import select as sa_select
+
+    from app.models import ClientProgramAssignment
+    from app.models.workout_exercise_log import WorkoutExerciseLog
+    from app.models.workout_log import WorkoutLog
+    from app.services.assignment_service import advance_progress
+
+    assignment_uuid = UUID(request.assignment_id)
+    stmt = sa_select(ClientProgramAssignment).where(ClientProgramAssignment.id == assignment_uuid)
+    result = await db.execute(stmt)
+    assignment = result.scalar_one_or_none()
+
+    if not assignment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assignment not found")
+
+    if current_user.role == UserRole.CLIENT and assignment.client_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot log for another client")
+
+    program_day_uuid = UUID(request.program_day_id) if request.program_day_id else None
+
+    workout = WorkoutLog(
+        subscription_id=current_user.subscription_id,
+        client_id=assignment.client_id,
+        client_program_assignment_id=assignment_uuid,
+        program_id=assignment.program_id,
+        program_day_id=program_day_uuid,
+        coach_id=current_user.id if current_user.role == UserRole.COACH else None,
+        status=WorkoutStatus.COMPLETED if request.day_status == "completed" else WorkoutStatus.SKIPPED,
+        day_status=request.day_status,
+        duration_minutes=request.duration_minutes,
+        session_rating=request.session_rating,
+        notes=request.notes,
+        workout_date=dt_type.utcnow(),
+        created_by=current_user.id,
+        updated_by=current_user.id,
+    )
+    db.add(workout)
+    await db.flush()
+
+    # Create per-set exercise logs
+    now = dt_type.utcnow()
+    for ex_log in request.exercise_logs:
+        pde_uuid = UUID(ex_log.program_day_exercise_id) if ex_log.program_day_exercise_id else None
+        for set_data in ex_log.sets:
+            set_log = WorkoutExerciseLog(
+                subscription_id=current_user.subscription_id,
+                workout_log_id=workout.id,
+                program_day_exercise_id=pde_uuid,
+                exercise_name=ex_log.exercise_name,
+                set_number=set_data.set_number,
+                actual_reps=set_data.actual_reps,
+                actual_weight_lbs=set_data.actual_weight_lbs,
+                actual_rpe=set_data.actual_rpe,
+                notes=set_data.notes,
+                completed_at=now,
+                created_by=current_user.id,
+                updated_by=current_user.id,
+            )
+            db.add(set_log)
+
+    # Auto-advance assignment position
+    updated_assignment = await advance_progress(
+        assignment_id=assignment_uuid,
+        day_status=request.day_status,
+        db=db,
+    )
+
+    await db.commit()
+    await db.refresh(workout)
+    await db.refresh(updated_assignment)
+
+    return WorkoutLogExtendedResponse(
+        workout_log_id=str(workout.id),
+        assignment_id=str(assignment_uuid),
+        program_day_id=str(program_day_uuid) if program_day_uuid else None,
+        day_status=workout.day_status,
+        duration_minutes=workout.duration_minutes,
+        session_rating=workout.session_rating,
+        exercise_logs=[],  # omit full set data from response for brevity
+        current_week=updated_assignment.current_week,
+        current_day=updated_assignment.current_day,
+        assignment_status=updated_assignment.status,
+        progress_percentage=updated_assignment.progress_percentage,
+        progress_health=updated_assignment.progress_health,
+    )
+
+
 @router.get(
     "/assignments/{assignment_id}/workouts",
     response_model=list[WorkoutLogResponse],
@@ -149,6 +260,7 @@ async def get_workouts_for_assignment(
     retrieve workouts for assignments they created/own.
     """
     from sqlalchemy import select
+
     from app.models import ClientProgramAssignment
 
     stmt = select(ClientProgramAssignment).where(ClientProgramAssignment.id == assignment_id)
@@ -244,6 +356,76 @@ async def get_recent_workouts(
 
 
 @router.get(
+    "/{workout_id}/detail",
+    summary="Get full workout detail including per-set exercise logs",
+    tags=["Workouts"],
+)
+async def get_workout_detail(
+    workout_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Returns a workout log together with all per-set exercise data.
+    Used to pre-fill the re-log form with previously recorded values.
+    """
+    from collections import defaultdict
+
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
+
+    from app.models.workout_log import WorkoutLog
+
+    result = await db.execute(
+        select(WorkoutLog)
+        .options(selectinload(WorkoutLog.exercise_logs))
+        .where(WorkoutLog.id == workout_id)
+    )
+    workout = result.unique().scalar_one_or_none()
+
+    if not workout:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workout not found")
+
+    if current_user.role == UserRole.CLIENT and workout.client_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+
+    # Group exercise logs by exercise_name + program_day_exercise_id
+    grouped: dict = defaultdict(list)
+    for s in sorted(workout.exercise_logs, key=lambda x: (x.exercise_name, x.set_number)):
+        key = (s.exercise_name, str(s.program_day_exercise_id) if s.program_day_exercise_id else None)
+        grouped[key].append(s)
+
+    exercise_logs = [
+        ExerciseLogResponse(
+            exercise_name=key[0],
+            program_day_exercise_id=key[1],
+            sets=[
+                SetLogResponse(
+                    id=str(s.id),
+                    set_number=s.set_number,
+                    actual_reps=s.actual_reps,
+                    actual_weight_lbs=s.actual_weight_lbs,
+                    actual_rpe=s.actual_rpe,
+                    notes=s.notes,
+                    completed_at=s.completed_at,
+                )
+                for s in sets
+            ],
+        )
+        for key, sets in grouped.items()
+    ]
+
+    return {
+        "workout_log_id": str(workout.id),
+        "day_status": workout.day_status,
+        "duration_minutes": workout.duration_minutes,
+        "session_rating": workout.session_rating,
+        "notes": workout.notes,
+        "exercise_logs": [el.model_dump() for el in exercise_logs],
+    }
+
+
+@router.get(
     "/{workout_id}",
     response_model=WorkoutLogResponse,
     summary="Get workout details",
@@ -299,7 +481,7 @@ async def get_workout(
 async def get_workout_history(
     limit: int = Query(20, ge=1, le=100, description="Maximum number of results"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
-    status_filter: Optional[WorkoutStatus] = Query(
+    status_filter: WorkoutStatus | None = Query(
         None,
         description="Filter by workout status (completed, skipped, scheduled)"
     ),

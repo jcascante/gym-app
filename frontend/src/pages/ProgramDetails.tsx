@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { getAssignmentWorkouts, createWorkout, updateWorkout, deleteWorkout } from '../services/workouts';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { getAssignmentWorkouts, updateWorkout, deleteWorkout } from '../services/workouts';
 import type { WorkoutLog } from '../services/workouts';
 import { ApiError } from '../services/api';
 import { getMyPrograms } from '../services/programAssignments';
@@ -23,6 +23,7 @@ function todayISO() {
 export default function ProgramDetails() {
   const { assignmentId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [assignment, setAssignment] = useState<ProgramAssignmentSummary | null>(null);
   const [program, setProgram] = useState<ProgramDetail | null>(null);
@@ -30,7 +31,7 @@ export default function ProgramDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Workout log modal state
+  // Edit / delete state (create-new path removed — use ProgramDayView)
   const [showLogModal, setShowLogModal] = useState(false);
   const [logForm, setLogForm] = useState<LogWorkoutFormState>({
     status: 'completed',
@@ -40,14 +41,19 @@ export default function ProgramDetails() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [logError, setLogError] = useState<string | null>(null);
-
-  // Edit / delete state
   const [editingWorkout, setEditingWorkout] = useState<WorkoutLog | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (assignmentId) load();
   }, [assignmentId]);
+
+  // Re-fetch when returning from ProgramDayView after logging
+  useEffect(() => {
+    if (location.state?.logged && assignmentId) {
+      load();
+    }
+  }, [location.state]);
 
   const load = async () => {
     setLoading(true);
@@ -84,52 +90,30 @@ export default function ProgramDetails() {
     return week.days.find((d) => d.day_number === assignment.current_day) ?? null;
   };
 
-  const openLogModal = (existing?: WorkoutLog) => {
-    if (existing) {
-      setEditingWorkout(existing);
-      setLogForm({
-        status: existing.status === 'skipped' ? 'skipped' : 'completed',
-        duration_minutes: existing.duration_minutes ?? '',
-        notes: existing.notes ?? '',
-        workout_date: existing.workout_date.split('T')[0],
-      });
-    } else {
-      setEditingWorkout(null);
-      setLogForm({
-        status: 'completed',
-        duration_minutes: '',
-        notes: '',
-        workout_date: todayISO(),
-      });
-    }
+  const openEditModal = (existing: WorkoutLog) => {
+    setEditingWorkout(existing);
+    setLogForm({
+      status: existing.status === 'skipped' ? 'skipped' : 'completed',
+      duration_minutes: existing.duration_minutes ?? '',
+      notes: existing.notes ?? '',
+      workout_date: existing.workout_date.split('T')[0],
+    });
     setLogError(null);
     setShowLogModal(true);
   };
 
   const handleLogSubmit = async () => {
-    if (!assignment) return;
+    if (!editingWorkout) return;
     setSubmitting(true);
     setLogError(null);
     try {
-      const dateTime = new Date(logForm.workout_date + 'T12:00:00').toISOString();
-      if (editingWorkout) {
-        const updated = await updateWorkout(
-          editingWorkout.id,
-          logForm.status,
-          logForm.duration_minutes || undefined,
-          logForm.notes || undefined
-        );
-        setWorkouts((prev) => prev.map((w) => (w.id === updated.id ? updated : w)));
-      } else {
-        const created = await createWorkout(
-          assignment.assignment_id,
-          logForm.status,
-          logForm.duration_minutes || undefined,
-          logForm.notes || undefined,
-          dateTime
-        );
-        setWorkouts((prev) => [created, ...prev]);
-      }
+      const updated = await updateWorkout(
+        editingWorkout.id,
+        logForm.status,
+        logForm.duration_minutes || undefined,
+        logForm.notes || undefined
+      );
+      setWorkouts((prev) => prev.map((w) => (w.id === updated.id ? updated : w)));
       setShowLogModal(false);
     } catch (err) {
       if (err instanceof ApiError) {
@@ -157,9 +141,8 @@ export default function ProgramDetails() {
 
   const currentDayPlan = getCurrentDayPlan();
   const completedCount = workouts.filter((w) => w.status === 'completed').length;
-  const totalPlanned =
-    assignment ? assignment.duration_weeks * assignment.days_per_week : 0;
-  const progressPct = totalPlanned > 0 ? Math.round((completedCount / totalPlanned) * 100) : 0;
+  // Use backend-computed progress (based on workouts_completed + workouts_skipped / total_days)
+  const progressPct = assignment ? Math.round(assignment.progress_percentage) : 0;
 
   return (
     <div className="pd-page">
@@ -174,7 +157,10 @@ export default function ProgramDetails() {
             <p className="pd-assignment-name">{assignment.assignment_name}</p>
           )}
         </div>
-        <button className="btn-primary pd-log-btn" onClick={() => openLogModal()}>
+        <button
+          className="btn-primary pd-log-btn"
+          onClick={() => navigate(`/my-programs/${assignmentId}/log`)}
+        >
           Log Workout
         </button>
       </div>
@@ -263,7 +249,7 @@ export default function ProgramDetails() {
             )}
             <button
               className="btn-primary pd-log-inline-btn"
-              onClick={() => openLogModal()}
+              onClick={() => navigate(`/my-programs/${assignmentId}/log`)}
             >
               Log This Workout
             </button>
@@ -302,7 +288,7 @@ export default function ProgramDetails() {
                       {w.notes && <span className="pd-history-notes">{w.notes}</span>}
                       <button
                         className="pd-edit-btn"
-                        onClick={() => openLogModal(w)}
+                        onClick={() => openEditModal(w)}
                         title="Edit"
                       >
                         Edit
@@ -332,7 +318,7 @@ export default function ProgramDetails() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="modal-header">
-              <h2>{editingWorkout ? 'Edit Workout' : 'Log Workout'}</h2>
+              <h2>Edit Workout</h2>
               <button className="modal-close" onClick={() => setShowLogModal(false)}>
                 ✕
               </button>
@@ -399,24 +385,6 @@ export default function ProgramDetails() {
                 />
               </div>
 
-              {/* Show today's exercises as a reference inside the modal */}
-              {currentDayPlan && logForm.status === 'completed' && (
-                <div className="pd-modal-exercises">
-                  <p className="pd-modal-exercises-label">
-                    Planned exercises for Week {assignment?.current_week}, Day{' '}
-                    {assignment?.current_day}:
-                  </p>
-                  <ul className="pd-modal-exercise-list">
-                    {currentDayPlan.exercises.map((ex, i) => (
-                      <li key={i}>
-                        <strong>{ex.exercise_name}</strong> — {ex.sets}×{ex.reps}
-                        {ex.weight_lbs != null && ` @ ${ex.weight_lbs} lbs`}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
               <div className="modal-footer">
                 <button
                   className="btn-secondary"
@@ -430,11 +398,7 @@ export default function ProgramDetails() {
                   onClick={handleLogSubmit}
                   disabled={submitting}
                 >
-                  {submitting
-                    ? 'Saving…'
-                    : editingWorkout
-                    ? 'Save Changes'
-                    : 'Log Workout'}
+                  {submitting ? 'Saving…' : 'Save Changes'}
                 </button>
               </div>
             </div>

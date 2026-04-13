@@ -3,12 +3,12 @@ Workout Log Pydantic schemas.
 
 Schemas for creating, retrieving, and managing workout logs.
 """
-from typing import Optional
 from datetime import datetime
 from uuid import UUID
-from pydantic import BaseModel, Field, ConfigDict
-from app.models import WorkoutStatus
 
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.models import WorkoutStatus
 
 # ============================================================================
 # Workout Log Creation & Updates
@@ -21,15 +21,15 @@ class WorkoutLogCreate(BaseModel):
         WorkoutStatus.COMPLETED,
         description="Workout status (completed, skipped, scheduled)"
     )
-    duration_minutes: Optional[str] = Field(
+    duration_minutes: str | None = Field(
         None,
         description="Duration of workout in minutes"
     )
-    notes: Optional[str] = Field(
+    notes: str | None = Field(
         None,
         description="Client notes about the workout"
     )
-    workout_date: Optional[datetime] = Field(
+    workout_date: datetime | None = Field(
         None,
         description="Date/time of the workout (defaults to now)"
     )
@@ -37,15 +37,15 @@ class WorkoutLogCreate(BaseModel):
 
 class WorkoutLogUpdate(BaseModel):
     """Request to update a workout log."""
-    status: Optional[WorkoutStatus] = Field(
+    status: WorkoutStatus | None = Field(
         None,
         description="Updated workout status"
     )
-    duration_minutes: Optional[str] = Field(
+    duration_minutes: str | None = Field(
         None,
         description="Updated duration in minutes"
     )
-    notes: Optional[str] = Field(
+    notes: str | None = Field(
         None,
         description="Updated notes"
     )
@@ -61,13 +61,13 @@ class WorkoutLogResponse(BaseModel):
 
     id: UUID
     client_id: UUID
-    coach_id: Optional[UUID] = None
+    coach_id: UUID | None = None
     program_id: UUID
     assignment_id: UUID
     status: WorkoutStatus
     workout_date: datetime
-    duration_minutes: Optional[str] = None
-    notes: Optional[str] = None
+    duration_minutes: str | None = None
+    notes: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -86,7 +86,7 @@ class WorkoutStatsResponse(BaseModel):
     total_workouts: int
     completed_workouts: int
     skipped_workouts: int
-    last_workout_date: Optional[str] = None
+    last_workout_date: str | None = None
 
 
 class RecentWorkoutResponse(BaseModel):
@@ -96,7 +96,7 @@ class RecentWorkoutResponse(BaseModel):
     id: UUID
     workout_date: datetime
     status: WorkoutStatus
-    duration_minutes: Optional[str] = None
-    notes: Optional[str] = None
-    program_name: Optional[str] = None
-    assignment_name: Optional[str] = None
+    duration_minutes: str | None = None
+    notes: str | None = None
+    program_name: str | None = None
+    assignment_name: str | None = None

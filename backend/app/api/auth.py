@@ -5,21 +5,28 @@ Provides endpoints for user login with role-based authorization.
 All endpoints include comprehensive OpenAPI documentation for Swagger UI.
 """
 from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
-from app.core.security import (
-    get_password_hash,
-    verify_password,
-    create_access_token
+from app.core.deps import (
+    get_current_user,
+    get_current_user_check_password,
+    get_subscription_admin_user,
 )
-from app.core.deps import get_current_user, get_current_user_check_password, get_subscription_admin_user
-from app.models.user import User, UserRole
+from app.core.security import create_access_token, get_password_hash, verify_password
 from app.models.subscription import Subscription
+from app.models.user import User, UserRole
+from app.schemas.auth import (
+    AdminResetPasswordRequest,
+    MessageResponse,
+    PasswordChangeRequest,
+    TokenResponse,
+)
 from app.schemas.user import UserResponse
-from app.schemas.auth import TokenResponse, MessageResponse, PasswordChangeRequest, AdminResetPasswordRequest
 
 router = APIRouter()
 

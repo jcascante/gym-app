@@ -3,11 +3,10 @@ Program Assignment Pydantic schemas.
 
 Schemas for assigning programs to clients, tracking progress, and managing assignments.
 """
-from typing import Optional
-from datetime import datetime, date
+from datetime import date, datetime
 from uuid import UUID
-from pydantic import BaseModel, Field, ConfigDict
 
+from pydantic import BaseModel, ConfigDict, Field
 
 # ============================================================================
 # Assignment Creation
@@ -16,16 +15,16 @@ from pydantic import BaseModel, Field, ConfigDict
 class AssignProgramRequest(BaseModel):
     """Request to assign a program to a client."""
     client_id: UUID = Field(..., description="ID of the client to assign the program to")
-    assignment_name: Optional[str] = Field(
+    assignment_name: str | None = Field(
         None,
         max_length=255,
         description="Optional custom name for this assignment (e.g., 'Winter Bulk 2025')"
     )
-    start_date: Optional[date] = Field(
+    start_date: date | None = Field(
         None,
         description="When the client should start the program (defaults to today)"
     )
-    notes: Optional[str] = Field(
+    notes: str | None = Field(
         None,
         description="Coach notes about this assignment"
     )
@@ -49,9 +48,9 @@ class AssignProgramResponse(BaseModel):
     program_name: str = Field(..., description="Name of the program")
     client_id: UUID = Field(..., description="ID of the client")
     client_name: str = Field(..., description="Client's full name")
-    assignment_name: Optional[str] = Field(None, description="Custom assignment name")
+    assignment_name: str | None = Field(None, description="Custom assignment name")
     start_date: date = Field(..., description="Program start date")
-    end_date: Optional[date] = Field(None, description="Expected completion date")
+    end_date: date | None = Field(None, description="Expected completion date")
     status: str = Field(..., description="Assignment status")
     created_at: datetime = Field(..., description="When the assignment was created")
 
@@ -83,14 +82,14 @@ class ProgramAssignmentSummary(BaseModel):
     assignment_id: UUID
     program_id: UUID
     program_name: str
-    assignment_name: Optional[str] = None
+    assignment_name: str | None = None
     duration_weeks: int
     days_per_week: int
     start_date: date
-    end_date: Optional[date] = None
-    actual_completion_date: Optional[date] = None
+    end_date: date | None = None
+    actual_completion_date: date | None = None
     status: str = Field(..., description="assigned, in_progress, completed, paused, cancelled")
-    program_status: Optional[str] = Field(None, description="Program lifecycle status: None (template), 'draft', 'published'")
+    program_status: str | None = Field(None, description="Program lifecycle status: None (template), 'draft', 'published'")
     current_week: int
     current_day: int
     progress_percentage: float = Field(0.0, description="Percentage complete (0-100)")
@@ -152,14 +151,14 @@ class ClientProgramsListResponse(BaseModel):
 
 class UpdateAssignmentStatusRequest(BaseModel):
     """Request to update assignment status and progress."""
-    status: Optional[str] = Field(
+    status: str | None = Field(
         None,
         pattern="^(assigned|in_progress|completed|paused|cancelled)$",
         description="New status"
     )
-    current_week: Optional[int] = Field(None, ge=1, description="Current week number")
-    current_day: Optional[int] = Field(None, ge=1, description="Current day number")
-    notes: Optional[str] = Field(None, description="Updated notes")
+    current_week: int | None = Field(None, ge=1, description="Current week number")
+    current_day: int | None = Field(None, ge=1, description="Current day number")
+    notes: str | None = Field(None, description="Updated notes")
 
     model_config = ConfigDict(
         json_schema_extra={

@@ -5,16 +5,17 @@ These endpoints provide coach dashboard statistics, admin dashboard statistics,
 and coach profile information.
 """
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
+
 from app.core.database import get_db
-from app.core.deps import get_coach_or_admin_user, get_admin_user
-from app.models.user import User, UserRole
-from app.models.coach_client_assignment import CoachClientAssignment
+from app.core.deps import get_admin_user, get_coach_or_admin_user
 from app.models.client_program_assignment import ClientProgramAssignment
+from app.models.coach_client_assignment import CoachClientAssignment
 from app.models.program import Program
 from app.models.subscription import Subscription
-from pydantic import BaseModel
+from app.models.user import User, UserRole
 
 router = APIRouter(prefix="/coaches/me", tags=["Coach"])
 

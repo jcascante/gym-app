@@ -5,8 +5,7 @@ Supports both SMTP and mock (development) email sending modes.
 For production, configure SMTP settings in environment variables.
 """
 import logging
-from typing import Optional, List
-from pathlib import Path
+
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -19,7 +18,7 @@ class EmailService:
     async def send_welcome_email(
         recipient_email: str,
         recipient_name: str,
-        temporary_password: Optional[str] = None,
+        temporary_password: str | None = None,
         login_url: str = "https://app.example.com/login",
     ) -> bool:
         """
@@ -68,7 +67,7 @@ class EmailService:
         recipient_email: str,
         recipient_name: str,
         reset_token: str,
-        reset_url: Optional[str] = None,
+        reset_url: str | None = None,
     ) -> bool:
         """
         Send password reset email.
@@ -194,7 +193,7 @@ class EmailService:
         subject: str,
         body: str,
         is_html: bool = True,
-        cc: Optional[List[str]] = None,
+        cc: list[str] | None = None,
     ) -> bool:
         """
         Internal method to send email via configured transport.
@@ -233,7 +232,7 @@ class EmailService:
         subject: str,
         body: str,
         is_html: bool = True,
-        cc: Optional[List[str]] = None,
+        cc: list[str] | None = None,
     ) -> bool:
         """
         Send email via SMTP.
@@ -250,8 +249,8 @@ class EmailService:
         """
         try:
             import smtplib
-            from email.mime.text import MIMEText
             from email.mime.multipart import MIMEMultipart
+            from email.mime.text import MIMEText
 
             # Create message
             msg = MIMEMultipart("alternative")

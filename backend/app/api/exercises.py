@@ -4,21 +4,21 @@ Exercise Library API endpoints.
 Provides CRUD for the exercise library, supporting both global exercises
 (visible to all subscriptions) and subscription-specific custom exercises.
 """
-from typing import Optional
 from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, or_, func
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
-from app.models.user import User, UserRole
 from app.models.exercise import Exercise
+from app.models.user import User, UserRole
 from app.schemas.exercise import (
     ExerciseCreate,
-    ExerciseUpdate,
-    ExerciseResponse,
     ExerciseListResponse,
+    ExerciseResponse,
+    ExerciseUpdate,
 )
 
 router = APIRouter()
@@ -48,10 +48,10 @@ router = APIRouter()
     """
 )
 async def list_exercises(
-    search: Optional[str] = Query(None, description="Filter by name"),
-    category: Optional[str] = Query(None, description="Filter by category"),
-    muscle_group: Optional[str] = Query(None, description="Filter by muscle group"),
-    difficulty_level: Optional[str] = Query(None, description="Filter by difficulty"),
+    search: str | None = Query(None, description="Filter by name"),
+    category: str | None = Query(None, description="Filter by category"),
+    muscle_group: str | None = Query(None, description="Filter by muscle group"),
+    difficulty_level: str | None = Query(None, description="Filter by difficulty"),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     current_user: User = Depends(get_current_user),

@@ -1,48 +1,48 @@
 """
 Pydantic schemas for request/response validation.
 """
-from app.schemas.user import (
-    UserBase,
-    UserCreate,
-    UserUpdate,
-    UserResponse,
-    UserListResponse,
-)
 from app.schemas.auth import (
     LoginRequest,
     TokenResponse,
 )
-from app.schemas.subscription import (
-    SubscriptionCreate,
-    SubscriptionUpdate,
-    SubscriptionResponse,
-)
-from app.schemas.program import (
-    MovementInput,
-    ProgramInputs,
-    ProgramPreview,
-    ProgramResponse,
-    ProgramDetailResponse,
-    CalculationConstants,
-)
 from app.schemas.client import (
-    CreateClientRequest,
-    CreateClientResponse,
+    ClientDetailResponse,
+    ClientListResponse,
     ClientProfile,
     ClientProfileUpdate,
     ClientSummary,
-    ClientListResponse,
-    ClientDetailResponse,
-    UpdateOneRepMaxRequest,
+    CreateClientRequest,
+    CreateClientResponse,
     OneRepMaxResponse,
+    UpdateOneRepMaxRequest,
+)
+from app.schemas.program import (
+    CalculationConstants,
+    MovementInput,
+    ProgramDetailResponse,
+    ProgramInputs,
+    ProgramPreview,
+    ProgramResponse,
 )
 from app.schemas.program_assignment import (
     AssignProgramRequest,
     AssignProgramResponse,
-    ProgramAssignmentSummary,
     ClientProgramsListResponse,
+    ProgramAssignmentSummary,
     UpdateAssignmentStatusRequest,
     UpdateAssignmentStatusResponse,
+)
+from app.schemas.subscription import (
+    SubscriptionCreate,
+    SubscriptionResponse,
+    SubscriptionUpdate,
+)
+from app.schemas.user import (
+    UserBase,
+    UserCreate,
+    UserListResponse,
+    UserResponse,
+    UserUpdate,
 )
 
 __all__ = [

@@ -1,0 +1,154 @@
+.page {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.back {
+  background: none;
+  border: none;
+  color: #1a73e8;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+  margin-bottom: 1.5rem;
+}
+
+.back:hover {
+  text-decoration: underline;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  background: #e8f0fe;
+  color: #1a73e8;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.header h1 {
+  margin: 0 0 0.5rem;
+}
+
+.desc {
+  color: #555;
+  margin: 0 0 0.75rem;
+}
+
+.meta {
+  display: flex;
+  gap: 1rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.structure {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.structure h2 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.week {
+  margin-bottom: 1rem;
+}
+
+.week h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  color: #333;
+}
+
+.day {
+  margin-left: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.exercises {
+  margin: 0.25rem 0 0 1rem;
+  padding: 0;
+  list-style: disc;
+  font-size: 0.875rem;
+  color: #555;
+}
+
+.moreWeeks {
+  color: #888;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.startForm {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+
+.startForm h2 {
+  margin: 0 0 1.25rem;
+  font-size: 1.1rem;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input:focus {
+  border-color: #1a73e8;
+}
+
+.startBtn {
+  width: 100%;
+  padding: 0.75rem;
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.startBtn:hover:not(:disabled) {
+  background: #1557b0;
+}
+
+.startBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #d32f2f;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
