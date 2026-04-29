@@ -7,8 +7,7 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       # Expose as 9000 on the host — matches the existing vite.config.ts proxy target.
-      # The engine already owns 8000 on the host; Docker's internal network is isolated
-      # so backend still binds 8000 inside the container without any conflict.
+      # The engine container uses 8000; this backend binds 8000 internally, exposed as 9000.
       - "9000:8000"
     volumes:
       # Bind-mount source so --reload picks up every file change
@@ -19,8 +18,9 @@ services:
       ENVIRONMENT: development
       DATABASE_URL: sqlite+aiosqlite:///./gym_app.db
       SECRET_KEY: dev-secret-key-change-in-prod
-      # Reach the TrainGen engine running on the host machine
-      ENGINE_URL: http://host.docker.internal:8000
+      ENGINE_URL: http://engine:8000
+    depends_on:
+      - engine
     restart: unless-stopped
 
   # ─── Vite frontend ──────────────────────────────────────────────────────────
@@ -42,11 +42,43 @@ services:
       - backend
     restart: unless-stopped
 
-  # ─── TrainGen Engine ────────────────────────────────────────────────────────
-  # The engine runs directly on the host at port 8000.
-  # The backend reaches it via host.docker.internal:8000 (ENGINE_URL above).
-  # No container needed here.
+  # ─── Program Builder Engine ─────────────────────────────────────────────────
+  engine:
+    build:
+      context: ./engine
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./engine/src:/app/src
+      - ./engine/data:/data:ro
+      - ./engine/definitions:/definitions:ro
+      - ./engine/schemas:/schemas:ro
+    environment:
+      BACKEND_HOST: "0.0.0.0"
+      BACKEND_PORT: "8000"
+      DATA_DIR: /data
+      DEFINITIONS_DIR: /definitions
+      SCHEMAS_DIR: /schemas
+    restart: unless-stopped
+
+  # ─── Engine UI (local dev only — program definition builder) ────────────────
+  engine-ui:
+    build:
+      context: ./engine-ui
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./engine-ui:/app
+      - engine_ui_node_modules:/app/node_modules
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    depends_on:
+      - engine
+    restart: unless-stopped
 
 volumes:
   backend_db:
   frontend_node_modules:
+  engine_ui_node_modules:

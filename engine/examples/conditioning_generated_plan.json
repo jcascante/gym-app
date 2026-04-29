@@ -1,0 +1,655 @@
+{
+  "program_id": "conditioning_4w_v1",
+  "program_version": "1.0.0",
+  "generated_at": "2026-02-23T10:00:00-05:00",
+  "inputs_echo": {
+    "program_id": "conditioning_4w_v1",
+    "program_version": "1.0.0",
+    "weeks": 4,
+    "days_per_week": 4,
+    "athlete": {
+      "level": "intermediate",
+      "time_budget_minutes": 60,
+      "modality": "run",
+      "equipment": []
+    },
+    "conditioning": {
+      "method": "HR_ZONES",
+      "hr_zone_formula": "KARVONEN_HRR",
+      "hr_max": 190,
+      "hr_rest": 55
+    }
+  },
+  "warnings": [],
+  "repairs": [],
+  "weeks": [
+    {
+      "week": 1,
+      "sessions": [
+        {
+          "day": 1,
+          "tags": [
+            "aerobic_base"
+          ],
+          "blocks": [
+            {
+              "block_id": "w1d1_z2",
+              "type": "conditioning_steady",
+              "exercise": {
+                "id": "run_steady",
+                "name": "Run Steady"
+              },
+              "prescription": {
+                "duration_minutes": 35,
+                "intensity": {
+                  "method": "HR_ZONES",
+                  "formula": "KARVONEN_HRR",
+                  "target": "z(2)",
+                  "hr_range_bpm": [
+                    150,
+                    163
+                  ]
+                },
+                "notes": "Conversational pace / nasal breathing if possible"
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.23
+          }
+        },
+        {
+          "day": 2,
+          "tags": [
+            "intervals_threshold"
+          ],
+          "blocks": [
+            {
+              "block_id": "w1d2_thr",
+              "type": "conditioning_intervals",
+              "exercise": {
+                "id": "run_intervals",
+                "name": "Run Intervals"
+              },
+              "prescription": {
+                "warmup_minutes": 10,
+                "work": {
+                  "intervals": 4,
+                  "minutes_each": 4,
+                  "intensity": {
+                    "method": "HR_ZONES",
+                    "formula": "KARVONEN_HRR",
+                    "target": "thr()",
+                    "hr_range_bpm": [
+                      170,
+                      179
+                    ]
+                  }
+                },
+                "rest": {
+                  "minutes_each": 2,
+                  "style": "easy"
+                },
+                "cooldown_minutes": 8,
+                "notes": "Sustainable hard effort; keep repeat quality consistent."
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.49
+          }
+        },
+        {
+          "day": 3,
+          "tags": [
+            "aerobic_base"
+          ],
+          "blocks": [
+            {
+              "block_id": "w1d3_z2s",
+              "type": "conditioning_steady",
+              "exercise": {
+                "id": "run_steady",
+                "name": "Run Steady"
+              },
+              "prescription": {
+                "duration_minutes": 25,
+                "intensity": {
+                  "method": "HR_ZONES",
+                  "formula": "KARVONEN_HRR",
+                  "target": "z(2)",
+                  "hr_range_bpm": [
+                    150,
+                    163
+                  ]
+                },
+                "notes": "Easy aerobic maintenance"
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.17
+          }
+        },
+        {
+          "day": 4,
+          "tags": [
+            "intervals_vo2_optional"
+          ],
+          "blocks": [
+            {
+              "block_id": "w1d4_vo2",
+              "type": "conditioning_intervals",
+              "exercise": {
+                "id": "run_intervals",
+                "name": "Run Intervals"
+              },
+              "prescription": {
+                "warmup_minutes": 10,
+                "work": {
+                  "intervals": 6,
+                  "seconds_each": 60,
+                  "intensity": {
+                    "method": "HR_ZONES",
+                    "formula": "KARVONEN_HRR",
+                    "target": "vo2()",
+                    "hr_range_bpm": [
+                      179,
+                      186
+                    ]
+                  }
+                },
+                "rest": {
+                  "seconds_each": 90,
+                  "style": "easy"
+                },
+                "cooldown_minutes": 8,
+                "notes": "Very hard but controlled; keep repeat quality consistent."
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.38
+          }
+        }
+      ]
+    },
+    {
+      "week": 2,
+      "sessions": [
+        {
+          "day": 1,
+          "tags": [
+            "aerobic_base"
+          ],
+          "blocks": [
+            {
+              "block_id": "w2d1_z2",
+              "type": "conditioning_steady",
+              "exercise": {
+                "id": "run_steady",
+                "name": "Run Steady"
+              },
+              "prescription": {
+                "duration_minutes": 40,
+                "intensity": {
+                  "method": "HR_ZONES",
+                  "formula": "KARVONEN_HRR",
+                  "target": "z(2)",
+                  "hr_range_bpm": [
+                    150,
+                    163
+                  ]
+                },
+                "notes": "Conversational pace / nasal breathing if possible"
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.27
+          }
+        },
+        {
+          "day": 2,
+          "tags": [
+            "intervals_threshold"
+          ],
+          "blocks": [
+            {
+              "block_id": "w2d2_thr",
+              "type": "conditioning_intervals",
+              "exercise": {
+                "id": "run_intervals",
+                "name": "Run Intervals"
+              },
+              "prescription": {
+                "warmup_minutes": 10,
+                "work": {
+                  "intervals": 5,
+                  "minutes_each": 4,
+                  "intensity": {
+                    "method": "HR_ZONES",
+                    "formula": "KARVONEN_HRR",
+                    "target": "thr()",
+                    "hr_range_bpm": [
+                      170,
+                      179
+                    ]
+                  }
+                },
+                "rest": {
+                  "minutes_each": 2,
+                  "style": "easy"
+                },
+                "cooldown_minutes": 8,
+                "notes": "Sustainable hard effort; keep repeat quality consistent."
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.56
+          }
+        },
+        {
+          "day": 3,
+          "tags": [
+            "aerobic_base"
+          ],
+          "blocks": [
+            {
+              "block_id": "w2d3_z2s",
+              "type": "conditioning_steady",
+              "exercise": {
+                "id": "run_steady",
+                "name": "Run Steady"
+              },
+              "prescription": {
+                "duration_minutes": 30,
+                "intensity": {
+                  "method": "HR_ZONES",
+                  "formula": "KARVONEN_HRR",
+                  "target": "z(2)",
+                  "hr_range_bpm": [
+                    150,
+                    163
+                  ]
+                },
+                "notes": "Easy aerobic maintenance"
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.2
+          }
+        },
+        {
+          "day": 4,
+          "tags": [
+            "intervals_vo2_optional"
+          ],
+          "blocks": [
+            {
+              "block_id": "w2d4_vo2",
+              "type": "conditioning_intervals",
+              "exercise": {
+                "id": "run_intervals",
+                "name": "Run Intervals"
+              },
+              "prescription": {
+                "warmup_minutes": 10,
+                "work": {
+                  "intervals": 7,
+                  "seconds_each": 60,
+                  "intensity": {
+                    "method": "HR_ZONES",
+                    "formula": "KARVONEN_HRR",
+                    "target": "vo2()",
+                    "hr_range_bpm": [
+                      179,
+                      186
+                    ]
+                  }
+                },
+                "rest": {
+                  "seconds_each": 90,
+                  "style": "easy"
+                },
+                "cooldown_minutes": 8,
+                "notes": "Very hard but controlled; keep repeat quality consistent."
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.41
+          }
+        }
+      ]
+    },
+    {
+      "week": 3,
+      "sessions": [
+        {
+          "day": 1,
+          "tags": [
+            "aerobic_base"
+          ],
+          "blocks": [
+            {
+              "block_id": "w3d1_z2",
+              "type": "conditioning_steady",
+              "exercise": {
+                "id": "run_steady",
+                "name": "Run Steady"
+              },
+              "prescription": {
+                "duration_minutes": 45,
+                "intensity": {
+                  "method": "HR_ZONES",
+                  "formula": "KARVONEN_HRR",
+                  "target": "z(2)",
+                  "hr_range_bpm": [
+                    150,
+                    163
+                  ]
+                },
+                "notes": "Conversational pace / nasal breathing if possible"
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.3
+          }
+        },
+        {
+          "day": 2,
+          "tags": [
+            "intervals_threshold"
+          ],
+          "blocks": [
+            {
+              "block_id": "w3d2_thr",
+              "type": "conditioning_intervals",
+              "exercise": {
+                "id": "run_intervals",
+                "name": "Run Intervals"
+              },
+              "prescription": {
+                "warmup_minutes": 10,
+                "work": {
+                  "intervals": 6,
+                  "minutes_each": 4,
+                  "intensity": {
+                    "method": "HR_ZONES",
+                    "formula": "KARVONEN_HRR",
+                    "target": "thr()",
+                    "hr_range_bpm": [
+                      170,
+                      179
+                    ]
+                  }
+                },
+                "rest": {
+                  "minutes_each": 2,
+                  "style": "easy"
+                },
+                "cooldown_minutes": 8,
+                "notes": "Sustainable hard effort; keep repeat quality consistent."
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.63
+          }
+        },
+        {
+          "day": 3,
+          "tags": [
+            "aerobic_base"
+          ],
+          "blocks": [
+            {
+              "block_id": "w3d3_z2s",
+              "type": "conditioning_steady",
+              "exercise": {
+                "id": "run_steady",
+                "name": "Run Steady"
+              },
+              "prescription": {
+                "duration_minutes": 35,
+                "intensity": {
+                  "method": "HR_ZONES",
+                  "formula": "KARVONEN_HRR",
+                  "target": "z(2)",
+                  "hr_range_bpm": [
+                    150,
+                    163
+                  ]
+                },
+                "notes": "Easy aerobic maintenance"
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.23
+          }
+        },
+        {
+          "day": 4,
+          "tags": [
+            "intervals_vo2_optional"
+          ],
+          "blocks": [
+            {
+              "block_id": "w3d4_vo2",
+              "type": "conditioning_intervals",
+              "exercise": {
+                "id": "run_intervals",
+                "name": "Run Intervals"
+              },
+              "prescription": {
+                "warmup_minutes": 10,
+                "work": {
+                  "intervals": 8,
+                  "seconds_each": 60,
+                  "intensity": {
+                    "method": "HR_ZONES",
+                    "formula": "KARVONEN_HRR",
+                    "target": "vo2()",
+                    "hr_range_bpm": [
+                      179,
+                      186
+                    ]
+                  }
+                },
+                "rest": {
+                  "seconds_each": 90,
+                  "style": "easy"
+                },
+                "cooldown_minutes": 8,
+                "notes": "Very hard but controlled; keep repeat quality consistent."
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.44
+          }
+        }
+      ]
+    },
+    {
+      "week": 4,
+      "sessions": [
+        {
+          "day": 1,
+          "tags": [
+            "aerobic_base"
+          ],
+          "blocks": [
+            {
+              "block_id": "w4d1_z2",
+              "type": "conditioning_steady",
+              "exercise": {
+                "id": "run_steady",
+                "name": "Run Steady"
+              },
+              "prescription": {
+                "duration_minutes": 30,
+                "intensity": {
+                  "method": "HR_ZONES",
+                  "formula": "KARVONEN_HRR",
+                  "target": "z(2)",
+                  "hr_range_bpm": [
+                    150,
+                    163
+                  ]
+                },
+                "notes": "Conversational pace / nasal breathing if possible"
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.2
+          }
+        },
+        {
+          "day": 2,
+          "tags": [
+            "intervals_threshold"
+          ],
+          "blocks": [
+            {
+              "block_id": "w4d2_thr",
+              "type": "conditioning_intervals",
+              "exercise": {
+                "id": "run_intervals",
+                "name": "Run Intervals"
+              },
+              "prescription": {
+                "warmup_minutes": 10,
+                "work": {
+                  "intervals": 3,
+                  "minutes_each": 3,
+                  "intensity": {
+                    "method": "HR_ZONES",
+                    "formula": "KARVONEN_HRR",
+                    "target": "thr()",
+                    "hr_range_bpm": [
+                      170,
+                      179
+                    ]
+                  }
+                },
+                "rest": {
+                  "minutes_each": 2,
+                  "style": "easy"
+                },
+                "cooldown_minutes": 8,
+                "notes": "Sustainable hard effort; keep repeat quality consistent."
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.38
+          }
+        },
+        {
+          "day": 3,
+          "tags": [
+            "aerobic_base"
+          ],
+          "blocks": [
+            {
+              "block_id": "w4d3_z2s",
+              "type": "conditioning_steady",
+              "exercise": {
+                "id": "run_steady",
+                "name": "Run Steady"
+              },
+              "prescription": {
+                "duration_minutes": 20,
+                "intensity": {
+                  "method": "HR_ZONES",
+                  "formula": "KARVONEN_HRR",
+                  "target": "z(2)",
+                  "hr_range_bpm": [
+                    150,
+                    163
+                  ]
+                },
+                "notes": "Easy aerobic maintenance"
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.13
+          }
+        },
+        {
+          "day": 4,
+          "tags": [
+            "intervals_vo2_optional"
+          ],
+          "blocks": [
+            {
+              "block_id": "w4d4_vo2",
+              "type": "conditioning_intervals",
+              "exercise": {
+                "id": "run_intervals",
+                "name": "Run Intervals"
+              },
+              "prescription": {
+                "warmup_minutes": 10,
+                "work": {
+                  "intervals": 5,
+                  "seconds_each": 60,
+                  "intensity": {
+                    "method": "HR_ZONES",
+                    "formula": "KARVONEN_HRR",
+                    "target": "vo2()",
+                    "hr_range_bpm": [
+                      179,
+                      186
+                    ]
+                  }
+                },
+                "rest": {
+                  "seconds_each": 90,
+                  "style": "easy"
+                },
+                "cooldown_minutes": 8,
+                "notes": "Very hard but controlled; keep repeat quality consistent."
+              }
+            }
+          ],
+          "metrics": {
+            "fatigue_score": 0.36
+          }
+        }
+      ]
+    }
+  ],
+  "plan_summary": {
+    "weekly_conditioning": [
+      {
+        "week": 1,
+        "z2_minutes": 60,
+        "intense_minutes": 22.0
+      },
+      {
+        "week": 2,
+        "z2_minutes": 70,
+        "intense_minutes": 27.0
+      },
+      {
+        "week": 3,
+        "z2_minutes": 80,
+        "intense_minutes": 32.0
+      },
+      {
+        "week": 4,
+        "z2_minutes": 50,
+        "intense_minutes": 14.0
+      }
+    ]
+  }
+}

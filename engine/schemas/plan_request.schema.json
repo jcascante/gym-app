@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/schemas/plan_request.schema.json",
+  "title": "PlanRequest",
+  "type": "object",
+  "required": [
+    "program_id",
+    "program_version",
+    "weeks",
+    "days_per_week",
+    "athlete"
+  ],
+  "properties": {
+    "program_id": {
+      "type": "string"
+    },
+    "program_version": {
+      "type": "string"
+    },
+    "weeks": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 52
+    },
+    "days_per_week": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 7
+    },
+    "athlete": {
+      "type": "object",
+      "required": [
+        "level",
+        "equipment"
+      ],
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": [
+            "novice",
+            "intermediate",
+            "advanced"
+          ]
+        },
+        "equipment": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "restrictions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "e1rm": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "time_budget_minutes": {
+          "type": "number",
+          "minimum": 10,
+          "maximum": 240
+        },
+        "modality": {
+          "type": "string",
+          "enum": [
+            "run",
+            "row",
+            "bike",
+            "mixed"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "conditioning": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": true
+}

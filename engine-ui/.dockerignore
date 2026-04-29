@@ -1,0 +1,7 @@
+node_modules
+.next
+.env*.local
+*.md
+tests
+playwright.config.ts
+vitest.config.ts

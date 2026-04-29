@@ -14,11 +14,19 @@ inp = data.get('tool_input', {})
 print(inp.get('file_path', ''))
 " 2>/dev/null || true)
 
-# Only act on .py files inside the backend directory
-if [[ "$FILE_PATH" != *.py ]] || [[ "$FILE_PATH" != */backend/* && "$FILE_PATH" != backend/* ]]; then
+# Only act on .py files inside the backend or engine directories
+if [[ "$FILE_PATH" != *.py ]]; then
+  exit 0
+fi
+if [[ "$FILE_PATH" != */backend/* && "$FILE_PATH" != backend/* && \
+      "$FILE_PATH" != */engine/* && "$FILE_PATH" != engine/* ]]; then
   exit 0
 fi
 
 echo "[ruff] Checking $FILE_PATH"
-cd backend
+if [[ "$FILE_PATH" == */engine/* || "$FILE_PATH" == engine/* ]]; then
+  cd engine
+else
+  cd backend
+fi
 uv run ruff check --fix "$FILE_PATH" 2>&1 || true

@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/schemas/exercise_library.schema.json",
+  "title": "ExerciseLibrary",
+  "type": "object",
+  "required": [
+    "version",
+    "patterns",
+    "muscles",
+    "exercises"
+  ],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "patterns": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "squat",
+          "hinge",
+          "lunge_unilateral",
+          "horizontal_push",
+          "horizontal_pull",
+          "vertical_push",
+          "vertical_pull",
+          "carry",
+          "core_anti_extension",
+          "core_anti_rotation",
+          "core_flexion",
+          "rotation",
+          "conditioning_steady",
+          "conditioning_intervals"
+        ]
+      }
+    },
+    "muscles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "quads",
+          "hamstrings",
+          "glutes",
+          "adductors",
+          "calves",
+          "erectors",
+          "lats",
+          "upper_back",
+          "chest",
+          "delts_anterior",
+          "delts_lateral",
+          "delts_posterior",
+          "biceps",
+          "triceps",
+          "forearms_grip",
+          "abs",
+          "obliques"
+        ]
+      }
+    },
+    "exercises": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "patterns",
+          "muscles",
+          "equipment",
+          "fatigue_cost",
+          "contraindications",
+          "tags"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "patterns": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "enum": [
+                "squat",
+                "hinge",
+                "lunge_unilateral",
+                "horizontal_push",
+                "horizontal_pull",
+                "vertical_push",
+                "vertical_pull",
+                "carry",
+                "core_anti_extension",
+                "core_anti_rotation",
+                "core_flexion",
+                "rotation",
+                "conditioning_steady",
+                "conditioning_intervals"
+              ]
+            }
+          },
+          "muscles": {
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+              "^[a-z_]+$": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1.5
+              }
+            }
+          },
+          "equipment": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "swap_group": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fatigue_cost": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2
+          },
+          "contraindications": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

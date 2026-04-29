@@ -65,6 +65,56 @@ jobs:
         run: |
           echo "Docker image pushed: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
 
+  build-and-push-engine:
+    name: Build engine image and push to ECR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push engine Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./engine
+          file: engine/Dockerfile
+          push: true
+          tags: |
+            ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ENGINE_ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+            ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ENGINE_ECR_REPOSITORY }}:latest
+
+      - name: (Optional) Trigger App Runner update for engine
+        if: ${{ vars.ENGINE_APP_RUNNER_SERVICE_ARN != '' }}
+        run: |
+          IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ENGINE_ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          aws apprunner update-service \
+            --service-arn "${{ vars.ENGINE_APP_RUNNER_SERVICE_ARN }}" \
+            --source-configuration "ImageRepository={ImageIdentifier='${IMAGE_URI}',ImageRepositoryType='ECR',ImageConfiguration={Port='8000'}}"
+
+      - name: Success message
+        run: |
+          echo "Engine image pushed: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ENGINE_ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
+
 # Notes / required secrets and variables:
 # SECRETS (sensitive, set in Settings > Secrets and variables > Actions > Secrets):
 #   - AWS_ACCESS_KEY_ID: IAM access key ID
@@ -75,3 +125,5 @@ jobs:
 #   - AWS_ACCOUNT_ID: e.g., 123456789012
 #   - ECR_REPOSITORY: e.g., gym-app-backend
 #   - APP_RUNNER_SERVICE_ARN (optional): App Runner service ARN for auto-deployment
+#   - ENGINE_ECR_REPOSITORY: e.g., gym-app-engine
+#   - ENGINE_APP_RUNNER_SERVICE_ARN (optional): App Runner service ARN for the engine

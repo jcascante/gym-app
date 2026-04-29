@@ -39,6 +39,16 @@ frontend/.vite/
 backend/.pytest_cache/
 backend/.ruff_cache/
 
+# Engine
+engine/.pytest_cache/
+engine/.ruff_cache/
+engine/.venv/
+
+# Engine UI (local dev only)
+engine-ui/node_modules/
+engine-ui/.next/
+engine-ui/.turbo/
+
 # Database
 *.db
 *.sqlite

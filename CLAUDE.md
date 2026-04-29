@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Gym App is a full-stack gym management platform: React 19 + TypeScript frontend (Vite 7), FastAPI backend (Python/uv), with an optional external TrainGen Engine service for AI-powered program generation.
+Gym App is a full-stack gym management platform: React 19 + TypeScript frontend (Vite 7), FastAPI backend (Python/uv), the Program Builder Engine (`engine/`) for deterministic training plan generation, and its definition builder UI (`engine-ui/`, local dev only).
 
 ## Common Commands
 
@@ -61,11 +61,47 @@ cd backend && uv run alembic stamp <revision_id>  # re-sync alembic state after 
 cd backend && uv run python app/core/seed.py
 ```
 
+### Engine
+
+```bash
+# Install deps
+cd engine && uv sync --all-extras
+
+# Dev server (http://localhost:8000)
+cd engine && make run
+# Or: cd engine && uv run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+
+# Tests
+cd engine && uv run pytest
+cd engine && uv run pytest tests/unit/
+cd engine && uv run pytest tests/integration/
+
+# Lint / format / typecheck
+cd engine && make lint
+cd engine && make format
+cd engine && make typecheck
+```
+
+> Python 3.12. Data files at `engine/data/`, `engine/definitions/`, `engine/schemas/`.
+
+### Engine UI (local dev only)
+
+```bash
+# Install deps
+cd engine-ui && pnpm install
+
+# Dev server (http://localhost:3000)
+cd engine-ui && pnpm dev
+```
+
+> Program definition builder. NOT deployed to production. Talks to the engine at `http://localhost:8000`.
+
 ### Docker (full stack)
 
 ```bash
-docker compose up           # backend (host:9000), frontend (5173), engine runs on host:8000
-docker compose up backend   # just backend
+docker compose up                    # all services: backend (9000), frontend (5173), engine (8000), engine-ui (3000)
+docker compose up backend engine     # backend + engine only
+docker compose up backend            # just backend (requires engine running separately)
 ```
 
 ## Architecture
@@ -105,7 +141,13 @@ services/         # Business logic (workout_service, template_service, engine_cl
 
 **ProgramDayExercise** has dual columns intentionally: flat wizard columns (`exercise_name`, `reps`, `weight_lbs`, `exercise_order`) used by the 5x5 wizard UI, plus normalized FK columns (`exercise_id`, `reps_target`, `load_value`) for future exercise library integration.
 
-**TrainGen Engine**: An external service expected at `http://localhost:8000` (or `http://host.docker.internal:8000` in Docker). Calls proxied through `services/engine_client.py` and exposed via `/api/v1/engine/*` routes.
+**Program Builder Engine** (`engine/`): A deterministic training plan generation service (FastAPI, Python 3.12, no database). In Docker Compose it runs as the `engine` service at `http://engine:8000`; locally it runs on port 8000. The gym backend calls it through `services/engine_client.py`; routes are proxied at `/api/v1/engine/*`.
+
+Engine routes: `GET /api/v1/program-definitions`, `POST /api/v1/generate`, `POST /api/v1/exercises/alternatives`, `POST /api/v1/plans/apply-overrides`, `GET /api/v1/library`, `POST /api/v1/validate-definition`.
+
+Data files (source-controlled): `engine/data/exercise_library_v1.json`, `engine/definitions/*.json`, `engine/schemas/*.json`.
+
+**Engine UI** (`engine-ui/`): Next.js 15 program definition builder. Local dev only — not deployed to production. Runs on port 3000, connects directly to the engine at `http://localhost:8000`.
 
 ### Frontend (`frontend/src/`)
 

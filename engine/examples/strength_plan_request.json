@@ -1,0 +1,33 @@
+{
+  "program_id": "strength_ul_4w_v1",
+  "program_version": "1.0.0",
+  "weeks": 4,
+  "days_per_week": 4,
+  "athlete": {
+    "level": "intermediate",
+    "equipment": [
+      "barbell",
+      "rack",
+      "bench",
+      "dumbbells",
+      "cable",
+      "machine",
+      "pullup_bar"
+    ],
+    "restrictions": [],
+    "e1rm": {
+      "squat": 160,
+      "bench": 115,
+      "deadlift": 190,
+      "ohp": 70
+    }
+  },
+  "rules": {
+    "main_method": "HYBRID",
+    "hard_set_rule": "RIR_LE_4",
+    "accessory_rir_target": 2,
+    "rounding_profile": "plate_2p5kg",
+    "volume_metric": "hard_sets_weighted",
+    "allow_optional_ohp": true
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "program_id": "conditioning_4w_v1",
+  "program_version": "1.0.0",
+  "weeks": 4,
+  "days_per_week": 4,
+  "athlete": {
+    "level": "intermediate",
+    "time_budget_minutes": 60,
+    "modality": "run",
+    "equipment": []
+  },
+  "conditioning": {
+    "method": "HR_ZONES",
+    "hr_zone_formula": "KARVONEN_HRR",
+    "hr_max": 190,
+    "hr_rest": 55
+  }
+}
