@@ -18,6 +18,13 @@ async def list_definitions() -> list[dict[str, object]]:
             "version": d.version,
             "name": d.name,
             "description": d.description,
+            "category": d.category,
+            "tags": d.tags,
+            "days_per_week": {
+                "min": d.template.days_per_week.min,
+                "max": d.template.days_per_week.max,
+            },
+            "weeks": {"min": d.template.weeks.min, "max": d.template.weeks.max},
         }
         for d in defs.values()
     ]

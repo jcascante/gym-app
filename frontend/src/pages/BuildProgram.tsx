@@ -70,10 +70,14 @@ export default function BuildProgram() {
   const [engineError, setEngineError] = useState<string | null>(null);
 
   const [selected, setSelected] = useState<EngineProgramSummary | null>(null);
+  const [highlighted, setHighlighted] = useState<EngineProgramSummary | null>(null);
   const [definition, setDefinition] = useState<EngineProgramDefinition | null>(null);
   const [formValues, setFormValues] = useState<Record<string, unknown>>({});
   const [weeks, setWeeks] = useState(4);
   const [daysPerWeek, setDaysPerWeek] = useState(4);
+
+  const [search, setSearch] = useState('');
+  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
 
   const [generatedPlan, setGeneratedPlan] = useState<GeneratedPlan | null>(null);
   const [saveName, setSaveName] = useState('');
@@ -155,24 +159,154 @@ export default function BuildProgram() {
 
   // ── SELECT STEP ──────────────────────────────────────────
   if (step === 'select') {
+    const allFilters = Array.from(
+      new Set(programs.flatMap(p => [p.category, ...p.tags].filter(Boolean) as string[]))
+    ).sort();
+
+    const filtered = programs.filter(p => {
+      const q = search.toLowerCase();
+      const matchesSearch =
+        !q ||
+        (p.name ?? '').toLowerCase().includes(q) ||
+        (p.description ?? '').toLowerCase().includes(q) ||
+        (p.category ?? '').toLowerCase().includes(q);
+      const matchesFilters =
+        activeFilters.size === 0 ||
+        [...activeFilters].some(
+          f => p.category === f || p.tags.includes(f),
+        );
+      return matchesSearch && matchesFilters;
+    });
+
+    const detail = highlighted ?? (filtered.length === 1 ? filtered[0] : null);
+
+    function toggleFilter(f: string) {
+      setActiveFilters(prev => {
+        const next = new Set(prev);
+        if (next.has(f)) { next.delete(f); } else { next.add(f); }
+        return next;
+      });
+    }
+
+    function formatDays(p: EngineProgramSummary) {
+      const { min, max } = p.days_per_week;
+      return min === max ? `${min} days/week` : `${min}–${max} days/week`;
+    }
+
     return (
-      <div className="bp-page">
+      <div className="bp-page bp-select-page">
         <div className="bp-header">
           <h1>Build My Program</h1>
           <p>Choose a training program template to get started.</p>
         </div>
+
         {engineError && <div className="bp-error">{engineError}</div>}
-        {loadingPrograms ? (
-          <p className="bp-loading">Loading programs…</p>
-        ) : (
-          <div className="bp-program-grid">
-            {programs.map(p => (
-              <button key={p.program_id} className="bp-program-card" onClick={() => handleSelectProgram(p)}>
-                <h3>{p.name ?? p.program_id}</h3>
-                <p>{p.description ?? ''}</p>
-                <span className="bp-program-id">{p.program_id}</span>
+
+        {/* Search */}
+        <div className="bp-search-bar">
+          <span className="bp-search-icon">🔍</span>
+          <input
+            type="search"
+            placeholder="Search programs…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="bp-search-input"
+          />
+        </div>
+
+        {/* Filter chips */}
+        {allFilters.length > 0 && (
+          <div className="bp-filter-bar">
+            <button
+              className={`bp-chip ${activeFilters.size === 0 ? 'bp-chip--active' : ''}`}
+              onClick={() => setActiveFilters(new Set())}
+            >
+              All
+            </button>
+            {allFilters.map(f => (
+              <button
+                key={f}
+                className={`bp-chip ${activeFilters.has(f) ? 'bp-chip--active' : ''}`}
+                onClick={() => toggleFilter(f)}
+              >
+                {f}
               </button>
             ))}
+          </div>
+        )}
+
+        {loadingPrograms ? (
+          <div className="bp-skeleton-list">
+            {[1, 2, 3].map(i => <div key={i} className="bp-skeleton-card" />)}
+          </div>
+        ) : (
+          <div className="bp-master-detail">
+            {/* Left: program list */}
+            <div className="bp-program-list">
+              {filtered.length === 0 && (
+                <p className="bp-empty">No programs match your search.</p>
+              )}
+              {filtered.map(p => (
+                <button
+                  key={p.program_id}
+                  className={`bp-list-card ${detail?.program_id === p.program_id ? 'bp-list-card--active' : ''}`}
+                  onClick={() => setHighlighted(p)}
+                >
+                  <div className="bp-list-card-name">{p.name ?? p.program_id}</div>
+                  <div className="bp-list-card-meta">
+                    {p.category && <span className="bp-badge bp-badge--category">{p.category}</span>}
+                    <span className="bp-badge bp-badge--days">{formatDays(p)}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Right: detail panel */}
+            <div className="bp-detail-panel">
+              {!detail ? (
+                <div className="bp-detail-empty">
+                  <span className="bp-detail-empty-icon">←</span>
+                  <p>Select a program to see details</p>
+                </div>
+              ) : (
+                <>
+                  <div className="bp-detail-badges">
+                    {detail.category && (
+                      <span className="bp-badge bp-badge--category">{detail.category}</span>
+                    )}
+                    {detail.tags.map(t => (
+                      <span key={t} className="bp-badge bp-badge--tag">{t}</span>
+                    ))}
+                  </div>
+
+                  <h2 className="bp-detail-name">{detail.name ?? detail.program_id}</h2>
+
+                  <div className="bp-detail-schedule">
+                    <div className="bp-detail-stat">
+                      <span className="bp-detail-stat-value">{formatDays(detail)}</span>
+                    </div>
+                    <div className="bp-detail-stat">
+                      <span className="bp-detail-stat-value">
+                        {detail.weeks.min === detail.weeks.max
+                          ? `${detail.weeks.min} weeks`
+                          : `${detail.weeks.min}–${detail.weeks.max} weeks`}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="bp-detail-description">{detail.description}</p>
+
+                  <div className="bp-detail-actions">
+                    <button
+                      className="bp-btn-primary bp-btn-large"
+                      onClick={() => handleSelectProgram(detail)}
+                    >
+                      Build This Program →
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>

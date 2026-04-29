@@ -103,6 +103,8 @@ class ProgramDefinition(BaseModel):
     version: str = Field(min_length=1)
     name: str | None = None
     description: str | None = None
+    category: str | None = None
+    tags: list[str] = Field(default_factory=list)
     parameter_spec: ParameterSpec
     exercise_library_ref: ExerciseLibraryRef | None = None
     template: Template

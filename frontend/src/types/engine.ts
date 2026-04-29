@@ -5,6 +5,10 @@ export interface EngineProgramSummary {
   version: string;
   name: string | null;
   description: string | null;
+  category: string | null;
+  tags: string[];
+  days_per_week: { min: number; max: number };
+  weeks: { min: number; max: number };
 }
 
 export interface ParameterField {

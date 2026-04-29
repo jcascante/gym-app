@@ -3,12 +3,21 @@
   "version": "1.0.0",
   "name": "Upper/Lower A/B — 4 semanas (Upper A · Lower A · Upper B · Lower B)",
   "description": "Variante 2: cada grupo muscular aparece 2×/semana con variación A/B. Upper A enfatiza pecho y tríceps. Upper B enfatiza espalda y bíceps. Lower A cuádriceps-dominante. Lower B femorales-dominante. 4 días de pesas + 1 conditioning opcional.",
+  "category": "Upper / Lower",
+  "tags": [
+    "strength",
+    "hypertrophy"
+  ],
   "parameter_spec": {
     "fields": [
       {
         "key": "athlete.level",
         "type": "enum",
-        "enum": ["novice", "intermediate", "advanced"],
+        "enum": [
+          "novice",
+          "intermediate",
+          "advanced"
+        ],
         "required": true
       },
       {
@@ -33,7 +42,11 @@
       {
         "key": "rules.rounding_profile",
         "type": "enum",
-        "enum": ["none", "plate_2p5kg", "db_2kg"],
+        "enum": [
+          "none",
+          "plate_2p5kg",
+          "db_2kg"
+        ],
         "required": true,
         "default_expr": "'plate_2p5kg'"
       }
@@ -44,73 +57,133 @@
     "path": "data/exercise_library_v1.json"
   },
   "template": {
-    "weeks": { "min": 4, "max": 4 },
-    "days_per_week": { "min": 4, "max": 5 },
+    "weeks": {
+      "min": 4,
+      "max": 4
+    },
+    "days_per_week": {
+      "min": 4,
+      "max": 5
+    },
     "sessions": [
       {
         "day_index": 1,
-        "tags": ["upper", "upper_a", "chest_focus", "push"],
+        "tags": [
+          "upper",
+          "upper_a",
+          "chest_focus",
+          "push"
+        ],
         "optional": false,
         "blocks": [
           {
             "id": "d1_chest1",
             "type": "main_lift",
-            "tags": ["chest", "horizontal_push"],
+            "tags": [
+              "chest",
+              "horizontal_push"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["chest", "horizontal_push", "bench_main", "bench_secondary"],
-              "prefer_tags": ["compound", "barbell"]
+              "include_tags": [
+                "chest",
+                "horizontal_push",
+                "bench_main",
+                "bench_secondary"
+              ],
+              "prefer_tags": [
+                "compound",
+                "barbell"
+              ]
             },
             "prescription_ref": "rx_hyp_upper"
           },
           {
             "id": "d1_chest2",
             "type": "secondary_lift",
-            "tags": ["chest", "upper_chest"],
+            "tags": [
+              "chest",
+              "upper_chest"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["chest", "upper_chest", "chest_accessory", "press_secondary"],
-              "prefer_tags": ["dumbbell", "cable"]
+              "include_tags": [
+                "chest",
+                "upper_chest",
+                "chest_accessory",
+                "press_secondary"
+              ],
+              "prefer_tags": [
+                "dumbbell",
+                "cable"
+              ]
             },
             "prescription_ref": "rx_hyp_upper"
           },
           {
             "id": "d1_tri1",
             "type": "accessory",
-            "tags": ["triceps"],
+            "tags": [
+              "triceps"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["triceps", "triceps_accessory"]
+              "include_tags": [
+                "triceps",
+                "triceps_accessory"
+              ]
             },
             "prescription_ref": "rx_hyp_tri"
           },
           {
             "id": "d1_tri2",
             "type": "accessory",
-            "tags": ["triceps"],
+            "tags": [
+              "triceps"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["triceps", "triceps_accessory"]
+              "include_tags": [
+                "triceps",
+                "triceps_accessory"
+              ]
             },
             "prescription_ref": "rx_hyp_tri"
           },
           {
             "id": "d1_delts",
             "type": "accessory",
-            "tags": ["delts", "shoulders"],
+            "tags": [
+              "delts",
+              "shoulders"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["delts_lateral", "delts_front", "delts_side", "ohp_secondary", "vertical_push"]
+              "include_tags": [
+                "delts_lateral",
+                "delts_front",
+                "delts_side",
+                "ohp_secondary",
+                "vertical_push"
+              ]
             },
             "prescription_ref": "rx_hyp_delts"
           },
           {
             "id": "d1_abs",
             "type": "accessory",
-            "tags": ["core", "abs"],
+            "tags": [
+              "core",
+              "abs"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["abs", "core", "core_anti_extension", "core_flexion"]
+              "include_tags": [
+                "abs",
+                "core",
+                "core_anti_extension",
+                "core_flexion"
+              ]
             },
             "prescription_ref": "rx_timed_abs"
           }
@@ -118,68 +191,116 @@
       },
       {
         "day_index": 2,
-        "tags": ["lower", "lower_a", "quad_focus"],
+        "tags": [
+          "lower",
+          "lower_a",
+          "quad_focus"
+        ],
         "optional": false,
         "blocks": [
           {
             "id": "d2_quad1",
             "type": "main_lift",
-            "tags": ["quads", "squat"],
+            "tags": [
+              "quads",
+              "squat"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["squat_main", "squat_secondary"],
-              "prefer_tags": ["barbell", "compound"]
+              "include_tags": [
+                "squat_main",
+                "squat_secondary"
+              ],
+              "prefer_tags": [
+                "barbell",
+                "compound"
+              ]
             },
             "prescription_ref": "rx_strength_lower"
           },
           {
             "id": "d2_quad2",
             "type": "secondary_lift",
-            "tags": ["quads"],
+            "tags": [
+              "quads"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["quads", "quads_accessory", "quads_isolation"]
+              "include_tags": [
+                "quads",
+                "quads_accessory",
+                "quads_isolation"
+              ]
             },
             "prescription_ref": "rx_strength_lower"
           },
           {
             "id": "d2_ham1",
             "type": "secondary_lift",
-            "tags": ["hamstrings", "hinge"],
+            "tags": [
+              "hamstrings",
+              "hinge"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["hinge_secondary", "hamstrings", "hamstrings_accessory"],
-              "prefer_tags": ["compound", "barbell"]
+              "include_tags": [
+                "hinge_secondary",
+                "hamstrings",
+                "hamstrings_accessory"
+              ],
+              "prefer_tags": [
+                "compound",
+                "barbell"
+              ]
             },
             "prescription_ref": "rx_strength_lower"
           },
           {
             "id": "d2_glutes",
             "type": "accessory",
-            "tags": ["glutes"],
+            "tags": [
+              "glutes"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["glutes", "glutes_accessory", "glutes_isolation"]
+              "include_tags": [
+                "glutes",
+                "glutes_accessory",
+                "glutes_isolation"
+              ]
             },
             "prescription_ref": "rx_hyp_glutes"
           },
           {
             "id": "d2_calves",
             "type": "accessory",
-            "tags": ["calves"],
+            "tags": [
+              "calves"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["calves_focus", "calves_isolation"]
+              "include_tags": [
+                "calves_focus",
+                "calves_isolation"
+              ]
             },
             "prescription_ref": "rx_hyp_calves"
           },
           {
             "id": "d2_abs",
             "type": "accessory",
-            "tags": ["core", "abs"],
+            "tags": [
+              "core",
+              "abs"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["abs", "core", "core_anti_extension", "core_flexion"]
+              "include_tags": [
+                "abs",
+                "core",
+                "core_anti_extension",
+                "core_flexion"
+              ]
             },
             "prescription_ref": "rx_timed_abs"
           }
@@ -187,16 +308,25 @@
       },
       {
         "day_index": 3,
-        "tags": ["conditioning"],
+        "tags": [
+          "conditioning"
+        ],
         "optional": true,
         "blocks": [
           {
             "id": "d3_conditioning",
             "type": "conditioning_steady",
-            "tags": ["conditioning", "cardio"],
+            "tags": [
+              "conditioning",
+              "cardio"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["carry", "core", "core_anti_rotation"]
+              "include_tags": [
+                "carry",
+                "core",
+                "core_anti_rotation"
+              ]
             },
             "prescription_ref": "rx_conditioning_steady"
           }
@@ -204,68 +334,118 @@
       },
       {
         "day_index": 4,
-        "tags": ["upper", "upper_b", "back_focus", "pull"],
+        "tags": [
+          "upper",
+          "upper_b",
+          "back_focus",
+          "pull"
+        ],
         "optional": false,
         "blocks": [
           {
             "id": "d4_back1",
             "type": "main_lift",
-            "tags": ["back", "vertical_pull"],
+            "tags": [
+              "back",
+              "vertical_pull"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["vertical_pull_main", "vertical_pull_secondary", "back"],
-              "prefer_tags": ["compound", "barbell"]
+              "include_tags": [
+                "vertical_pull_main",
+                "vertical_pull_secondary",
+                "back"
+              ],
+              "prefer_tags": [
+                "compound",
+                "barbell"
+              ]
             },
             "prescription_ref": "rx_hyp_upper"
           },
           {
             "id": "d4_back2",
             "type": "secondary_lift",
-            "tags": ["back", "horizontal_pull"],
+            "tags": [
+              "back",
+              "horizontal_pull"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["horizontal_pull_secondary", "horizontal_pull_accessory", "back"],
-              "prefer_tags": ["horizontal_pull", "barbell"]
+              "include_tags": [
+                "horizontal_pull_secondary",
+                "horizontal_pull_accessory",
+                "back"
+              ],
+              "prefer_tags": [
+                "horizontal_pull",
+                "barbell"
+              ]
             },
             "prescription_ref": "rx_hyp_upper"
           },
           {
             "id": "d4_bi1",
             "type": "accessory",
-            "tags": ["biceps"],
+            "tags": [
+              "biceps"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["biceps", "biceps_accessory"]
+              "include_tags": [
+                "biceps",
+                "biceps_accessory"
+              ]
             },
             "prescription_ref": "rx_hyp_bi"
           },
           {
             "id": "d4_bi2",
             "type": "accessory",
-            "tags": ["biceps"],
+            "tags": [
+              "biceps"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["biceps", "biceps_accessory"]
+              "include_tags": [
+                "biceps",
+                "biceps_accessory"
+              ]
             },
             "prescription_ref": "rx_hyp_bi"
           },
           {
             "id": "d4_delts",
             "type": "accessory",
-            "tags": ["delts_rear", "rear_delt"],
+            "tags": [
+              "delts_rear",
+              "rear_delt"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["delts_rear", "delts_posterior", "rear_delt"]
+              "include_tags": [
+                "delts_rear",
+                "delts_posterior",
+                "rear_delt"
+              ]
             },
             "prescription_ref": "rx_hyp_delts"
           },
           {
             "id": "d4_abs",
             "type": "accessory",
-            "tags": ["core", "abs"],
+            "tags": [
+              "core",
+              "abs"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["abs", "core", "core_anti_extension", "core_flexion"]
+              "include_tags": [
+                "abs",
+                "core",
+                "core_anti_extension",
+                "core_flexion"
+              ]
             },
             "prescription_ref": "rx_timed_abs"
           }
@@ -273,67 +453,112 @@
       },
       {
         "day_index": 5,
-        "tags": ["lower", "lower_b", "ham_focus"],
+        "tags": [
+          "lower",
+          "lower_b",
+          "ham_focus"
+        ],
         "optional": false,
         "blocks": [
           {
             "id": "d5_ham1",
             "type": "main_lift",
-            "tags": ["hamstrings", "hinge"],
+            "tags": [
+              "hamstrings",
+              "hinge"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["hinge_main", "hinge_secondary", "hamstrings", "hamstrings_focus"],
-              "prefer_tags": ["barbell", "compound"]
+              "include_tags": [
+                "hinge_main",
+                "hinge_secondary",
+                "hamstrings",
+                "hamstrings_focus"
+              ],
+              "prefer_tags": [
+                "barbell",
+                "compound"
+              ]
             },
             "prescription_ref": "rx_strength_lower"
           },
           {
             "id": "d5_ham2",
             "type": "secondary_lift",
-            "tags": ["hamstrings"],
+            "tags": [
+              "hamstrings"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["hamstrings_accessory", "hamstrings_isolation"]
+              "include_tags": [
+                "hamstrings_accessory",
+                "hamstrings_isolation"
+              ]
             },
             "prescription_ref": "rx_strength_lower"
           },
           {
             "id": "d5_quad1",
             "type": "secondary_lift",
-            "tags": ["quads"],
+            "tags": [
+              "quads"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["quads", "quads_accessory", "quads_isolation"]
+              "include_tags": [
+                "quads",
+                "quads_accessory",
+                "quads_isolation"
+              ]
             },
             "prescription_ref": "rx_strength_lower"
           },
           {
             "id": "d5_glutes",
             "type": "accessory",
-            "tags": ["glutes"],
+            "tags": [
+              "glutes"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["glutes", "glutes_accessory", "glutes_isolation"]
+              "include_tags": [
+                "glutes",
+                "glutes_accessory",
+                "glutes_isolation"
+              ]
             },
             "prescription_ref": "rx_hyp_glutes"
           },
           {
             "id": "d5_calves",
             "type": "accessory",
-            "tags": ["calves"],
+            "tags": [
+              "calves"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["calves_focus", "calves_isolation"]
+              "include_tags": [
+                "calves_focus",
+                "calves_isolation"
+              ]
             },
             "prescription_ref": "rx_hyp_calves"
           },
           {
             "id": "d5_abs",
             "type": "accessory",
-            "tags": ["core", "abs"],
+            "tags": [
+              "core",
+              "abs"
+            ],
             "exercise_selector": {
               "count": 1,
-              "include_tags": ["abs", "core", "core_anti_extension", "core_flexion"]
+              "include_tags": [
+                "abs",
+                "core",
+                "core_anti_extension",
+                "core_flexion"
+              ]
             },
             "prescription_ref": "rx_timed_abs"
           }
@@ -425,9 +650,17 @@
   "rules": {
     "expression_language": "v1",
     "rounding_profiles": {
-      "none": { "type": "none" },
-      "plate_2p5kg": { "type": "plate", "increment_kg": 2.5 },
-      "db_2kg": { "type": "dumbbell", "increment_kg": 2.0 }
+      "none": {
+        "type": "none"
+      },
+      "plate_2p5kg": {
+        "type": "plate",
+        "increment_kg": 2.5
+      },
+      "db_2kg": {
+        "type": "dumbbell",
+        "increment_kg": 2.0
+      }
     },
     "defaults": {
       "rounding_profile_key_expr": "ctx.rules.rounding_profile"
