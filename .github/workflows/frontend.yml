@@ -11,6 +11,7 @@ env:
   AWS_REGION: us-east-1
   FRONTEND_BUCKET: app.movementtrainingclub.com
   CLOUDFRONT_DISTRIBUTION_ID: E15DPRRJ6MVP5X
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   deploy:
