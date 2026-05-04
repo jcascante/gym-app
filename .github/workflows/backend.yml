@@ -2,10 +2,10 @@ name: Deploy Backend
 
 on:
   push:
-    branches: [arch-aws-design]
+    branches: [main]
     paths:
       - "backend/**"
-  workflow_dispatch:
+  workflow_dis  patch:
 
 env:
   AWS_REGION: us-east-1
