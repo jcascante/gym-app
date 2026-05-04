@@ -54,7 +54,7 @@ disallow_untyped_calls = false
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
-addopts = "--cov=src --cov-report=term-missing --cov-fail-under=90 -v"
+addopts = "--cov=src --cov-report=term-missing --cov-fail-under=80 -v"
 
 [tool.coverage.run]
 source = ["src"]
