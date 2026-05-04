@@ -13,7 +13,7 @@ RUN npm ci --silent || npm install --silent
 RUN npx vite build
 
 ######## Final image ########
-FROM python:3.11-slim
+FROM python:3.14.2-slim
 
 ENV PYTHONUNBUFFERED=1
 WORKDIR /app

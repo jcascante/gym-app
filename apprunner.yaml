@@ -17,7 +17,7 @@ service:
     path: backend              # path to the backend sources
 
   # Runtime & instance sizing
-  runtime: python3.11         # runtime used when App Runner builds from source
+  runtime: python3.14         # runtime used when App Runner builds from source
   instanceConfiguration:
     cpu: 1024
     memory: 2048
