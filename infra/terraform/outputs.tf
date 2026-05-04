@@ -1,71 +1,44 @@
-# Application Infrastructure Outputs
-
-# General Info
 output "account_id" {
-  description = "AWS Account ID"
-  value       = data.aws_caller_identity.current.account_id
+  value = data.aws_caller_identity.current.account_id
 }
 
 output "region" {
-  description = "AWS Region"
-  value       = data.aws_region.current.name
+  value = data.aws_region.current.name
 }
 
-# ECR Repository
-output "ecr_repository_url" {
-  description = "ECR repository URL for the backend image"
-  value       = data.aws_ecr_repository.backend.repository_url
+output "frontend_bucket" {
+  value = data.aws_s3_bucket.frontend.bucket
 }
 
-# App Runner Service
-output "app_runner_service_id" {
-  description = "ID of the App Runner service"
-  value       = module.app_runner.service_id
+output "frontend_cloudfront_id" {
+  value = data.aws_cloudfront_distribution.frontend.id
 }
 
-output "app_runner_service_arn" {
-  description = "ARN of the App Runner service"
-  value       = module.app_runner.service_arn
+output "frontend_url" {
+  value = "https://${data.aws_cloudfront_distribution.frontend.domain_name}"
 }
 
-output "app_runner_service_url" {
-  description = "URL of the App Runner service"
-  value       = "https://${module.app_runner.service_url}"
+output "backend_alb_dns" {
+  value = module.backend_ecs.alb_dns_name
 }
 
-output "app_runner_service_status" {
-  description = "Current status of the App Runner service"
-  value       = module.app_runner.service_status
+output "backend_ecs_cluster" {
+  value = module.backend_ecs.ecs_cluster_name
 }
 
-output "app_runner_instance_role_arn" {
-  description = "ARN of the App Runner instance IAM role"
-  value       = module.app_runner.instance_role_arn
+output "backend_ecs_service" {
+  value = module.backend_ecs.ecs_service_name
 }
 
-output "app_runner_access_role_arn" {
-  description = "ARN of the App Runner access IAM role"
-  value       = module.app_runner.access_role_arn
+output "program_builder_function_name" {
+  value = module.lambda_program_builder.function_name
 }
 
-# Deployment Info
-output "deployment_instructions" {
-  description = "Instructions for deploying the application"
-  value = <<-EOT
+output "program_builder_function_arn" {
+  value = module.lambda_program_builder.function_arn
+}
 
-    To deploy the application:
-
-    1. Build and push the Docker image:
-       cd backend
-       docker build -t ${data.aws_ecr_repository.backend.repository_url}:${var.image_tag} -f Dockerfile ..
-       aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin ${data.aws_ecr_repository.backend.repository_url}
-       docker push ${data.aws_ecr_repository.backend.repository_url}:${var.image_tag}
-
-    2. The App Runner service will automatically deploy the new image (if auto_deployments_enabled = true)
-
-    3. Access your application at: https://${module.app_runner.service_url}
-
-    4. Monitor logs in CloudWatch Logs
-
-  EOT
+output "lambda_deployments_bucket" {
+  value       = data.aws_s3_bucket.state.bucket
+  description = "S3 bucket used for Lambda deployment packages (existing state bucket, prefix gym-app/lambda/)"
 }

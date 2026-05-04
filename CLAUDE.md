@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Gym App is a full-stack gym management platform: React 19 + TypeScript frontend (Vite 7), FastAPI backend (Python/uv), the Program Builder Engine (`engine/`) for deterministic training plan generation, and its definition builder UI (`engine-ui/`, local dev only).
+Gym App is a full-stack gym management platform: React 19 + TypeScript frontend (Vite 7), FastAPI backend (Python/uv), the Program Builder (`program-builder/`) for deterministic training plan generation deployed as AWS Lambda, and its definition builder UI (`engine-ui/`, local dev only).
 
 ## Common Commands
 
@@ -61,28 +61,30 @@ cd backend && uv run alembic stamp <revision_id>  # re-sync alembic state after 
 cd backend && uv run python app/core/seed.py
 ```
 
-### Engine
+### Program Builder
 
 ```bash
 # Install deps
-cd engine && uv sync --all-extras
+cd program-builder && uv sync --all-extras
 
-# Dev server (http://localhost:8000)
-cd engine && make run
-# Or: cd engine && uv run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+# Dev server (http://localhost:8000) — FastAPI adapter for local use
+cd program-builder && make run
+# Or: cd program-builder && uv run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 
 # Tests
-cd engine && uv run pytest
-cd engine && uv run pytest tests/unit/
-cd engine && uv run pytest tests/integration/
+cd program-builder && uv run pytest
+cd program-builder && uv run pytest tests/unit/
+cd program-builder && uv run pytest tests/integration/
 
 # Lint / format / typecheck
-cd engine && make lint
-cd engine && make format
-cd engine && make typecheck
+cd program-builder && make lint
+cd program-builder && make format
+cd program-builder && make typecheck
 ```
 
-> Python 3.12. Data files at `engine/data/`, `engine/definitions/`, `engine/schemas/`.
+> Python 3.12. Data files at `program-builder/data/`, `program-builder/definitions/`, `program-builder/schemas/`.
+> Production: deployed as AWS Lambda via `program-builder/lambda/handler.py`.
+> Local dev: runs as FastAPI service via the optional `src/api/` adapter.
 
 ### Engine UI (local dev only)
 
@@ -94,17 +96,40 @@ cd engine-ui && pnpm install
 cd engine-ui && pnpm dev
 ```
 
-> Program definition builder. NOT deployed to production. Talks to the engine at `http://localhost:8000`.
+> Program definition builder. NOT deployed to production. Talks to the program-builder at `http://localhost:8000`.
 
 ### Docker (full stack)
 
 ```bash
-docker compose up                    # all services: backend (9000), frontend (5173), engine (8000), engine-ui (3000)
-docker compose up backend engine     # backend + engine only
-docker compose up backend            # just backend (requires engine running separately)
+docker compose up                              # all services: backend (9000), frontend (5173), program-builder (8000), engine-ui (3000)
+docker compose up backend program-builder      # backend + program-builder only
+docker compose up backend                      # just backend (requires program-builder running separately)
 ```
 
 ## Architecture
+
+### Monorepo Structure
+
+```
+frontend/           React 19 + Vite SPA → S3 + CloudFront
+backend/            FastAPI → ECS Fargate + ALB
+program-builder/    Deterministic training plan engine → AWS Lambda
+  src/core/         Pure Python business logic (no FastAPI/AWS deps)
+  src/api/          Optional FastAPI adapter (local dev only)
+  lambda/           Production Lambda handler (handler.py)
+  data/             Exercise library JSON
+  definitions/      Program definition JSON files
+  schemas/          JSON schemas
+engine-ui/          Next.js program definition builder (local dev only, NOT deployed)
+shared/             Pydantic schemas shared between backend and program-builder
+  models/
+    plan_request.py
+    plan_response.py
+infra/
+  terraform/        Infrastructure as Code (ECS, Lambda, CloudFront, networking, IAM)
+.github/
+  workflows/        CI/CD (frontend.yml, backend.yml, program-builder.yml)
+```
 
 ### Backend (`backend/app/`)
 
@@ -113,7 +138,7 @@ docker compose up backend            # just backend (requires engine running sep
 ```
 main.py           # App init, CORS, lifespan (calls init_db), router registration
 core/
-  config.py       # Pydantic Settings (ENVIRONMENT, DB URLs, JWT, CORS)
+  config.py       # Pydantic Settings (ENVIRONMENT, DB URLs, JWT, CORS, ENGINE_*)
   database.py     # AsyncSessionLocal, init_db (create_all), engine setup
   security.py     # Bcrypt password hashing, JWT create/decode
   deps.py         # Auth dependencies: get_current_user, get_coach_or_admin_user, get_subscription_admin_user
@@ -141,13 +166,15 @@ services/         # Business logic (workout_service, template_service, engine_cl
 
 **ProgramDayExercise** has dual columns intentionally: flat wizard columns (`exercise_name`, `reps`, `weight_lbs`, `exercise_order`) used by the 5x5 wizard UI, plus normalized FK columns (`exercise_id`, `reps_target`, `load_value`) for future exercise library integration.
 
-**Program Builder Engine** (`engine/`): A deterministic training plan generation service (FastAPI, Python 3.12, no database). In Docker Compose it runs as the `engine` service at `http://engine:8000`; locally it runs on port 8000. The gym backend calls it through `services/engine_client.py`; routes are proxied at `/api/v1/engine/*`.
+**Program Builder client** (`services/engine_client.py`): switches between two transports via `ENGINE_INVOCATION_MODE`:
+- `http` (default, local dev) — async HTTP to `http://program-builder:8000`
+- `lambda` (production) — boto3 direct Lambda invoke using `ENGINE_LAMBDA_FUNCTION_NAME`
 
-Engine routes: `GET /api/v1/program-definitions`, `POST /api/v1/generate`, `POST /api/v1/exercises/alternatives`, `POST /api/v1/plans/apply-overrides`, `GET /api/v1/library`, `POST /api/v1/validate-definition`.
+Program Builder routes: `GET /api/v1/program-definitions`, `POST /api/v1/generate`, `POST /api/v1/exercises/alternatives`, `POST /api/v1/plans/apply-overrides`, `GET /api/v1/library`, `POST /api/v1/validate-definition`.
 
-Data files (source-controlled): `engine/data/exercise_library_v1.json`, `engine/definitions/*.json`, `engine/schemas/*.json`.
+Data files (source-controlled): `program-builder/data/exercise_library_v1.json`, `program-builder/definitions/*.json`, `program-builder/schemas/*.json`.
 
-**Engine UI** (`engine-ui/`): Next.js 15 program definition builder. Local dev only — not deployed to production. Runs on port 3000, connects directly to the engine at `http://localhost:8000`.
+**Engine UI** (`engine-ui/`): Next.js 15 program definition builder. Local dev only — not deployed to production. Runs on port 3000, connects directly to the program-builder at `http://localhost:8000`.
 
 ### Frontend (`frontend/src/`)
 
@@ -163,6 +190,25 @@ Data files (source-controlled): `engine/data/exercise_library_v1.json`, `engine/
 
 **i18n**: i18next configured; translation files in `src/i18n/`.
 
+### Infrastructure (`infra/terraform/`)
+
+Modules:
+- `modules/networking` — VPC, public/private subnets, Internet Gateway
+- `modules/iam` — ECS execution role, ECS task role (with `lambda:InvokeFunction`), Lambda execution role
+- `modules/frontend` — S3 bucket, CloudFront distribution, OAC, SPA 404 fallback
+- `modules/backend_ecs` — ECS cluster, Fargate service, ALB, auto-scaling
+- `modules/lambda_program_builder` — Lambda function, CloudWatch log group, error/duration alarms
+
+Bootstrap infrastructure (ECR, state bucket, locks table) is in `infra/terraform/bootstrap/`.
+
+### CI/CD (`.github/workflows/`)
+
+| Workflow | Trigger | Steps |
+|---|---|---|
+| `frontend.yml` | `frontend/**` push to main | npm ci → build → S3 sync → CloudFront invalidation |
+| `backend.yml` | `backend/**` push to main | docker build → ECR push → ECS force-deploy → wait stable |
+| `program-builder.yml` | `program-builder/**` push to main | pytest → pip install → zip → S3 upload → Lambda update-code → wait |
+
 ## Testing
 
 - Tests in `backend/tests/`, using `pytest-asyncio` and `httpx.AsyncClient` with `ASGITransport`
@@ -175,12 +221,19 @@ Data files (source-controlled): `engine/data/exercise_library_v1.json`, `engine/
 
 Backend env vars (`.env`, see `.env.example`):
 - `ENVIRONMENT` — `development` (SQLite) or `production` (PostgreSQL)
-- `SQLITE_URL` / `POSTGRES_URL` — database URLs
+- `DATABASE_URL` — database connection URL
 - `SECRET_KEY` — JWT signing key
 - `CORS_ORIGINS` — defaults to `http://localhost:5173`
+- `ENGINE_INVOCATION_MODE` — `http` (local) or `lambda` (production)
+- `ENGINE_URL` — program-builder HTTP URL (local dev only)
+- `ENGINE_LAMBDA_FUNCTION_NAME` — Lambda function name (production)
+- `ENGINE_LAMBDA_REGION` — AWS region for Lambda invoke (production)
 
-## Deployment
+## Deployment Order
 
-- Infrastructure defined in `terraform/` (AWS AppRunner, RDS)
-- `apprunner.yaml` for AWS App Runner config
-- Production uses PostgreSQL; set `ENVIRONMENT=production` and `POSTGRES_URL`
+1. `terraform apply` (provisions all infrastructure)
+2. Build & push backend Docker image to ECR
+3. Deploy frontend to S3 + invalidate CloudFront
+4. Package & deploy program-builder Lambda
+5. ECS picks up new backend image
+6. End-to-end validation

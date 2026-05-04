@@ -3,7 +3,7 @@ name: CI - Build & Deploy to ECR and App Runner
 on:
   push:
     branches:
-      - main
+      - arch-aws-design
   workflow_dispatch:
 
 env:

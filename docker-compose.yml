@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       # Expose as 9000 on the host — matches the existing vite.config.ts proxy target.
-      # The engine container uses 8000; this backend binds 8000 internally, exposed as 9000.
+      # program-builder container uses 8000; backend binds 8000 internally, exposed as 9000.
       - "9000:8000"
     volumes:
       # Bind-mount source so --reload picks up every file change
@@ -18,9 +18,11 @@ services:
       ENVIRONMENT: development
       DATABASE_URL: sqlite+aiosqlite:///./gym_app.db
       SECRET_KEY: dev-secret-key-change-in-prod
-      ENGINE_URL: http://engine:8000
+      # Local dev: HTTP mode. Production: set ENGINE_INVOCATION_MODE=lambda
+      ENGINE_URL: http://program-builder:8000
+      ENGINE_INVOCATION_MODE: http
     depends_on:
-      - engine
+      - program-builder
     restart: unless-stopped
 
   # ─── Vite frontend ──────────────────────────────────────────────────────────
@@ -42,18 +44,18 @@ services:
       - backend
     restart: unless-stopped
 
-  # ─── Program Builder Engine ─────────────────────────────────────────────────
-  engine:
+  # ─── Program Builder (local dev — runs as FastAPI; production deploys as Lambda) ─
+  program-builder:
     build:
-      context: ./engine
+      context: ./program-builder
       dockerfile: Dockerfile.dev
     ports:
       - "8000:8000"
     volumes:
-      - ./engine/src:/app/src
-      - ./engine/data:/data:ro
-      - ./engine/definitions:/definitions:ro
-      - ./engine/schemas:/schemas:ro
+      - ./program-builder/src:/app/src
+      - ./program-builder/data:/data:ro
+      - ./program-builder/definitions:/definitions:ro
+      - ./program-builder/schemas:/schemas:ro
     environment:
       BACKEND_HOST: "0.0.0.0"
       BACKEND_PORT: "8000"
@@ -75,7 +77,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
     depends_on:
-      - engine
+      - program-builder
     restart: unless-stopped
 
 volumes:

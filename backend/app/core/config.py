@@ -40,8 +40,13 @@ class Settings(BaseSettings):
     EMAIL_SMTP_TLS: bool = True
     FRONTEND_URL: str = "http://localhost:5173"
 
-    # TrainGen Engine
+    # Program Builder
+    # Local dev: ENGINE_INVOCATION_MODE=http, ENGINE_URL=http://localhost:8000
+    # Production: ENGINE_INVOCATION_MODE=lambda, ENGINE_LAMBDA_FUNCTION_NAME=<fn-name>
+    ENGINE_INVOCATION_MODE: Literal["http", "lambda"] = "http"
     ENGINE_URL: str = "http://localhost:8000"
+    ENGINE_LAMBDA_FUNCTION_NAME: str = "program-builder"
+    ENGINE_LAMBDA_REGION: str = "us-east-1"
 
     class Config:
         env_file = ".env"

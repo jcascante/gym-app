@@ -1,0 +1,83 @@
+name: Deploy Program Builder
+
+on:
+  push:
+    branches: [arch-aws-design]
+    paths:
+      - "program-builder/**"
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Install dependencies
+        working-directory: program-builder
+        run: uv sync --all-extras
+
+      - name: Run tests
+        working-directory: program-builder
+        run: uv run pytest
+
+  deploy:
+    name: Package & Deploy Lambda
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies into package directory
+        working-directory: program-builder
+        run: |
+          pip install -r requirements.txt --target ./package
+
+      - name: Package Lambda
+        working-directory: program-builder
+        run: |
+          cp -r src lambda data definitions schemas package/
+          cd package && zip -r ../program-builder.zip . -x "*.pyc" -x "__pycache__/*"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload package to S3
+        run: |
+          S3_KEY="gym-app/lambda/program-builder/${{ github.sha }}.zip"
+          aws s3 cp program-builder/program-builder.zip \
+            s3://691650344087-terraform-state/$S3_KEY
+          echo "S3_KEY=$S3_KEY" >> "$GITHUB_ENV"
+
+      - name: Deploy Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ vars.LAMBDA_FUNCTION_NAME }} \
+            --s3-bucket 691650344087-terraform-state \
+            --s3-key "$S3_KEY"
+
+      - name: Wait for Lambda update
+        run: |
+          aws lambda wait function-updated \
+            --function-name ${{ vars.LAMBDA_FUNCTION_NAME }}
