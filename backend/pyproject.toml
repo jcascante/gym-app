@@ -2,7 +2,7 @@
 name = "gym-app-backend"
 version = "1.0.0"
 description = "Gym App Backend API built with FastAPI"
-requires-python = ">=3.14"
+requires-python = ">=3.13"
 dependencies = [
     "fastapi==0.115.5",
     "uvicorn[standard]==0.32.1",
@@ -38,7 +38,7 @@ packages = ["app"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py314"
+target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]

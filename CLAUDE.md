@@ -42,7 +42,7 @@ cd backend && uv run ruff check app/
 cd backend && uv run ruff check --fix app/
 ```
 
-> Python 3.14.2 via pyenv. Pydantic must be >=2.11 for Python 3.14 support.
+> Python 3.13.11 via pyenv.
 
 ### Database
 
