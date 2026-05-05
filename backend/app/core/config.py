@@ -11,8 +11,12 @@ class Settings(BaseSettings):
     # Environment
     ENVIRONMENT: Literal["development", "production"] = "development"
 
-    # CORS
-    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+    # CORS (comma-separated; env var overrides default)
+    CORS_ORIGINS: list[str] = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://app.movementtrainingclub.com",
+    ]
 
     # Database - can be set directly via DATABASE_URL env var, or falls back to environment-based defaults
     DATABASE_URL: str = "sqlite+aiosqlite:///./gym_app.db"
