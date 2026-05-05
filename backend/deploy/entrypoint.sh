@@ -1,17 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Entrypoint: ensure permissions, seed sqlite DB at runtime (if needed), then exec supervisord.
+echo "Entrypoint: ensuring runtime prerequisites..."
 
-echo "Entrypoint: fixing permissions and ensuring runtime prerequisites..."
-
-# Ensure directories exist
-mkdir -p /var/www/frontend /var/log/supervisor /app
-
-# Ensure ownerships so non-root processes can write where needed
-chown -R nginx:nginx /var/www/frontend || true
+# Ensure app directory exists with correct ownership
+mkdir -p /app
 chown -R app:app /app || true
-chown -R app:app /var/log/supervisor || true
 
 # If DATABASE_URL is sqlite and DB file is missing, run seed
 if [[ "${DATABASE_URL:-}" == sqlite* ]]; then
@@ -54,5 +48,5 @@ if [[ "${DATABASE_URL:-}" == sqlite* ]]; then
   fi
 fi
 
-echo "Starting supervisord..."
+echo "Starting FastAPI..."
 exec "$@"
