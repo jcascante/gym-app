@@ -42,7 +42,7 @@ data "aws_s3_bucket" "state" {
 }
 
 data "aws_ecr_repository" "backend" {
-  name = "ksknt-backend"
+  name = "gym-app-backend"
 }
 
 # ── Networking — existing default VPC (reused, not managed here) ─────────────

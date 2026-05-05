@@ -9,7 +9,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: ksknt-backend
+  ECR_REPOSITORY: gym-app-backend
 
 jobs:
   deploy:
