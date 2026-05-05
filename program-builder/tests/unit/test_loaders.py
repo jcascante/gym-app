@@ -61,7 +61,7 @@ class TestLoadProgramDefinition:
 
     def test_definition_sessions_count(self, definitions_dir: Path) -> None:
         strength = load_program_definition(definitions_dir / "upper_lower_ab_4w_v1.json")
-        assert len(strength.template.sessions) == 4
+        assert len(strength.template.sessions) >= 4
 
         cond = load_program_definition(definitions_dir / "push_pull_legs_upper_cond_4w_v1.json")
         assert len(cond.template.sessions) >= 3

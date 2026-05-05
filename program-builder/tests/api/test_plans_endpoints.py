@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from src.main import create_app
 
 STRENGTH_REQUEST = {
-    "program_id": "strength_ul_4w_v1",
+    "program_id": "upper_lower_ab_4w_v1",
     "program_version": "1.0.0",
     "weeks": 1,
     "days_per_week": 4,
