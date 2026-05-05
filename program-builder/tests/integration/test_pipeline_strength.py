@@ -20,7 +20,7 @@ def library(data_dir: Path) -> ExerciseLibrary:
 @pytest.fixture
 def definition(definitions_dir: Path) -> ProgramDefinition:
     raw = json.loads(
-        (definitions_dir / "strength_ul_4w_v1.json").read_text()
+        (definitions_dir / "upper_lower_ab_4w_v1.json").read_text()
     )
     return ProgramDefinition.model_validate(raw)
 
