@@ -53,7 +53,8 @@ resource "aws_iam_user_policy" "gym_app_ci_lambda_s3" {
         Effect = "Allow"
         Action = [
           "lambda:UpdateFunctionCode",
-          "lambda:GetFunction"
+          "lambda:GetFunction",
+          "lambda:GetFunctionConfiguration"
         ]
         Resource = "arn:aws:lambda:*:*:function:*"
       }
