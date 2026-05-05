@@ -73,11 +73,11 @@ jobs:
       - name: Deploy Lambda
         run: |
           aws lambda update-function-code \
-            --function-name ${{ vars.LAMBDA_FUNCTION_NAME }} \
+            --function-name gym-app-production-program-builder \
             --s3-bucket 691650344087-terraform-state \
             --s3-key "$S3_KEY"
 
       - name: Wait for Lambda update
         run: |
           aws lambda wait function-updated \
-            --function-name ${{ vars.LAMBDA_FUNCTION_NAME }}
+            --function-name gym-app-production-program-builder
