@@ -61,3 +61,23 @@ resource "aws_iam_user_policy" "gym_app_ci_lambda_s3" {
     ]
   })
 }
+
+# ECS deployment policy for backend service updates
+resource "aws_iam_user_policy" "gym_app_ci_ecs" {
+  name = "gym-app-ci-ecs"
+  user = aws_iam_user.gym_app_ci.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ecs:UpdateService",
+          "ecs:DescribeServices"
+        ]
+        Resource = "arn:aws:ecs:*:*:service/*"
+      }
+    ]
+  })
+}

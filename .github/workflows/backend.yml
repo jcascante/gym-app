@@ -35,12 +35,17 @@ jobs:
       - name: Build Docker image
         working-directory: backend
         run: |
-          IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          docker build -t "$IMAGE_URI" -f Dockerfile .
-          echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
+          REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          IMAGE_URI_SHA=$REGISTRY/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          IMAGE_URI_LATEST=$REGISTRY/${{ env.ECR_REPOSITORY }}:latest
+          docker build -t "$IMAGE_URI_SHA" -t "$IMAGE_URI_LATEST" -f Dockerfile .
+          echo "IMAGE_URI=$IMAGE_URI_SHA" >> "$GITHUB_ENV"
 
       - name: Push to ECR
-        run: docker push "$IMAGE_URI"
+        run: |
+          REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          docker push $REGISTRY/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          docker push $REGISTRY/${{ env.ECR_REPOSITORY }}:latest
 
       - name: Deploy to ECS
         run: |
