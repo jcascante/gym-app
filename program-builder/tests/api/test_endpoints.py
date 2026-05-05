@@ -57,11 +57,11 @@ class TestDefinitionsEndpoint:
 
     def test_get_definition_by_id(self, client: TestClient) -> None:
         resp = client.get(
-            "/api/v1/program-definitions/strength_ul_4w_v1"
+            "/api/v1/program-definitions/upper_lower_ab_4w_v1"
         )
         assert resp.status_code == 200
         data = resp.json()
-        assert data["program_id"] == "strength_ul_4w_v1"
+        assert data["program_id"] == "upper_lower_ab_4w_v1"
 
     def test_get_definition_not_found(self, client: TestClient) -> None:
         resp = client.get("/api/v1/program-definitions/nonexistent")
@@ -71,11 +71,11 @@ class TestDefinitionsEndpoint:
         self, client: TestClient
     ) -> None:
         resp = client.get(
-            "/api/v1/program-definitions/conditioning_4w_v1"
+            "/api/v1/program-definitions/push_pull_legs_upper_cond_4w_v1"
         )
         assert resp.status_code == 200
         data = resp.json()
-        assert data["program_id"] == "conditioning_4w_v1"
+        assert data["program_id"] == "push_pull_legs_upper_cond_4w_v1"
 
 
 # ---------------------------------------------------------------------------
@@ -85,7 +85,7 @@ class TestDefinitionsEndpoint:
 class TestGenerateEndpoint:
     def test_generate_strength_plan(self, client: TestClient) -> None:
         request_body = {
-            "program_id": "strength_ul_4w_v1",
+            "program_id": "upper_lower_ab_4w_v1",
             "program_version": "1.0.0",
             "weeks": 4,
             "days_per_week": 4,
@@ -117,13 +117,13 @@ class TestGenerateEndpoint:
         data = resp.json()
         assert "weeks" in data
         assert len(data["weeks"]) == 4
-        assert data["program_id"] == "strength_ul_4w_v1"
+        assert data["program_id"] == "upper_lower_ab_4w_v1"
 
     def test_generate_conditioning_plan(
         self, client: TestClient
     ) -> None:
         request_body = {
-            "program_id": "conditioning_4w_v1",
+            "program_id": "push_pull_legs_upper_cond_4w_v1",
             "program_version": "1.0.0",
             "weeks": 4,
             "days_per_week": 4,
@@ -144,7 +144,7 @@ class TestGenerateEndpoint:
         assert resp.status_code == 200
         data = resp.json()
         assert "weeks" in data
-        assert data["program_id"] == "conditioning_4w_v1"
+        assert data["program_id"] == "push_pull_legs_upper_cond_4w_v1"
 
     def test_generate_invalid_request(
         self, client: TestClient
