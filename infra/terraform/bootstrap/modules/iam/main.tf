@@ -62,6 +62,37 @@ resource "aws_iam_user_policy" "gym_app_ci_lambda_s3" {
   })
 }
 
+# Frontend S3 and CloudFront policy for frontend deployment
+resource "aws_iam_user_policy" "gym_app_ci_frontend" {
+  name = "gym-app-ci-frontend"
+  user = aws_iam_user.gym_app_ci.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          "arn:aws:s3:::app.movementtrainingclub.com",
+          "arn:aws:s3:::app.movementtrainingclub.com/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "cloudfront:CreateInvalidation"
+        ]
+        Resource = "arn:aws:cloudfront::*:distribution/*"
+      }
+    ]
+  })
+}
+
 # ECS deployment policy for backend service updates
 resource "aws_iam_user_policy" "gym_app_ci_ecs" {
   name = "gym-app-ci-ecs"
