@@ -162,6 +162,7 @@ module "backend_ecs" {
   task_role_arn           = module.iam.ecs_task_role_arn
 
   acm_certificate_arn = "arn:aws:acm:us-east-1:691650344087:certificate/9ba09513-c68c-40a7-af6f-68cc42f4d10c"
+  container_port      = 8000
 
   environment_variables = {
     ENVIRONMENT                 = var.environment
