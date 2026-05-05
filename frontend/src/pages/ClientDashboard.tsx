@@ -18,7 +18,7 @@ export default function ClientDashboard() {
   const [recentWorkouts, setRecentWorkouts] = useState<RecentWorkout[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [starting, setStarting] = useState(false);
+  const [_isStarting, setStarting] = useState(false);
   
 
   // Fetch workout statistics and recent workouts on mount

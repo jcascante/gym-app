@@ -5,13 +5,14 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public data?: unknown
-  ) {
+  status: number;
+  data?: unknown;
+
+  constructor(message: string, status: number, data?: unknown) {
     super(message);
     this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
   }
 }
 
@@ -49,14 +50,21 @@ export async function apiFetch<T>(
   const url = `${API_BASE_URL}${endpoint}`;
   const token = getToken();
 
-  const headers: HeadersInit = {
+  const headers = new Headers({
     'Content-Type': 'application/json',
-    ...options.headers,
-  };
+  });
+
+  // Merge existing headers
+  if (options.headers) {
+    const existingHeaders = options.headers instanceof Headers ? options.headers : new Headers(options.headers as Record<string, string>);
+    existingHeaders.forEach((value, key) => {
+      headers.set(key, value);
+    });
+  }
 
   // Add Authorization header if token exists
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers.set('Authorization', `Bearer ${token}`);
   }
 
   const config: RequestInit = {

@@ -4,7 +4,6 @@
 
 import { apiFetch } from './api';
 import type {
-  LoginRequest,
   LoginResponse,
   RegisterRequest,
   RegisterResponse,

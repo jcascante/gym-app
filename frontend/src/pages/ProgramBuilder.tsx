@@ -175,7 +175,7 @@ export default function ProgramBuilder() {
       getClientDetail(selectedClientId)
         .then(client => {
           setClientData(client);
-          const basicInfo = client.profile?.basic_info ?? {};
+          const basicInfo = (client.profile?.basic_info ?? {}) as { first_name?: string; last_name?: string };
           setClientName(`${basicInfo.first_name ?? 'Unknown'} ${basicInfo.last_name ?? 'Client'}`);
 
           // Build pre-filled movements from stored 1RMs

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listMyClients, type ClientSummary } from '../services/clients';
-import { ApiError } from '../services/api';
 import AddClientModal from '../components/AddClientModal';
 import './Clients.css';
 
@@ -9,7 +8,6 @@ export default function Clients() {
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientSummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'new'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -22,7 +20,6 @@ export default function Clients() {
   const loadClients = async () => {
     try {
       setLoading(true);
-      setError(null);
 
       const params: any = {};
       if (statusFilter !== 'all') {
@@ -32,11 +29,6 @@ export default function Clients() {
       const response = await listMyClients(params);
       setClients(response.clients);
     } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      } else {
-        setError('Failed to load clients');
-      }
       console.error('Error loading clients:', err);
     } finally {
       setLoading(false);

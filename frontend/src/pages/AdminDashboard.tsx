@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { getUserDisplayName, isSupport } from '../types/user';
@@ -10,7 +9,6 @@ import './Dashboard.css';
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const navigate = useNavigate();
   const displayName = getUserDisplayName(user);
   const isSupportUser = isSupport(user);
 
