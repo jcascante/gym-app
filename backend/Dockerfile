@@ -13,11 +13,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python deps
-COPY backend/requirements.txt /app/requirements.txt
+COPY requirements.txt /app/requirements.txt
 RUN pip install --upgrade pip && pip install -r /app/requirements.txt
 
 # Copy backend source
-COPY backend/ /app/
+COPY . /app/
 
 # Remove any accidentally baked SQLite DB from the source tree
 RUN rm -f /app/gym_app.db || true
@@ -31,7 +31,7 @@ ENV RESET_DB_ON_START=true
 RUN groupadd -r app || true && useradd -r -g app -s /usr/sbin/nologin -d /app app || true
 
 # Copy entrypoint which will handle runtime DB seeding
-COPY backend/deploy/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY deploy/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Ensure app directory permissions
