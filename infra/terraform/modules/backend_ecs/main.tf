@@ -74,6 +74,10 @@ resource "aws_lb_target_group" "backend" {
     unhealthy_threshold = 3
     matcher             = "200"
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_lb_listener" "http" {
@@ -190,7 +194,7 @@ resource "aws_ecs_service" "backend" {
     ignore_changes = [desired_count]
   }
 
-  depends_on = [aws_lb_listener.http]
+  depends_on = [aws_lb_listener.http, aws_lb_listener.https]
 }
 
 # ── Auto Scaling ─────────────────────────────────────────────────────────────
