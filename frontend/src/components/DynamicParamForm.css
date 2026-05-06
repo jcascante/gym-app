@@ -13,7 +13,7 @@
 .dpf-label {
   font-weight: 600;
   font-size: 0.9rem;
-  color: #333;
+  color: var(--color-lighter-gray);
 }
 
 .dpf-required {
@@ -24,12 +24,12 @@
 .dpf-input,
 .dpf-select {
   padding: 8px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-medium-gray);
   border-radius: 6px;
   font-size: 0.9rem;
   outline: none;
   transition: border-color 0.15s;
-  background: #fff;
+  background: var(--color-black);
 }
 
 .dpf-input:focus,
@@ -49,8 +49,8 @@
   align-items: center;
   gap: 6px;
   font-size: 0.875rem;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
+  background: var(--color-dark-gray);
+  border: 1px solid var(--color-medium-gray);
   border-radius: 20px;
   padding: 4px 12px;
   cursor: pointer;
@@ -58,9 +58,9 @@
 }
 
 .dpf-checkbox-label:has(input:checked) {
-  background: #dbeafe;
+  background: rgba(59, 130, 246, 0.15);
   border-color: #2563eb;
-  color: #1d4ed8;
+  color: #60a5fa;
 }
 
 .dpf-toggle {

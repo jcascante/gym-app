@@ -10,14 +10,14 @@
   margin: 0 0 4px 0;
   font-size: 1.75rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--color-white);
   letter-spacing: -0.5px;
 }
 
 .dashboard-header p {
   margin: 0;
   font-size: 0.95rem;
-  color: #666666;
+  color: var(--color-light-gray);
 }
 
 .dashboard-grid {
@@ -28,12 +28,12 @@
 }
 
 .dashboard-card {
-  background: #ffffff;
+  background: var(--color-black);
   border-radius: 10px;
   padding: 18px 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   transition: all 0.2s ease;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--color-medium-gray);
 }
 
 .dashboard-card:hover {
@@ -50,7 +50,7 @@
   margin: 0 0 8px 0;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #666666;
+  color: var(--color-light-gray);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -59,13 +59,13 @@
   margin: 0 0 4px 0;
   font-size: 2rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .card-label {
   margin: 0;
   font-size: 0.8rem;
-  color: #888888;
+  color: var(--color-light-gray);
 }
 
 .dashboard-section {
@@ -76,7 +76,7 @@
   margin: 0 0 14px 0;
   font-size: 1.2rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .action-buttons {
@@ -105,33 +105,34 @@
 }
 
 .action-button.primary {
-  background: #1a1a1a;
-  color: #ffffff;
+  background: var(--color-lighter-gray);
+  color: var(--color-black);
 }
 
 .action-button.primary:hover {
-  background: #000000;
+  background: var(--color-white);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .action-button.secondary {
-  background: #f5f5f5;
-  color: #1a1a1a;
-  border: 1px solid #e0e0e0;
+  background: var(--color-medium-gray);
+  color: var(--color-white);
+  border: 1px solid var(--color-light-gray);
 }
 
 .action-button.secondary:hover {
-  background: #e8e8e8;
+  background: var(--color-light-gray);
+  color: var(--color-black);
   transform: translateY(-2px);
 }
 
 .activity-list {
-  background: #ffffff;
+  background: var(--color-black);
   border-radius: 10px;
   padding: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--color-medium-gray);
 }
 
 .activity-item {
@@ -144,7 +145,7 @@
 }
 
 .activity-item:hover {
-  background: #fafafa;
+  background: var(--color-medium-gray);
 }
 
 .activity-icon {
@@ -160,13 +161,13 @@
   margin: 0 0 2px 0;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .activity-time {
   margin: 0;
   font-size: 0.8rem;
-  color: #888888;
+  color: var(--color-light-gray);
 }
 
 @media (max-width: 768px) {

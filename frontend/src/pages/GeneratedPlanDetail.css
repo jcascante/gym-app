@@ -8,7 +8,7 @@
 .gpd-error {
   text-align: center;
   padding: 40px 0;
-  color: #666;
+  color: var(--color-light-gray);
 }
 
 .gpd-error { color: #dc2626; }
@@ -29,7 +29,7 @@
 }
 
 .gpd-title h1 { margin: 0 0 6px; font-size: 1.6rem; }
-.gpd-notes { margin: 0 0 8px; color: #666; font-size: 0.9rem; }
+.gpd-notes { margin: 0 0 8px; color: var(--color-light-gray); font-size: 0.9rem; }
 
 .gpd-meta {
   display: flex;
@@ -41,15 +41,15 @@
 .gpd-program-id {
   font-size: 0.75rem;
   font-family: monospace;
-  background: #f3f4f6;
+  background: var(--color-dark-gray);
   padding: 2px 8px;
   border-radius: 4px;
-  color: #374151;
+  color: var(--color-light-gray);
 }
 
 .gpd-date {
   font-size: 0.8rem;
-  color: #9ca3af;
+  color: var(--color-light-gray);
 }
 
 .gpd-status {
@@ -57,15 +57,15 @@
   min-height: 20px;
 }
 
-.gpd-saving { font-size: 0.85rem; color: #9ca3af; }
+.gpd-saving { font-size: 0.85rem; color: var(--color-light-gray); }
 .gpd-save-msg { font-size: 0.85rem; }
 .gpd-save-msg.ok { color: #16a34a; }
 .gpd-save-msg.error { color: #dc2626; }
 
 /* ── Progress panel (shown when plan is active) ── */
 .gpd-progress-panel {
-  background: #f8f9fa;
-  border: 1px solid #e0e0e0;
+  background: var(--color-dark-gray);
+  border: 1px solid var(--color-medium-gray);
   border-radius: 10px;
   padding: 1.25rem 1.5rem;
   margin-bottom: 1.5rem;
@@ -80,7 +80,7 @@
 
 .gpd-progress-label {
   font-size: 0.85rem;
-  color: #888;
+  color: var(--color-light-gray);
   margin-bottom: 0.15rem;
 }
 
@@ -116,7 +116,7 @@
 
 .gpd-progress-bar {
   height: 8px;
-  background: #e0e0e0;
+  background: var(--color-medium-gray);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -131,13 +131,13 @@
   display: flex;
   gap: 1rem;
   font-size: 0.8rem;
-  color: #888;
+  color: var(--color-light-gray);
 }
 
 /* ── Start form (shown when plan is not yet started) ── */
 .gpd-start-form {
-  background: #fff;
-  border: 1px solid #e0e0e0;
+  background: var(--color-black);
+  border: 1px solid var(--color-medium-gray);
   border-radius: 10px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -149,7 +149,7 @@
 }
 
 .gpd-start-desc {
-  color: #666;
+  color: var(--color-light-gray);
   font-size: 0.9rem;
   margin: 0 0 1.25rem;
 }
@@ -166,13 +166,13 @@
   flex-direction: column;
   gap: 0.3rem;
   font-size: 0.9rem;
-  color: #333;
+  color: var(--color-lighter-gray);
   flex: 1;
   min-width: 180px;
 }
 
 .gpd-optional {
-  color: #999;
+  color: var(--color-light-gray);
   font-size: 0.8rem;
 }
 
@@ -184,7 +184,7 @@
   outline: none;
 }
 
-.gpd-input:focus { border-color: #1a73e8; }
+.gpd-input:focus { border-color: #60a5fa; }
 
 .gpd-start-btn {
   width: 100%;

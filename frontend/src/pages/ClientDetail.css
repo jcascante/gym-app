@@ -8,7 +8,7 @@
 .back-button {
   background: none;
   border: none;
-  color: #666;
+  color: var(--color-light-gray);
   font-size: 0.95rem;
   cursor: pointer;
   padding: 0.5rem 0;
@@ -21,7 +21,7 @@
 }
 
 .client-header {
-  background: white;
+  background: var(--color-black);
   border-radius: 12px;
   padding: 2rem;
   margin-bottom: 2rem;
@@ -59,12 +59,12 @@
 .client-header-info h1 {
   margin: 0 0 0.5rem 0;
   font-size: 1.75rem;
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .client-email {
   margin: 0 0 0.75rem 0;
-  color: #666;
+  color: var(--color-light-gray);
   font-size: 1rem;
 }
 
@@ -73,7 +73,7 @@
   flex-wrap: wrap;
   gap: 1.5rem;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--color-light-gray);
 }
 
 .meta-item {
@@ -97,7 +97,7 @@
 }
 
 .stat-card {
-  background: white;
+  background: var(--color-black);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -117,7 +117,7 @@
 .stat-card .stat-value {
   font-size: 2rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--color-white);
   display: block;
   line-height: 1;
   margin-bottom: 0.25rem;
@@ -125,13 +125,13 @@
 
 .stat-card .stat-label {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--color-light-gray);
   display: block;
 }
 
 /* Tabs */
 .tabs-container {
-  background: white;
+  background: var(--color-black);
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -139,8 +139,8 @@
 
 .tabs {
   display: flex;
-  border-bottom: 2px solid #eee;
-  background: #f8f9fa;
+  border-bottom: 2px solid var(--color-medium-gray);
+  background: var(--color-dark-gray);
 }
 
 .tab {
@@ -152,7 +152,7 @@
   cursor: pointer;
   font-size: 1rem;
   font-weight: 500;
-  color: #666;
+  color: var(--color-light-gray);
   transition: all 0.2s;
   position: relative;
   bottom: -2px;
@@ -160,12 +160,12 @@
 
 .tab:hover {
   color: var(--primary-color, #007bff);
-  background: white;
+  background: var(--color-black);
 }
 
 .tab.active {
   color: var(--primary-color, #007bff);
-  background: white;
+  background: var(--color-black);
   border-bottom-color: var(--primary-color, #007bff);
 }
 
@@ -182,7 +182,7 @@
 }
 
 .info-card {
-  border: 1px solid #eee;
+  border: 1px solid var(--color-medium-gray);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -192,14 +192,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  background: #f8f9fa;
-  border-bottom: 1px solid #eee;
+  background: var(--color-dark-gray);
+  border-bottom: 1px solid var(--color-medium-gray);
 }
 
 .info-card-header h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .info-card-body {
@@ -219,13 +219,13 @@
   gap: 1rem;
   align-items: center;
   padding: 0.75rem;
-  background: #f8f9fa;
+  background: var(--color-dark-gray);
   border-radius: 6px;
 }
 
 .one-rm-name {
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--color-white);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -251,7 +251,7 @@
 
 .one-rm-date {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--color-light-gray);
 }
 
 /* Goals */
@@ -274,12 +274,12 @@
 .goal-label,
 .health-label {
   font-weight: 600;
-  color: #666;
+  color: var(--color-light-gray);
   min-width: 120px;
 }
 
 .goal-value {
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .pref-icon {
@@ -294,13 +294,13 @@
 }
 
 .clearance-badge.cleared {
-  background: #d4edda;
-  color: #155724;
+  background: rgba(22, 163, 74, 0.15);
+  color: #4ade80;
 }
 
 .clearance-badge.not-cleared {
-  background: #fff3cd;
-  color: #856404;
+  background: rgba(217, 119, 6, 0.15);
+  color: #fbbf24;
 }
 
 .injuries-list {
@@ -311,8 +311,8 @@
 
 .injury-tag {
   padding: 0.25rem 0.75rem;
-  background: #fff3cd;
-  color: #856404;
+  background: rgba(217, 119, 6, 0.15);
+  color: #fbbf24;
   border-radius: 12px;
   font-size: 0.85rem;
 }
@@ -325,7 +325,7 @@
 }
 
 .profile-section {
-  border: 1px solid #eee;
+  border: 1px solid var(--color-medium-gray);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -335,14 +335,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  background: #f8f9fa;
-  border-bottom: 1px solid #eee;
+  background: var(--color-dark-gray);
+  border-bottom: 1px solid var(--color-medium-gray);
 }
 
 .section-header h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .section-content {
@@ -361,18 +361,18 @@
 
 .info-label {
   font-weight: 600;
-  color: #666;
+  color: var(--color-light-gray);
 }
 
 .info-value {
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 /* Empty States */
 .empty-message {
   text-align: center;
   padding: 2rem;
-  color: #666;
+  color: var(--color-light-gray);
 }
 
 .empty-message p {
@@ -396,12 +396,12 @@
 
 .empty-state h3 {
   margin: 0 0 0.5rem 0;
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .empty-state p {
   margin: 0 0 1.5rem 0;
-  color: #666;
+  color: var(--color-light-gray);
   max-width: 400px;
 }
 
@@ -431,13 +431,13 @@
 }
 
 .btn-secondary {
-  background: #f8f9fa;
-  color: #333;
-  border: 1px solid #ddd;
+  background: var(--color-dark-gray);
+  color: var(--color-lighter-gray);
+  border: 1px solid var(--color-medium-gray);
 }
 
 .btn-secondary:hover {
-  background: #e9ecef;
+  background: var(--color-medium-gray);
 }
 
 .btn-link {
@@ -483,7 +483,7 @@
 .spinner {
   width: 48px;
   height: 48px;
-  border: 4px solid #f3f3f3;
+  border: 4px solid var(--color-medium-gray);
   border-top: 4px solid var(--primary-color, #007bff);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -516,12 +516,12 @@
 
 .error-state h2 {
   margin: 0;
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .error-state p {
   margin: 0;
-  color: #666;
+  color: var(--color-light-gray);
   max-width: 400px;
 }
 
@@ -598,13 +598,13 @@
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 2px solid var(--color-medium-gray);
 }
 
 .programs-header h2 {
   margin: 0;
   font-size: 1.5rem;
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .toggle-cancelled {
@@ -614,7 +614,7 @@
   cursor: pointer;
   user-select: none;
   font-size: 0.95rem;
-  color: #666;
+  color: var(--color-light-gray);
 }
 
 .toggle-cancelled input[type="checkbox"] {
@@ -624,7 +624,7 @@
 }
 
 .toggle-cancelled:hover {
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .programs-list {
@@ -634,8 +634,8 @@
 }
 
 .program-card {
-  background: white;
-  border: 1px solid #e0e0e0;
+  background: var(--color-black);
+  border: 1px solid var(--color-medium-gray);
   border-radius: 12px;
   overflow: hidden;
   transition: all 0.2s ease;
@@ -651,20 +651,20 @@
   justify-content: space-between;
   align-items: start;
   padding: 1.5rem;
-  border-bottom: 1px solid #f0f0f0;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-bottom: 1px solid var(--color-medium-gray);
+  background: var(--color-dark-gray);
 }
 
 .program-card-header h3 {
   margin: 0 0 0.25rem 0;
   font-size: 1.125rem;
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .program-template-name {
   margin: 0;
   font-size: 0.875rem;
-  color: #666;
+  color: var(--color-light-gray);
 }
 
 .program-card-body {
@@ -679,11 +679,11 @@
   align-items: center;
   gap: 0.75rem;
   font-size: 0.875rem;
-  color: #666;
+  color: var(--color-light-gray);
 }
 
 .program-meta strong {
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .program-progress {
@@ -695,7 +695,7 @@
 .progress-bar {
   width: 100%;
   height: 8px;
-  background-color: #f0f0f0;
+  background-color: var(--color-medium-gray);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -708,7 +708,7 @@
 
 .progress-text {
   font-size: 0.75rem;
-  color: #666;
+  color: var(--color-light-gray);
 }
 
 .program-dates {
@@ -724,7 +724,7 @@
 }
 
 .date-label {
-  color: #666;
+  color: var(--color-light-gray);
   font-weight: 500;
 }
 
@@ -735,13 +735,13 @@
 }
 
 .coach-label {
-  color: #666;
+  color: var(--color-light-gray);
 }
 
 .program-card-footer {
   padding: 1rem 1.5rem;
-  background: #f8f9fa;
-  border-top: 1px solid #f0f0f0;
+  background: var(--color-dark-gray);
+  border-top: 1px solid var(--color-medium-gray);
   display: flex;
   gap: 0.75rem;
 }
@@ -753,7 +753,7 @@
 /* Status badges for programs */
 .status-assigned {
   background-color: #e3f2fd;
-  color: #1976d2;
+  color: #60a5fa;
 }
 
 .status-in_progress {
@@ -767,13 +767,13 @@
 }
 
 .status-paused {
-  background-color: #fff3e0;
-  color: #e65100;
+  background-color: rgba(217, 119, 6, 0.12);
+  color: #fb923c;
 }
 
 .status-cancelled {
   background-color: #ffebee;
-  color: #c62828;
+  color: #f87171;
 }
 
 @media (max-width: 768px) {
@@ -806,8 +806,8 @@
 @media (max-width: 600px) { .progress-stats-grid { grid-template-columns: repeat(2, 1fr); } }
 
 .progress-stat-card {
-  background: var(--surface, #f8f9fa);
-  border: 1px solid var(--border-color, #e0e0e0);
+  background: var(--surface, var(--color-dark-gray));
+  border: 1px solid var(--border-color, var(--color-medium-gray));
   border-radius: 10px;
   padding: 1rem 0.75rem;
   text-align: center;
@@ -827,7 +827,7 @@
 .progress-stat-label {
   display: block;
   font-size: 0.75rem;
-  color: var(--text-muted, #666);
+  color: var(--text-muted, var(--color-light-gray));
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -840,7 +840,7 @@
   margin: 0 0 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--text-muted, #666);
+  color: var(--text-muted, var(--color-light-gray));
 }
 
 .progress-weekly-bars {
@@ -876,11 +876,11 @@
 .progress-week-label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--text, #333);
+  color: var(--text, var(--color-lighter-gray));
 }
 .progress-week-key {
   font-size: 0.65rem;
-  color: var(--text-muted, #999);
+  color: var(--text-muted, var(--color-light-gray));
 }
 .progress-legend {
   display: flex;
@@ -888,7 +888,7 @@
   gap: 6px;
   margin-top: 0.5rem;
   font-size: 0.8rem;
-  color: var(--text-muted, #666);
+  color: var(--text-muted, var(--color-light-gray));
 }
 .legend-dot {
   display: inline-block;
@@ -902,7 +902,7 @@
 /* History list */
 .progress-history-section { margin-bottom: 2rem; }
 .progress-history-list {
-  border: 1px solid var(--border-color, #e0e0e0);
+  border: 1px solid var(--border-color, var(--color-medium-gray));
   border-radius: 10px;
   overflow: hidden;
 }
@@ -911,11 +911,11 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.65rem 1rem;
-  border-bottom: 1px solid var(--border-color-light, #f0f0f0);
+  border-bottom: 1px solid var(--border-color-light, var(--color-medium-gray));
   flex-wrap: wrap;
 }
 .progress-history-row:last-child { border-bottom: none; }
-.progress-history-row:hover { background: var(--surface-hover, #fafafa); }
+.progress-history-row:hover { background: var(--surface-hover, var(--color-dark-gray)); }
 
 .progress-status-dot {
   width: 9px;
@@ -951,9 +951,9 @@
   border-radius: 4px;
   padding: 2px 7px;
 }
-.status-completed { background: #e8f5e9; color: #2e7d32; }
-.status-skipped   { background: #fff3e0; color: #e65100; }
-.status-scheduled { background: #e3f2fd; color: #1565c0; }
+.status-completed { background: rgba(22, 163, 74, 0.12); color: #4ade80; }
+.status-skipped   { background: rgba(217, 119, 6, 0.12); color: #fb923c; }
+.status-scheduled { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
 
 .progress-history-notes {
   width: 100%;

@@ -16,12 +16,12 @@
 .header-content h1 {
   margin: 0 0 0.5rem 0;
   font-size: 2rem;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--text-primary, var(--color-white));
 }
 
 .header-content p {
   margin: 0;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary, var(--color-light-gray));
   font-size: 1rem;
 }
 
@@ -42,9 +42,11 @@
 .search-input {
   flex: 1;
   padding: 0.75rem 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-medium-gray);
   border-radius: 8px;
   font-size: 1rem;
+  background: var(--color-black);
+  color: var(--color-white);
 }
 
 .search-input:focus {
@@ -70,9 +72,9 @@
 
 .clear-button {
   padding: 0.75rem 0.75rem;
-  background: #f0f0f0;
-  color: #666;
-  border: 1px solid #ddd;
+  background: var(--color-medium-gray);
+  color: var(--color-white);
+  border: 1px solid var(--color-light-gray);
   border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
@@ -84,16 +86,16 @@
 }
 
 .clear-button:hover {
-  background: #e0e0e0;
-  border-color: #999;
-  color: #333;
+  background: var(--color-light-gray);
+  border-color: var(--color-lighter-gray);
+  color: var(--color-black);
 }
 
 /* Filter Tabs */
 .filter-tabs {
   display: flex;
   gap: 0.5rem;
-  border-bottom: 2px solid #eee;
+  border-bottom: 2px solid var(--color-medium-gray);
 }
 
 .filter-tab {
@@ -103,7 +105,7 @@
   border-bottom: 2px solid transparent;
   cursor: pointer;
   font-size: 1rem;
-  color: #666;
+  color: var(--color-light-gray);
   transition: all 0.2s;
   position: relative;
   bottom: -2px;
@@ -122,7 +124,7 @@
 /* Clients Count */
 .clients-count {
   margin-bottom: 1rem;
-  color: #666;
+  color: var(--color-light-gray);
   font-size: 0.95rem;
 }
 
@@ -136,15 +138,16 @@
 
 /* Client Card */
 .client-card {
-  background: white;
+  background: var(--color-black);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   transition: all 0.2s;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  border: 1px solid var(--color-medium-gray);
 }
 
 .client-card:hover {
@@ -192,7 +195,7 @@
 .client-info h3 {
   margin: 0 0 0.25rem 0;
   font-size: 1.1rem;
-  color: #1a1a1a;
+  color: var(--color-white);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -200,7 +203,7 @@
 
 .client-email {
   margin: 0;
-  color: #666;
+  color: var(--color-light-gray);
   font-size: 0.9rem;
   white-space: nowrap;
   overflow: hidden;
@@ -218,18 +221,18 @@
 }
 
 .status-active {
-  background: #d4edda;
-  color: #155724;
+  background: rgba(22, 163, 74, 0.15);
+  color: #4ade80;
 }
 
 .status-new {
-  background: #cce5ff;
-  color: #004085;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
 }
 
 .status-inactive {
-  background: #f8d7da;
-  color: #721c24;
+  background: rgba(220, 38, 38, 0.15);
+  color: #f87171;
 }
 
 /* Card Stats */
@@ -237,8 +240,8 @@
   display: flex;
   gap: 1.5rem;
   padding: 1rem 0;
-  border-top: 1px solid #eee;
-  border-bottom: 1px solid #eee;
+  border-top: 1px solid var(--color-medium-gray);
+  border-bottom: 1px solid var(--color-medium-gray);
 }
 
 .stat {
@@ -260,12 +263,12 @@
 
 .stat-value {
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--color-white);
   font-size: 0.95rem;
 }
 
 .stat-label {
-  color: #666;
+  color: var(--color-light-gray);
   font-size: 0.8rem;
 }
 
@@ -288,19 +291,19 @@
   padding: 0.25rem 0.5rem;
   border-radius: 6px;
   font-size: 0.75rem;
-  background: #f8f9fa;
-  color: #666;
+  background: var(--color-medium-gray);
+  color: var(--color-light-gray);
   white-space: nowrap;
 }
 
 .indicator.complete {
-  background: #d4edda;
-  color: #155724;
+  background: rgba(22, 163, 74, 0.15);
+  color: #4ade80;
 }
 
 .indicator.incomplete {
-  background: #fff3cd;
-  color: #856404;
+  background: rgba(217, 119, 6, 0.15);
+  color: #fbbf24;
 }
 
 /* Buttons */
@@ -328,13 +331,14 @@
 }
 
 .btn-secondary {
-  background: #f8f9fa;
-  color: #333;
-  border: 1px solid #ddd;
+  background: var(--color-medium-gray);
+  color: var(--color-white);
+  border: 1px solid var(--color-light-gray);
 }
 
 .btn-secondary:hover {
-  background: #e9ecef;
+  background: var(--color-light-gray);
+  color: var(--color-black);
 }
 
 .btn-sm {
@@ -359,8 +363,8 @@
 .spinner {
   width: 48px;
   height: 48px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid var(--primary-color, #007bff);
+  border: 4px solid var(--color-medium-gray);
+  border-top: 4px solid var(--color-lighter-gray);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -392,25 +396,26 @@
 
 .empty-state h2 {
   margin: 0;
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .empty-state p {
   margin: 0;
-  color: #666;
+  color: var(--color-light-gray);
   max-width: 400px;
 }
 
 /* Error Banner */
 .error-banner {
-  background: #f8d7da;
-  color: #721c24;
+  background: rgba(220, 38, 38, 0.15);
+  color: #ef4444;
   padding: 1rem 1.5rem;
   border-radius: 8px;
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  border: 1px solid rgba(220, 38, 38, 0.3);
 }
 
 .error-icon {

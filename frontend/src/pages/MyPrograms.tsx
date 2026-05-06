@@ -54,12 +54,12 @@ export default function MyPrograms() {
         </button>
       </div>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p style={{ color: '#ef4444' }}>{error}</p>}
 
       {loading ? (
         <p>Loading...</p>
       ) : isEmpty ? (
-        <div style={{ textAlign: 'center', padding: '2rem 0', color: '#666' }}>
+        <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--color-light-gray)' }}>
           <p>You don't have any programs yet.</p>
           <button className="btn-primary" onClick={() => navigate('/build-program')}>
             Build your first program
@@ -87,7 +87,7 @@ export default function MyPrograms() {
                 }}>Draft</span>
               </div>
               {plan.notes && (
-                <p style={{ color: '#666', margin: '0 0 0.5rem', fontSize: '0.875rem' }}>{plan.notes}</p>
+                <p style={{ color: 'var(--color-light-gray)', margin: '0 0 0.5rem', fontSize: '0.875rem' }}>{plan.notes}</p>
               )}
               <div className="program-meta" style={{ marginBottom: '0.75rem' }}>
                 <span>{plan.engine_program_id}</span>
@@ -124,18 +124,18 @@ export default function MyPrograms() {
                   <h3 style={{ margin: 0 }}>{p.assignment_name || p.program_name}</h3>
                   <span style={{
                     fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem',
-                    borderRadius: '10px', background: p.status === 'completed' ? '#e8f5e9' : '#e3f2fd',
-                    color: p.status === 'completed' ? '#2e7d32' : '#1565c0',
+                    borderRadius: '10px', background: p.status === 'completed' ? 'rgba(22, 163, 74, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                    color: p.status === 'completed' ? '#4ade80' : '#60a5fa',
                     textTransform: 'capitalize', letterSpacing: '0.04em', whiteSpace: 'nowrap',
                   }}>{p.status}</span>
                 </div>
 
                 <div style={{ marginBottom: '0.75rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#666', marginBottom: '0.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--color-light-gray)', marginBottom: '0.25rem' }}>
                     <span>Week {p.current_week} · Day {p.current_day}</span>
                     <span style={{ color }}>{pct}%</span>
                   </div>
-                  <div style={{ height: '6px', background: '#e0e0e0', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ height: '6px', background: 'var(--color-medium-gray)', borderRadius: '3px', overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: '3px', transition: 'width 0.3s' }} />
                   </div>
                 </div>

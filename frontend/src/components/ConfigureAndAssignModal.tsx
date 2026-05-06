@@ -330,7 +330,7 @@ export default function ConfigureAndAssignModal({
             </div>
 
             {error && (
-              <div style={{ color: '#c0392b', background: '#fdf0f0', padding: '0.75rem 1rem', borderRadius: '6px', marginBottom: '1rem', fontSize: '0.9rem' }}>
+              <div style={{ color: '#ef4444', background: 'rgba(220, 38, 38, 0.15)', padding: '0.75rem 1rem', borderRadius: '6px', marginBottom: '1rem', fontSize: '0.9rem', border: '1px solid rgba(220, 38, 38, 0.3)' }}>
                 {error}
               </div>
             )}
@@ -347,9 +347,9 @@ export default function ConfigureAndAssignModal({
 
                     {/* Read-only movement summary */}
                     <div style={{ overflowX: 'auto', marginBottom: '1.25rem' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', color: 'var(--color-white)' }}>
                         <thead>
-                          <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #e9ecef' }}>
+                          <tr style={{ background: 'var(--color-medium-gray)', borderBottom: '2px solid var(--color-light-gray)' }}>
                             <th style={{ padding: '0.6rem 0.75rem', textAlign: 'left', fontWeight: 600 }}>Movement</th>
                             <th style={{ padding: '0.6rem 0.75rem', textAlign: 'center', fontWeight: 600 }}>1RM (lbs)</th>
                             <th style={{ padding: '0.6rem 0.75rem', textAlign: 'center', fontWeight: 600 }}>Max reps @ 80%</th>
@@ -358,11 +358,11 @@ export default function ConfigureAndAssignModal({
                         </thead>
                         <tbody>
                           {movements.map(m => (
-                            <tr key={m.name} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                            <tr key={m.name} style={{ borderBottom: '1px solid var(--color-medium-gray)' }}>
                               <td style={{ padding: '0.6rem 0.75rem', fontWeight: 500 }}>{m.name}</td>
-                              <td style={{ padding: '0.6rem 0.5rem', textAlign: 'center', color: '#444' }}>{m.one_rm} lbs</td>
-                              <td style={{ padding: '0.6rem 0.5rem', textAlign: 'center', color: '#444' }}>{m.max_reps_at_80_percent}</td>
-                              <td style={{ padding: '0.6rem 0.5rem', textAlign: 'center', color: '#444' }}>{m.target_weight} lbs</td>
+                              <td style={{ padding: '0.6rem 0.5rem', textAlign: 'center', color: 'var(--color-light-gray)' }}>{m.one_rm} lbs</td>
+                              <td style={{ padding: '0.6rem 0.5rem', textAlign: 'center', color: 'var(--color-light-gray)' }}>{m.max_reps_at_80_percent}</td>
+                              <td style={{ padding: '0.6rem 0.5rem', textAlign: 'center', color: 'var(--color-light-gray)' }}>{m.target_weight} lbs</td>
                             </tr>
                           ))}
                         </tbody>
@@ -375,9 +375,9 @@ export default function ConfigureAndAssignModal({
 
                     {/* Editable movement params table */}
                     <div style={{ overflowX: 'auto', marginBottom: '1.25rem' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', color: 'var(--color-white)' }}>
                         <thead>
-                          <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #e9ecef' }}>
+                          <tr style={{ background: 'var(--color-medium-gray)', borderBottom: '2px solid var(--color-light-gray)' }}>
                             <th style={{ padding: '0.6rem 0.75rem', textAlign: 'left', fontWeight: 600 }}>Movement</th>
                             <th style={{ padding: '0.6rem 0.75rem', textAlign: 'center', fontWeight: 600 }}>1RM (lbs)</th>
                             <th style={{ padding: '0.6rem 0.75rem', textAlign: 'center', fontWeight: 600 }}>Max reps @ 80%</th>

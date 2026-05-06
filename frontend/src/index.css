@@ -7,12 +7,12 @@
 }
 
 :root {
-  /* Color Palette */
-  --color-black: #1a1a1a;
-  --color-dark-gray: #333333;
-  --color-medium-gray: #666666;
-  --color-light-gray: #e0e0e0;
-  --color-lighter-gray: #f5f5f5;
+  /* Color Palette - Dark Theme */
+  --color-black: #0a0a0a;
+  --color-dark-gray: #1a1a1a;
+  --color-medium-gray: #404040;
+  --color-light-gray: #737373;
+  --color-lighter-gray: #d4d4d4;
   --color-white: #ffffff;
 
   /* Typography */
@@ -33,14 +33,14 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  color: var(--color-black);
-  background: var(--color-white);
+  color: var(--color-white);
+  background: var(--color-dark-gray);
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   line-height: 1.2;
-  color: var(--color-black);
+  color: var(--color-white);
 }
 
 p {
@@ -62,6 +62,13 @@ textarea,
 select {
   font-family: inherit;
   font-size: inherit;
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-light-gray);
 }
 
 /* Scrollbar Styling */
@@ -71,7 +78,7 @@ select {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-lighter-gray);
+  background: var(--color-dark-gray);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -80,7 +87,7 @@ select {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-dark-gray);
+  background: var(--color-light-gray);
 }
 
 /* Utility Classes */

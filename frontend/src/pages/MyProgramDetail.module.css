@@ -7,7 +7,7 @@
 .back {
   background: none;
   border: none;
-  color: #1976d2;
+  color: #60a5fa;
   cursor: pointer;
   font-size: 0.9rem;
   padding: 0;
@@ -21,21 +21,21 @@
 .header h1 {
   margin: 0 0 0.25rem;
   font-size: 1.6rem;
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .meta {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  color: #666;
+  color: var(--color-light-gray);
   font-size: 0.85rem;
 }
 
 /* Progress panel */
 .progressPanel {
-  background: #fff;
-  border: 1px solid #e0e0e0;
+  background: var(--color-black);
+  border: 1px solid var(--color-medium-gray);
   border-radius: 8px;
   padding: 1rem 1.25rem;
   margin-bottom: 1.25rem;
@@ -51,7 +51,7 @@
 .position {
   font-size: 1rem;
   font-weight: 600;
-  color: #333;
+  color: var(--color-lighter-gray);
   margin-bottom: 0.2rem;
 }
 
@@ -59,7 +59,7 @@
   display: flex;
   gap: 1rem;
   font-size: 0.8rem;
-  color: #888;
+  color: var(--color-light-gray);
 }
 
 .progressRight {
@@ -92,7 +92,7 @@
 
 .bar {
   height: 7px;
-  background: #e0e0e0;
+  background: var(--color-medium-gray);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -104,8 +104,8 @@
 }
 
 .completedBanner {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: rgba(22, 163, 74, 0.12);
+  color: #4ade80;
   border-radius: 8px;
   padding: 0.75rem 1rem;
   font-weight: 600;
@@ -121,7 +121,7 @@
 }
 
 .weekBlock {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--color-medium-gray);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -132,19 +132,19 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
-  background: #fafafa;
+  background: var(--color-dark-gray);
   border: none;
   cursor: pointer;
   font-size: 0.95rem;
   font-weight: 500;
-  color: #333;
+  color: var(--color-lighter-gray);
   text-align: left;
 }
 
-.weekHeader:hover { background: #f0f0f0; }
+.weekHeader:hover { background: var(--color-medium-gray); }
 
 .weekCurrent {
-  background: #e3f2fd;
+  background: rgba(59, 130, 246, 0.15);
 }
 
 .weekCurrent:hover { background: #bbdefb; }
@@ -167,12 +167,12 @@
 
 .chevron {
   font-size: 0.7rem;
-  color: #999;
+  color: var(--color-light-gray);
 }
 
 /* Day rows */
 .days {
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--color-medium-gray);
 }
 
 .dayRow {
@@ -180,7 +180,7 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-medium-gray);
   gap: 1rem;
 }
 
@@ -206,8 +206,8 @@
 
 .exChip {
   font-size: 0.75rem;
-  color: #555;
-  background: #f5f5f5;
+  color: var(--color-light-gray);
+  background: var(--color-dark-gray);
   border-radius: 4px;
   padding: 0.1rem 0.4rem;
 }
@@ -227,7 +227,7 @@
 .dayLogBtn {
   background: none;
   border: 1px solid #1976d2;
-  color: #1976d2;
+  color: #60a5fa;
   border-radius: 5px;
   padding: 0.25rem 0.6rem;
   cursor: pointer;
@@ -236,7 +236,7 @@
 }
 
 .dayLogBtn:hover {
-  background: #e3f2fd;
+  background: rgba(59, 130, 246, 0.15);
 }
 
-.error { color: #c62828; }
+.error { color: #f87171; }

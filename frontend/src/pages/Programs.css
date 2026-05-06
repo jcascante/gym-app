@@ -16,12 +16,12 @@
 .header-text h1 {
   margin: 0 0 0.25rem 0;
   font-size: 2rem;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--text-primary, var(--color-white));
 }
 
 .header-text p {
   margin: 0;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary, var(--color-light-gray));
   font-size: 1rem;
 }
 
@@ -34,7 +34,7 @@
   width: 100%;
   max-width: 420px;
   padding: 0.75rem 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-medium-gray);
   border-radius: 8px;
   font-size: 1rem;
 }
@@ -48,7 +48,7 @@
 /* Count */
 .programs-count {
   margin: 0 0 1rem 0;
-  color: #666;
+  color: var(--color-light-gray);
   font-size: 0.95rem;
 }
 
@@ -61,7 +61,7 @@
 
 /* Card */
 .program-card {
-  background: white;
+  background: var(--color-black);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
@@ -86,7 +86,7 @@
 .program-name {
   margin: 0;
   font-size: 1.1rem;
-  color: #1a1a1a;
+  color: var(--color-white);
   flex: 1;
   line-height: 1.3;
 }
@@ -96,15 +96,15 @@
   border-radius: 20px;
   font-size: 0.7rem;
   font-weight: 600;
-  background: #e9ecef;
-  color: #495057;
+  background: var(--color-medium-gray);
+  color: var(--color-lighter-gray);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .program-description {
   margin: 0;
-  color: #666;
+  color: var(--color-light-gray);
   font-size: 0.9rem;
   line-height: 1.5;
   display: -webkit-box;
@@ -118,8 +118,8 @@
   display: flex;
   gap: 1.25rem;
   padding: 0.75rem 0;
-  border-top: 1px solid #f0f0f0;
-  border-bottom: 1px solid #f0f0f0;
+  border-top: 1px solid var(--color-medium-gray);
+  border-bottom: 1px solid var(--color-medium-gray);
   flex-wrap: wrap;
 }
 
@@ -128,7 +128,7 @@
   align-items: center;
   gap: 0.35rem;
   font-size: 0.875rem;
-  color: #555;
+  color: var(--color-light-gray);
 }
 
 .meta-icon {
@@ -145,7 +145,7 @@
 
 .program-date {
   font-size: 0.8rem;
-  color: #999;
+  color: var(--color-light-gray);
 }
 
 .program-actions {
@@ -175,9 +175,9 @@
 
 .btn-secondary-sm {
   padding: 0.35rem 0.75rem;
-  background: #f5f5f5;
-  color: #1a1a1a;
-  border: 1px solid #ddd;
+  background: var(--color-dark-gray);
+  color: var(--color-white);
+  border: 1px solid var(--color-medium-gray);
   border-radius: 6px;
   font-size: 0.8rem;
   font-weight: 500;
@@ -186,13 +186,13 @@
 }
 
 .btn-secondary-sm:hover {
-  background: #e8e8e8;
+  background: var(--color-medium-gray);
 }
 
 .btn-primary-sm {
   padding: 0.35rem 0.75rem;
-  background: #1a1a1a;
-  color: #fff;
+  background: var(--color-lighter-gray);
+  color: var(--color-black);
   border: none;
   border-radius: 6px;
   font-size: 0.8rem;
@@ -202,14 +202,15 @@
 }
 
 .btn-primary-sm:hover {
-  background: #333;
+  background: var(--color-white);
+  color: var(--color-black);
 }
 
 .btn-danger-sm {
   padding: 0.35rem 0.75rem;
-  background: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+  background: rgba(220, 38, 38, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(220, 38, 38, 0.3);
   border-radius: 6px;
   font-size: 0.8rem;
   cursor: pointer;
@@ -217,7 +218,7 @@
 }
 
 .btn-danger-sm:hover:not(:disabled) {
-  background: #f1aeb5;
+  background: rgba(220, 38, 38, 0.25);
 }
 
 .btn-danger-sm:disabled {
@@ -238,13 +239,13 @@
 
 .programs-header .header-text p {
   margin: 0;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary, var(--color-light-gray));
 }
 
 /* Workout list item (re-uses card styles but more compact)
    Used by ProgramDetails to display each workout entry */
 .workout-item {
-  background: #fff;
+  background: var(--color-black);
   border-radius: 10px;
   padding: 0.75rem 1rem;
   box-shadow: 0 1px 6px rgba(0,0,0,0.06);
@@ -273,7 +274,7 @@
 .spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f3f3f3;
+  border: 4px solid var(--color-medium-gray);
   border-top: 4px solid var(--primary-color, #007bff);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -292,7 +293,7 @@
 .spinner {
   width: 48px;
   height: 48px;
-  border: 4px solid #f3f3f3;
+  border: 4px solid var(--color-medium-gray);
   border-top: 4px solid var(--primary-color, #007bff);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -321,12 +322,12 @@
 
 .empty-state h2 {
   margin: 0;
-  color: #1a1a1a;
+  color: var(--color-white);
 }
 
 .empty-state p {
   margin: 0;
-  color: #666;
+  color: var(--color-light-gray);
   max-width: 400px;
 }
 
@@ -343,11 +344,11 @@
   letter-spacing: 0.05em;
   margin: 0 0 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 2px solid var(--color-medium-gray);
 }
 
 .programs-empty-hint {
-  color: #888;
+  color: var(--color-light-gray);
   font-size: 0.92rem;
   margin: 0.5rem 0 0;
 }
@@ -366,27 +367,27 @@
 }
 
 .prog-status-template {
-  background: #e8f4fd;
-  color: #1565c0;
-  border: 1px solid #90caf9;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .prog-status-draft {
-  background: #fff3cd;
-  color: #856404;
+  background: rgba(217, 119, 6, 0.15);
+  color: #fbbf24;
   border: 1px solid #ffc107;
 }
 
 .prog-status-published {
-  background: #d4edda;
-  color: #155724;
+  background: rgba(22, 163, 74, 0.15);
+  color: #4ade80;
   border: 1px solid #c3e6cb;
 }
 
 /* Error */
 .error-banner {
-  background: #f8d7da;
-  color: #721c24;
+  background: rgba(220, 38, 38, 0.15);
+  color: #f87171;
   padding: 1rem 1.5rem;
   border-radius: 8px;
   margin-bottom: 1.5rem;

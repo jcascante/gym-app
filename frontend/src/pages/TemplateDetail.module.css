@@ -7,7 +7,7 @@
 .back {
   background: none;
   border: none;
-  color: #1a73e8;
+  color: #60a5fa;
   cursor: pointer;
   font-size: 0.9rem;
   padding: 0;
@@ -28,8 +28,8 @@
   font-weight: 600;
   padding: 0.15rem 0.5rem;
   border-radius: 12px;
-  background: #e8f0fe;
-  color: #1a73e8;
+  background: rgba(59, 130, 246, 0.12);
+  color: #60a5fa;
   margin-bottom: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -40,19 +40,19 @@
 }
 
 .desc {
-  color: #555;
+  color: var(--color-light-gray);
   margin: 0 0 0.75rem;
 }
 
 .meta {
   display: flex;
   gap: 1rem;
-  color: #666;
+  color: var(--color-light-gray);
   font-size: 0.9rem;
 }
 
 .structure {
-  background: #f8f9fa;
+  background: var(--color-dark-gray);
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 2rem;
@@ -70,7 +70,7 @@
 .week h3 {
   margin: 0 0 0.5rem;
   font-size: 1rem;
-  color: #333;
+  color: var(--color-lighter-gray);
 }
 
 .day {
@@ -83,18 +83,18 @@
   padding: 0;
   list-style: disc;
   font-size: 0.875rem;
-  color: #555;
+  color: var(--color-light-gray);
 }
 
 .moreWeeks {
-  color: #888;
+  color: var(--color-light-gray);
   font-size: 0.875rem;
   font-style: italic;
 }
 
 .startForm {
-  background: #fff;
-  border: 1px solid #e0e0e0;
+  background: var(--color-black);
+  border: 1px solid var(--color-medium-gray);
   border-radius: 10px;
   padding: 1.5rem;
 }
@@ -110,7 +110,7 @@
   gap: 0.35rem;
   font-size: 0.9rem;
   margin-bottom: 1rem;
-  color: #333;
+  color: var(--color-lighter-gray);
 }
 
 .input {
@@ -123,7 +123,7 @@
 }
 
 .input:focus {
-  border-color: #1a73e8;
+  border-color: #60a5fa;
 }
 
 .startBtn {

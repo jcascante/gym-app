@@ -1,11 +1,11 @@
 .header {
-  background: #ffffff;
-  border-bottom: 1px solid #e0e0e0;
+  background: var(--color-black);
+  border-bottom: 1px solid var(--color-medium-gray);
   padding: 0 32px;
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .header-content {
@@ -28,13 +28,13 @@
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--color-white);
   letter-spacing: -0.5px;
 }
 
 .header-tagline {
   font-size: 0.85rem;
-  color: #666666;
+  color: var(--color-light-gray);
   font-weight: 400;
 }
 
@@ -47,7 +47,7 @@
 
 .nav-link {
   padding: 10px 20px;
-  color: #4a4a4a;
+  color: var(--color-light-gray);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.95rem;
@@ -56,8 +56,8 @@
 }
 
 .nav-link:hover {
-  background: #f5f5f5;
-  color: #1a1a1a;
+  background: var(--color-medium-gray);
+  color: var(--color-white);
 }
 
 .header-actions {
@@ -70,8 +70,8 @@
   padding: 10px 20px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #ffffff;
-  background: #1a1a1a;
+  color: var(--color-black);
+  background: var(--color-lighter-gray);
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -79,7 +79,7 @@
 }
 
 .logout-button:hover {
-  background: #000000;
+  background: var(--color-white);
   transform: translateY(-1px);
 }
 
@@ -87,8 +87,8 @@
   padding: 10px 16px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #1a1a1a;
-  background: #f5f5f5;
+  color: var(--color-black);
+  background: var(--color-medium-gray);
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -96,7 +96,7 @@
 }
 
 .lang-button:hover {
-  background: #e8e8e8;
+  background: var(--color-light-gray);
 }
 
 /* Mobile Menu Button (Hamburger) */
@@ -116,7 +116,7 @@
 .mobile-menu-button span {
   width: 100%;
   height: 3px;
-  background: #1a1a1a;
+  background: var(--color-white);
   border-radius: 2px;
   transition: all 0.3s ease;
   transform-origin: center;
@@ -142,7 +142,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: #ffffff;
+  background: var(--color-dark-gray);
   z-index: 999;
   overflow-y: auto;
   transform: translateX(100%);
@@ -162,17 +162,17 @@
 
 .mobile-nav-link {
   padding: 16px 20px;
-  color: #1a1a1a;
+  color: var(--color-white);
   text-decoration: none;
   font-weight: 500;
   font-size: 1.1rem;
   border-radius: 8px;
   transition: all 0.2s ease;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-medium-gray);
 }
 
 .mobile-nav-link:hover {
-  background: #f5f5f5;
+  background: var(--color-medium-gray);
 }
 
 .mobile-actions {
@@ -180,15 +180,15 @@
   flex-direction: column;
   padding: 16px;
   gap: 12px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--color-medium-gray);
 }
 
 .mobile-lang-button {
   padding: 14px 20px;
   font-size: 1rem;
   font-weight: 600;
-  color: #1a1a1a;
-  background: #f5f5f5;
+  color: var(--color-black);
+  background: var(--color-medium-gray);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -196,15 +196,15 @@
 }
 
 .mobile-lang-button:hover {
-  background: #e8e8e8;
+  background: var(--color-light-gray);
 }
 
 .mobile-logout-button {
   padding: 14px 20px;
   font-size: 1rem;
   font-weight: 600;
-  color: #ffffff;
-  background: #1a1a1a;
+  color: var(--color-black);
+  background: var(--color-lighter-gray);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -212,7 +212,7 @@
 }
 
 .mobile-logout-button:hover {
-  background: #000000;
+  background: var(--color-white);
 }
 
 @media (max-width: 768px) {

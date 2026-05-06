@@ -272,14 +272,14 @@ export default function AddClientModal({ onClose, onClientAdded }: AddClientModa
               {result.success && result.isNew && (
                 <div className="result-note">
                   {result.temporaryPassword && (
-                    <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#f0f8ff', borderRadius: '4px', border: '1px solid #b0d4ff' }}>
-                      <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#0066cc' }}>
+                    <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: 'var(--color-black)', borderRadius: '4px', border: '1px solid var(--color-medium-gray)' }}>
+                      <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: 'var(--color-lighter-gray)' }}>
                         Temporary Password:
                       </p>
-                      <p style={{ margin: '0', fontFamily: 'monospace', fontSize: '14px', color: '#333', wordBreak: 'break-all' }}>
+                      <p style={{ margin: '0', fontFamily: 'monospace', fontSize: '14px', color: 'var(--color-white)', wordBreak: 'break-all' }}>
                         {result.temporaryPassword}
                       </p>
-                      <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#666' }}>
+                      <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: 'var(--color-light-gray)' }}>
                         ⚠️ Share this password with the client. They will be required to change it on first login.
                       </p>
                     </div>

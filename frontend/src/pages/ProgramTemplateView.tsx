@@ -157,10 +157,10 @@ export default function ProgramTemplateView() {
           <h1>
             {program.name}
             {isDraft && <span className="pdr-draft-badge">Draft</span>}
-            {program.status === 'published' && <span className="pdr-draft-badge" style={{ background: '#d4edda', color: '#155724', borderColor: '#c3e6cb' }}>Published</span>}
+            {program.status === 'published' && <span className="pdr-draft-badge" style={{ background: 'rgba(22, 163, 74, 0.15)', color: '#4ade80', borderColor: 'rgba(22, 163, 74, 0.3)' }}>Published</span>}
           </h1>
           {program.description && (
-            <p style={{ margin: '0.2rem 0 0', fontSize: '0.9rem', color: '#666' }}>{program.description}</p>
+            <p style={{ margin: '0.2rem 0 0', fontSize: '0.9rem', color: 'var(--color-light-gray)' }}>{program.description}</p>
           )}
         </div>
       </div>
@@ -191,13 +191,13 @@ export default function ProgramTemplateView() {
 
       {/* Parameters summary (when available) */}
       {inputMovements.length > 0 && (
-        <div style={{ background: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: '8px', padding: '1rem 1.25rem', marginBottom: '1.25rem' }}>
-          <p style={{ margin: '0 0 0.6rem', fontWeight: 600, fontSize: '0.88rem', color: '#555', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+        <div style={{ background: 'var(--color-black)', border: '1px solid var(--color-medium-gray)', borderRadius: '8px', padding: '1rem 1.25rem', marginBottom: '1.25rem' }}>
+          <p style={{ margin: '0 0 0.6rem', fontWeight: 600, fontSize: '0.88rem', color: 'var(--color-light-gray)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             Program Parameters
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem 1.5rem' }}>
             {inputMovements.map(m => (
-              <span key={m.name} style={{ fontSize: '0.88rem', color: '#333' }}>
+              <span key={m.name} style={{ fontSize: '0.88rem', color: 'var(--color-lighter-gray)' }}>
                 <strong>{m.name}</strong>
                 {m.one_rm ? ` — 1RM: ${m.one_rm} lbs` : ''}
                 {m.target_weight ? `, target: ${m.target_weight} lbs` : ''}
