@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listProgramDefinitions, getProgramDefinition, generatePlan } from '../services/engineProxy';
+import { ApiError } from '../services/api';
 import { savePlan } from '../services/generatedPlans';
 import type { EngineProgramSummary, EngineProgramDefinition, GeneratedPlan, ParameterField } from '../types/engine';
 import DynamicParamForm from '../components/DynamicParamForm';
@@ -87,7 +88,10 @@ export default function BuildProgram() {
   useEffect(() => {
     listProgramDefinitions()
       .then(setPrograms)
-      .catch(() => setEngineError('Could not connect to the training engine. Is it running?'))
+      .catch((err: unknown) => {
+        const detail = err instanceof ApiError ? err.message : 'Could not connect to the training engine.';
+        setEngineError(detail);
+      })
       .finally(() => setLoadingPrograms(false));
   }, []);
 

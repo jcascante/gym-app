@@ -54,23 +54,37 @@ async def _http(method: str, path: str, **kwargs: Any) -> Any:
 
 def _invoke_lambda(operation: str, payload: dict[str, Any]) -> Any:
     import boto3  # imported lazily — not installed in local dev
+    import botocore.exceptions
 
     client = boto3.client("lambda", region_name=settings.ENGINE_LAMBDA_REGION)
     event = {"operation": operation, "payload": payload}
-    response = client.invoke(
-        FunctionName=settings.ENGINE_LAMBDA_FUNCTION_NAME,
-        InvocationType="RequestResponse",
-        Payload=json.dumps(event),
-    )
+
+    try:
+        response = client.invoke(
+            FunctionName=settings.ENGINE_LAMBDA_FUNCTION_NAME,
+            InvocationType="RequestResponse",
+            Payload=json.dumps(event),
+        )
+    except botocore.exceptions.ClientError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Program Builder invocation failed: {exc.response['Error']['Message']}",
+        ) from exc
+
+    if response.get("FunctionError"):
+        raw = json.loads(response["Payload"].read())
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Program Builder error: {raw.get('errorMessage', 'unknown error')}",
+        )
 
     result: dict[str, Any] = json.loads(response["Payload"].read())
-    status_code: int = result.get("statusCode", 200)
+    status_code_val: int = result.get("statusCode", 200)
 
-    if status_code != 200:
-        raise HTTPException(
-            status_code=status_code,
-            detail=result.get("body", {}).get("error", "Program Builder error"),
-        )
+    if status_code_val != 200:
+        body = result.get("body", {})
+        error_msg = body.get("error", "Program Builder error") if isinstance(body, dict) else str(body)
+        raise HTTPException(status_code=status_code_val, detail=error_msg)
 
     return result["body"]
 

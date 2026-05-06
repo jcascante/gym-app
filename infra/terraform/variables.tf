@@ -21,12 +21,12 @@ variable "image_tag" {
 
 variable "backend_cpu" {
   type    = number
-  default = 256
+  default = 512
 }
 
 variable "backend_memory" {
   type    = number
-  default = 512
+  default = 1024
 }
 
 variable "backend_min_tasks" {
