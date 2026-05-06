@@ -13,6 +13,11 @@ from app.core.database import close_db, init_db
 logger = logging.getLogger(__name__)
 
 
+class HealthCheckFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "/health" not in record.getMessage()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -38,6 +43,9 @@ async def lifespan(app: FastAPI):
 
     # Startup
     await init_db()
+
+    # Suppress health check logs
+    logging.getLogger("uvicorn.access").addFilter(HealthCheckFilter())
 
     # Auto-seed in development so the app is usable out of the box
     if settings.ENVIRONMENT == "development":

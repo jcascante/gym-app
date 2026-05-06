@@ -66,27 +66,45 @@ def _invoke_lambda(operation: str, payload: dict[str, Any]) -> Any:
             Payload=json.dumps(event),
         )
     except botocore.exceptions.ClientError as exc:
+        error_msg = "Program Builder invocation failed"
+        try:
+            error_msg += f": {exc.response['Error']['Message']}"
+        except (KeyError, TypeError):
+            error_msg += f": {str(exc)}"
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Program Builder invocation failed: {exc.response['Error']['Message']}",
+            detail=error_msg,
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Program Builder error: {str(exc)}",
         ) from exc
 
-    if response.get("FunctionError"):
-        raw = json.loads(response["Payload"].read())
+    try:
+        if response.get("FunctionError"):
+            raw = json.loads(response["Payload"].read())
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Program Builder error: {raw.get('errorMessage', 'unknown error')}",
+            )
+
+        result: dict[str, Any] = json.loads(response["Payload"].read())
+        status_code_val: int = result.get("statusCode", 200)
+
+        if status_code_val != 200:
+            body = result.get("body", {})
+            error_msg = body.get("error", "Program Builder error") if isinstance(body, dict) else str(body)
+            raise HTTPException(status_code=status_code_val, detail=error_msg)
+
+        return result["body"]
+    except HTTPException:
+        raise
+    except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Program Builder error: {raw.get('errorMessage', 'unknown error')}",
-        )
-
-    result: dict[str, Any] = json.loads(response["Payload"].read())
-    status_code_val: int = result.get("statusCode", 200)
-
-    if status_code_val != 200:
-        body = result.get("body", {})
-        error_msg = body.get("error", "Program Builder error") if isinstance(body, dict) else str(body)
-        raise HTTPException(status_code=status_code_val, detail=error_msg)
-
-    return result["body"]
+            detail=f"Program Builder error: {str(exc)}",
+        ) from exc
 
 
 def _lambda(operation: str, payload: dict[str, Any] | None = None) -> Any:
