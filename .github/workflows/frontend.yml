@@ -9,7 +9,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  FRONTEND_BUCKET: app.movementtrainingclub.com
+  FRONTEND_BUCKET: app.costabirra.com
   CLOUDFRONT_DISTRIBUTION_ID: E15DPRRJ6MVP5X
 
 jobs:

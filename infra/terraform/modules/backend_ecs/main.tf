@@ -105,6 +105,12 @@ resource "aws_lb_listener" "https" {
   }
 }
 
+resource "aws_lb_listener_certificate" "additional" {
+  for_each        = toset(var.additional_certificate_arns)
+  listener_arn    = try(aws_lb_listener.https[0].arn, "")
+  certificate_arn = each.value
+}
+
 # ── ECS ──────────────────────────────────────────────────────────────────────
 
 resource "aws_ecs_cluster" "main" {

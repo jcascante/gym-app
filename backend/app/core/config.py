@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = [
         "http://localhost:5173",
         "http://localhost:3000",
-        "https://app.movementtrainingclub.com",
+        "https://app.costabirra.com",
     ]
 
     # Database - can be set directly via DATABASE_URL env var, or falls back to environment-based defaults

@@ -75,7 +75,7 @@ module "iam" {
 # ── Frontend — existing resources (reused, not managed here) ─────────────────
 
 data "aws_s3_bucket" "frontend" {
-  bucket = "app.movementtrainingclub.com"
+  bucket = "app.costabirra.com"
 }
 
 # ACM cert already attached: arn:aws:acm:us-east-1:691650344087:certificate/9ba09513-c68c-40a7-af6f-68cc42f4d10c
@@ -84,13 +84,13 @@ data "aws_cloudfront_distribution" "frontend" {
 }
 
 data "aws_route53_zone" "frontend" {
-  name = "movementtrainingclub.com."
+  name = "costabirra.com"
 }
 
-# ── Route53: api.movementtrainingclub.com → backend ALB ─────────────
+# ── Route53: api.costabirra.com → backend ALB ─────────────
 resource "aws_route53_record" "api" {
   zone_id = data.aws_route53_zone.frontend.zone_id
-  name    = "api.movementtrainingclub.com"
+  name    = "api.costabirra.com"
   type    = "A"
   alias {
     name                   = module.backend_ecs.alb_dns_name
@@ -161,7 +161,7 @@ module "backend_ecs" {
   task_execution_role_arn = module.iam.ecs_execution_role_arn
   task_role_arn           = module.iam.ecs_task_role_arn
 
-  acm_certificate_arn = "arn:aws:acm:us-east-1:691650344087:certificate/9ba09513-c68c-40a7-af6f-68cc42f4d10c"
+  acm_certificate_arn = "arn:aws:acm:us-east-1:691650344087:certificate/9eed0ca3-3d14-4892-915c-d757b3408b4e"
   container_port      = 8000
 
   environment_variables = {

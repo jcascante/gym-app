@@ -78,8 +78,8 @@ resource "aws_iam_user_policy" "gym_app_ci_frontend" {
           "s3:ListBucket"
         ]
         Resource = [
-          "arn:aws:s3:::app.movementtrainingclub.com",
-          "arn:aws:s3:::app.movementtrainingclub.com/*"
+          "arn:aws:s3:::app.costabirra.com",
+          "arn:aws:s3:::app.costabirra.com/*"
         ]
       },
       {

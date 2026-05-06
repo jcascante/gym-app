@@ -56,5 +56,10 @@ variable "health_check_path" {
 
 variable "acm_certificate_arn" {
   type    = string
-  default = ""
+  default = "arn:aws:acm:us-east-1:691650344087:certificate/9eed0ca3-3d14-4892-915c-d757b3408b4e"
+}
+
+variable "additional_certificate_arns" {
+  type    = list(string)
+  default = []
 }
